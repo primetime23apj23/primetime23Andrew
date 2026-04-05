@@ -212,21 +212,12 @@ export async function getAvailableLobbies(
   gameType: 'multiplication' | 'give-or-take'
 ): Promise<GameLobby[]> {
   try {
-    const { data, error } = await supabase
-      .from('game_sessions')
-      .select(`
-        *,
-        player_1:game_players!game_sessions_player_1_id_fkey(player_name)
-      `)
-      .eq('game_type', gameType)
-      .eq('status', 'waiting');
-
-    if (error) throw error;
-    
-    return (data || []).map((session: any) => ({
-      ...session,
-      player_1_name: session.player_1?.[0]?.player_name || 'Unknown Player',
-    })) as GameLobby[];
+    const response = await fetch(`/api/lobbies?gameType=${gameType}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data as GameLobby[];
   } catch (error) {
     console.error('Error fetching available lobbies:', error);
     return [];
@@ -245,32 +236,24 @@ export async function createGameLobby(
   const sessionCode = await generateSessionCode();
 
   try {
-    const insertData: any = {
-      game_type: gameType,
-      session_code: sessionCode,
-      player_1_id: playerId,
-      player_2_id: null,
-      status: 'waiting',
-    };
+    const response = await fetch('/api/lobbies', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gameType,
+        sessionCode,
+        playerId,
+        playerName,
+        targetScore: settings.targetScore,
+        botDifficulty: settings.botDifficulty,
+      }),
+    });
 
-    // Only include optional columns if they're provided
-    if (settings.targetScore) insertData.target_score = settings.targetScore;
-    if (settings.botDifficulty) insertData.bot_difficulty = settings.botDifficulty;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-    const { data, error } = await supabase
-      .from('game_sessions')
-      .insert(insertData)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    // Store player info
-    await supabase.from('game_players').insert({
-      player_id: playerId,
-      player_name: playerName,
-    }).select().single();
-
+    const data = await response.json();
     return data as GameSession;
   } catch (error) {
     console.error('Error creating game lobby:', error);
