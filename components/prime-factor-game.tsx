@@ -1021,6 +1021,11 @@ export function PrimeFactorGame() {
         setWaitingForOpponent(false);
         setShowModeSelect(true);
       }}
+      onOpponentJoined={() => {
+        setWaitingForOpponent(false);
+        setShowSetup(true);
+        setShowModeSelect(false);
+      }}
       isOpen
     />
   )}

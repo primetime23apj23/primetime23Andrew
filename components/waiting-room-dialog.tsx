@@ -59,6 +59,12 @@ export function WaitingRoomDialog({
             <p className="text-sm text-muted-foreground">Waiting for opponent to join...</p>
           </div>
 
+          {onOpponentJoined && (
+            <Button onClick={onOpponentJoined} className="w-full">
+              Opponent Joined — Start Match
+            </Button>
+          )}
+
           <Button onClick={onCancel} variant="outline" className="w-full">
             Cancel
           </Button>

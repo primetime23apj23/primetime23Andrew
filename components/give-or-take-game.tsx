@@ -662,6 +662,11 @@ export function GiveOrTakeGame() {
               setWaitingForOpponent(false);
               setShowModeSelect(true);
             }}
+            onOpponentJoined={() => {
+              setWaitingForOpponent(false);
+              setShowSetup(true);
+              setShowModeSelect(false);
+            }}
             isOpen
           />
         )}
