@@ -216,14 +216,24 @@ export function subscribeToGameState(
   sessionId: string,
   callback: (gameStates: GameState[]) => void
 ) {
-  return supabase
-    .from('game_states')
-    .on('*', (payload) => {
-      if (payload.new && (payload.new as any).session_id === sessionId) {
+  const channel = supabase.channel(`game_states:${sessionId}`);
+
+  channel
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'game_states',
+        filter: `session_id=eq.${sessionId}`,
+      },
+      () => {
         getGameStates(sessionId).then(callback);
       }
-    })
+    )
     .subscribe();
+
+  return channel;
 }
 
 export function subscribeToSession(
