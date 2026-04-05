@@ -33,6 +33,19 @@ export function generatePlayerId(): string {
   return playerId;
 }
 
+// Prefer authenticated user id when available
+export async function getAuthPlayerId(): Promise<string | null> {
+  try {
+    const { data } = await supabase.auth.getUser();
+    const id = data.user?.id ?? null;
+    if (id) return id;
+    return null;
+  } catch (error) {
+    console.warn('No auth user', error);
+    return null;
+  }
+}
+
 export interface GameSession {
   id: string;
   game_type: 'multiplication' | 'give-or-take';

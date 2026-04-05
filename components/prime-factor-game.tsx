@@ -1174,7 +1174,10 @@ export function PrimeFactorGame() {
   <AuthDialog
     open={showAuth}
     onOpenChange={setShowAuth}
-    onAuthed={(name) => setPlayerNames([name || "Player 1", playerNames[1]])}
+    onAuthed={(name, _email, userId) => {
+      if (userId) setPlayerId(userId);
+      setPlayerNames([name || "Player 1", playerNames[1]]);
+    }}
   />
   
   {/* Multiplayer Mode Selector */}

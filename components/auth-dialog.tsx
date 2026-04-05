@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase-multiplayer";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import { Button } from "@/components/ui/button";
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAuthed: (playerName: string, email: string) => void;
+  onAuthed: (playerName: string, email: string, userId: string | null) => void;
 }
 
 export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
@@ -29,11 +30,39 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
     if (storedEmail) setEmail(storedEmail);
   }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) return;
-    localStorage.setItem("pf_player_name", name.trim());
-    if (email.trim()) localStorage.setItem("pf_player_email", email.trim());
-    onAuthed(name.trim(), email.trim());
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    localStorage.setItem("pf_player_name", trimmedName);
+    if (trimmedEmail) localStorage.setItem("pf_player_email", trimmedEmail);
+
+    let userId: string | null = null;
+    if (trimmedEmail) {
+      // Try sign-in, fallback to sign-up
+      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password: trimmedEmail + "_pass",
+      });
+      if (signInData?.user) {
+        userId = signInData.user.id;
+      } else {
+        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+          email: trimmedEmail,
+          password: trimmedEmail + "_pass",
+          options: { data: { player_name: trimmedName } },
+        });
+        if (!signUpErr && signUpData.user) {
+          userId = signUpData.user.id;
+        }
+      }
+      // Upsert player profile if we have id
+      if (userId) {
+        await supabase.from('game_players').upsert({ player_id: userId, player_name: trimmedName });
+      }
+    }
+
+    onAuthed(trimmedName, trimmedEmail, userId);
     onOpenChange(false);
   };
 
