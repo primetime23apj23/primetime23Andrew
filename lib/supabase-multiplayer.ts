@@ -344,38 +344,20 @@ export async function joinGameLobby(
   const playerId = generatePlayerId();
 
   try {
-    // Get the current session
-    const { data: session, error: findError } = await supabase
-      .from('game_sessions_with_names')
-      .select('*')
-      .eq('id', sessionId)
-      .single();
+    const response = await fetch('/api/lobbies', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ joinSessionId: sessionId, playerId, playerName }),
+    });
 
-    if (findError || !session) {
-      console.error('Session not found');
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Lobby join failed HTTP', response.status, text);
       return null;
     }
 
-    // Update session with second player
-    const { data, error: updateError } = await supabase
-      .from('game_sessions')
-      .update({
-        player_2_id: playerId,
-        status: 'active',
-      })
-      .eq('id', sessionId)
-      .select()
-      .single();
-
-    if (updateError) throw updateError;
-
-    // Store player info
-    await supabase.from('game_players').upsert({
-      player_id: playerId,
-      player_name: playerName,
-    });
-
-    return await fetchSessionById((data as GameSession).id);
+    const data = await response.json();
+    return data as GameSession;
   } catch (error) {
     console.error('Error joining game lobby:', error);
     return null;

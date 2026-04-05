@@ -59,7 +59,51 @@ export async function POST(request: NextRequest) {
       playerName,
       targetScore,
       botDifficulty,
+      joinSessionId,
     } = body;
+
+    // Join existing lobby
+    if (joinSessionId) {
+      console.log('[v0] Joining lobby via service role:', joinSessionId, playerName);
+
+      // Ensure player exists
+      const { error: playerError } = await supabaseAdmin.from('game_players').upsert({
+        player_id: playerId,
+        player_name: playerName,
+      });
+      if (playerError) {
+        console.error('[v0] Join player upsert error:', playerError);
+        return NextResponse.json({ error: 'player upsert failed', details: playerError.message }, { status: 400 });
+      }
+
+      // Try to claim empty slot
+      const { data: updatedSession, error: updateError } = await supabaseAdmin
+        .from('game_sessions')
+        .update({ player_2_id: playerId, status: 'active' })
+        .eq('id', joinSessionId)
+        .is('player_2_id', null)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('[v0] Join update error:', updateError);
+        return NextResponse.json({ error: updateError.message }, { status: 409 });
+      }
+
+      // Return from view with names
+      const { data: viewSession, error: viewError } = await supabaseAdmin
+        .from('game_sessions_with_names')
+        .select('*')
+        .eq('id', updatedSession.id)
+        .single();
+
+      if (viewError) {
+        console.error('[v0] Join view error:', viewError);
+        return NextResponse.json(updatedSession);
+      }
+
+      return NextResponse.json(viewSession);
+    }
 
     console.log('[v0] Creating lobby with:', { gameType, sessionCode, playerId, playerName });
 
