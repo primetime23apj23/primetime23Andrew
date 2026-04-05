@@ -219,8 +219,7 @@ export async function getAvailableLobbies(
         player_1:game_players!game_sessions_player_1_id_fkey(player_name)
       `)
       .eq('game_type', gameType)
-      .eq('status', 'waiting')
-      .eq('is_public', true);
+      .eq('status', 'waiting');
 
     if (error) throw error;
     
@@ -246,19 +245,21 @@ export async function createGameLobby(
   const sessionCode = await generateSessionCode();
 
   try {
+    const insertData: any = {
+      game_type: gameType,
+      session_code: sessionCode,
+      player_1_id: playerId,
+      player_2_id: null,
+      status: 'waiting',
+    };
+
+    // Only include optional columns if they're provided
+    if (settings.targetScore) insertData.target_score = settings.targetScore;
+    if (settings.botDifficulty) insertData.bot_difficulty = settings.botDifficulty;
+
     const { data, error } = await supabase
       .from('game_sessions')
-      .insert({
-        game_type: gameType,
-        session_code: sessionCode,
-        player_1_id: playerId,
-        player_2_id: null,
-        status: 'waiting',
-        is_public: true,
-        target_score: settings.targetScore,
-        bot_difficulty: settings.botDifficulty,
-        created_by_player_id: playerId,
-      })
+      .insert(insertData)
       .select()
       .single();
 
