@@ -207,6 +207,31 @@ export function subscribeToGameState(
     .subscribe();
 }
 
+export function subscribeToSession(
+  sessionCode: string,
+  callback: (session: GameSession | null) => void
+) {
+  const channel = supabase.channel(`session:${sessionCode}`);
+
+  channel
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'game_sessions',
+        filter: `session_code=eq.${sessionCode}`,
+      },
+      async () => {
+        const session = await getGameSession(sessionCode);
+        callback(session);
+      }
+    )
+    .subscribe();
+
+  return channel;
+}
+
 export async function getGameSession(sessionCode: string): Promise<GameSession | null> {
   try {
     const { data, error } = await supabase
