@@ -327,9 +327,10 @@ export async function createGameLobby(
   settings: {
     targetScore?: number;
     botDifficulty?: string;
-  }
+  },
+  authUserId?: string
 ): Promise<GameSession | null> {
-  const playerId = generatePlayerId();
+  const playerId = authUserId || generatePlayerId();
   const sessionCode = await generateSessionCode();
 
   try {
@@ -362,9 +363,10 @@ export async function createGameLobby(
 
 export async function joinGameLobby(
   sessionId: string,
-  playerName: string
+  playerName: string,
+  authUserId?: string
 ): Promise<GameSession | null> {
-  const playerId = generatePlayerId();
+  const playerId = authUserId || generatePlayerId();
 
   try {
     const response = await fetch('/api/lobbies', {

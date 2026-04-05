@@ -412,7 +412,8 @@ export function PrimeFactorGame() {
       phase: "rolling",
       message: "Player 1, roll the dice to start the game!",
     }));
-  }, []);
+    if (isMultiplayer) persistGameState('start');
+  }, [playerNames, isMultiplayer, persistGameState]);
 
   // Sort dice by value
   const sortDice = (dice: Die[]): Die[] => {
@@ -473,7 +474,7 @@ export function PrimeFactorGame() {
     async (lobbyId: string, playerName?: string) => {
       setLobbyLoading(true);
       try {
-        const session = await joinGameLobby(lobbyId, playerName || "Player");
+        const session = await joinGameLobby(lobbyId, playerName || "Player", userId || playerId || undefined);
         if (session) {
           setSessionCode(session.session_code);
           setSessionId(session.id);
@@ -560,7 +561,7 @@ export function PrimeFactorGame() {
     };
   }, [isMultiplayer, sessionId, lastSyncedAt]);
 
-  useEffect(() => {
+  const persistGameState = useCallback((reason?: string) => {
     if (!isMultiplayer || !sessionId || !playerId) return;
     const stateToSave: GameState = {
       ...gameState,
@@ -611,7 +612,8 @@ export function PrimeFactorGame() {
           {
             targetScore: settings.targetScore,
             botDifficulty: settings.botDifficulty,
-          }
+          },
+          userId || playerId || undefined
         );
         if (session) {
           setSessionCode(session.session_code);
@@ -633,7 +635,15 @@ export function PrimeFactorGame() {
   );
 
   // Roll dice for both players at game start
-  const handleRoll = useCallback(() => {
+  const handleRoll = useCallback(async () => {
+    if (isMultiplayer && sessionId && playerId) {
+      const valid = await validateTurn(sessionId, playerId);
+      if (!valid.valid) {
+        setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
+        return;
+      }
+    }
+
     const dice1 = rollDice().map((d, i) => ({ ...d, id: `p1-${i}` }));
     const dice2 = rollDice().map((d, i) => ({ ...d, id: `p2-${i}` }));
     
@@ -647,11 +657,21 @@ export function PrimeFactorGame() {
       selectedDice: [],
       message: `${prev.players[prev.currentPlayer].name}, select dice to match a space's factorization!`,
     }));
-  }, []);
+
+    persistGameState('roll');
+  }, [isMultiplayer, sessionId, playerId, persistGameState]);
 
   // Claim a space
-  const handleClaim = useCallback(() => {
+  const handleClaim = useCallback(async () => {
     if (!selectedSpace || !canClaimSpace) return;
+
+    if (isMultiplayer && sessionId && playerId) {
+      const valid = await validateTurn(sessionId, playerId);
+      if (!valid.valid) {
+        setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
+        return;
+      }
+    }
     
     const pos = getAnimationPosition();
     
@@ -778,7 +798,8 @@ export function PrimeFactorGame() {
       
       const nextPlayer = (prev.currentPlayer + 1) % prev.players.length;
       
-      return {
+      const nextPlayer = (prev.currentPlayer + 1) % prev.players.length;
+      const updatedState = {
         ...prev,
         board: newBoard,
         players: newPlayers,
@@ -786,10 +807,12 @@ export function PrimeFactorGame() {
         selectedDice: [],
         message: `Claimed space ${selectedSpace.number}! ${newPlayers[nextPlayer].name}'s turn.`,
       };
+      return updatedState;
     });
     
     setSelectedSpace(null);
-  }, [selectedSpace, canClaimSpace, gameState.selectedDice, gameState.currentPlayer, getAnimationPosition, spawnPointAnimation, spawnFireworks]);
+    persistGameState('claim');
+  }, [selectedSpace, canClaimSpace, gameState.selectedDice, gameState.currentPlayer, getAnimationPosition, spawnPointAnimation, spawnFireworks, isMultiplayer, sessionId, playerId, validateTurn, persistGameState]);
 
   // Cancel selection
   const handleCancel = useCallback(() => {
@@ -816,7 +839,15 @@ export function PrimeFactorGame() {
   }, [player1Dice, player2Dice]);
 
   // End turn
-  const handleEndTurn = useCallback(() => {
+  const handleEndTurn = useCallback(async () => {
+    if (isMultiplayer && sessionId && playerId) {
+      const valid = await validateTurn(sessionId, playerId);
+      if (!valid.valid) {
+        setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
+        return;
+      }
+    }
+
     if (hasAnyValidMove) {
       setGameState((prev) => ({
         ...prev,
@@ -851,14 +882,16 @@ export function PrimeFactorGame() {
         };
       }
       
-      return {
+      const newState = {
         ...prev,
         currentPlayer: nextPlayer,
         selectedDice: [],
         message: `${prev.players[nextPlayer].name}'s turn! Select dice to claim a space.`,
       };
+      return newState;
     });
-  }, [hasAnyValidMove, checkPlayerHasMoves]);
+    persistGameState('end-turn');
+  }, [hasAnyValidMove, checkPlayerHasMoves, isMultiplayer, sessionId, playerId, validateTurn, persistGameState]);
 
   // Timer expired
   const handleTimeUp = useCallback(() => {
@@ -1045,6 +1078,7 @@ export function PrimeFactorGame() {
         message: `Round ${prev.roundNumber} started! ${prev.players[startingPlayer].name} goes first.`,
       };
     });
+    persistGameState('new-round');
   }, [gameState.roundNumber]);
 
   // Reorder dice
