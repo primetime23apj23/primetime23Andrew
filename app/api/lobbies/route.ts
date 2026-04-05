@@ -63,6 +63,12 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Creating lobby with:', { gameType, sessionCode, playerId, playerName });
 
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(playerId)) {
+      console.error('[v0] Invalid playerId format (expected UUID):', playerId);
+      return NextResponse.json({ error: 'invalid player id format' }, { status: 400 });
+    }
+
     // Ensure player exists before referencing as FK
     const { error: playerError } = await supabaseAdmin.from('game_players').upsert({
       player_id: playerId,

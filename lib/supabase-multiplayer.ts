@@ -15,6 +15,10 @@ export function generatePlayerId(): string {
   let playerId = localStorage.getItem('game_player_id');
   const isUuid = playerId ? /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(playerId) : false;
   if (!playerId || !isUuid) {
+    if (playerId && !isUuid) {
+      console.warn('Found legacy non-UUID player id in storage, regenerating', playerId);
+      localStorage.removeItem('game_player_id');
+    }
     // Use real UUIDs to satisfy DB uuid columns
     const uuid = typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
@@ -259,6 +263,8 @@ export async function createGameLobby(
     });
 
     if (!response.ok) {
+      const text = await response.text();
+      console.error('Lobby create failed HTTP', response.status, text);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
