@@ -63,6 +63,17 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Creating lobby with:', { gameType, sessionCode, playerId, playerName });
 
+    // Ensure player exists before referencing as FK
+    const { error: playerError } = await supabaseAdmin.from('game_players').upsert({
+      player_id: playerId,
+      player_name: playerName,
+    });
+
+    if (playerError) {
+      console.error('[v0] Player error:', playerError);
+      throw playerError;
+    }
+
     // Build insert object with only the columns that exist
     const insertData: any = {
       game_type: gameType,
@@ -88,17 +99,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[v0] Session created:', sessionData);
-
-    // Create player record
-    const { error: playerError } = await supabaseAdmin.from('game_players').insert({
-      player_id: playerId,
-      player_name: playerName,
-    });
-
-    if (playerError) {
-      console.error('[v0] Player error:', playerError);
-      // Don't throw - player creation failure shouldn't block lobby creation
-    }
 
     return NextResponse.json(sessionData);
   } catch (error) {

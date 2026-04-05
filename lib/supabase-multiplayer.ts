@@ -13,8 +13,17 @@ export function generatePlayerId(): string {
   if (typeof window === 'undefined') return '';
   
   let playerId = localStorage.getItem('game_player_id');
-  if (!playerId) {
-    playerId = `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const isUuid = playerId ? /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(playerId) : false;
+  if (!playerId || !isUuid) {
+    // Use real UUIDs to satisfy DB uuid columns
+    const uuid = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          const v = c === 'x' ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+    playerId = uuid;
     localStorage.setItem('game_player_id', playerId);
   }
   return playerId;
@@ -56,6 +65,12 @@ export async function createGameSession(
   const sessionCode = await generateSessionCode();
 
   try {
+    // Ensure player exists before referencing in session
+    await supabase.from('game_players').upsert({
+      player_id: playerId,
+      player_name: playerName,
+    });
+
     const { data, error } = await supabase
       .from('game_sessions')
       .insert({
@@ -70,12 +85,6 @@ export async function createGameSession(
 
     if (error) throw error;
     
-    // Store player info
-    await supabase.from('game_players').insert({
-      player_id: playerId,
-      player_name: playerName,
-    }).select().single();
-
     return data as GameSession;
   } catch (error) {
     console.error('Error creating game session:', error);
@@ -90,6 +99,12 @@ export async function joinGameSession(
   const playerId = generatePlayerId();
 
   try {
+    // Ensure player exists before joining session
+    await supabase.from('game_players').upsert({
+      player_id: playerId,
+      player_name: playerName,
+    });
+
     // Find session
     const { data: session, error: findError } = await supabase
       .from('game_sessions')
@@ -114,12 +129,6 @@ export async function joinGameSession(
       .single();
 
     if (updateError) throw updateError;
-
-    // Store player info
-    await supabase.from('game_players').insert({
-      player_id: playerId,
-      player_name: playerName,
-    }).select().single();
 
     return data as GameSession;
   } catch (error) {
