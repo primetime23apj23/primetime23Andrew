@@ -44,7 +44,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, subscribeToSession } from "@/lib/supabase-multiplayer";
+import { createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId } from "@/lib/supabase-multiplayer";
 
 const createInitialState = (targetScore: number): GameState => ({
   board: generateBoard(),
@@ -74,9 +74,11 @@ export function PrimeFactorGame() {
   const [isMultiplayer, setIsMultiplayer] = useState(false);
   const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | "lobby" | null>(null);
   const [sessionCode, setSessionCode] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [opponentName, setOpponentName] = useState<string | null>(null);
+  const [playerNames, setPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
   const [showLobby, setShowLobby] = useState(false);
   const [selectedGameType, setSelectedGameType] = useState<"multiplication" | "give-or-take">("multiplication");
   const [showGameSetup, setShowGameSetup] = useState(false);
@@ -107,6 +109,12 @@ export function PrimeFactorGame() {
   // Bot settings
   const [botEnabled, setBotEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
+
+  // Local player id
+  useEffect(() => {
+    const id = generatePlayerId();
+    setPlayerId(id || null);
+  }, []);
 
   // Exit confirmation dialog
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -344,7 +352,12 @@ export function PrimeFactorGame() {
   const handleStartGame = useCallback((targetScore: number, enableBot: boolean, difficulty: BotDifficulty) => {
     setBotEnabled(enableBot);
     setBotDifficulty(difficulty);
-    setGameState(createInitialState(targetScore));
+    const initial = createInitialState(targetScore);
+    initial.players = [
+      { ...initial.players[0], name: playerNames[0] },
+      { ...initial.players[1], name: enableBot ? "Bot" : playerNames[1] },
+    ];
+    setGameState(initial);
     setShowSetup(false);
     setSelectedSpace(null);
     setPlayer1Dice([]);
@@ -390,6 +403,7 @@ export function PrimeFactorGame() {
       setIsMultiplayer(false);
       setShowSetup(true);
       setShowModeSelect(false);
+      setPlayerNames(["Player 1", "Bot"]);
       return;
     }
 
@@ -398,6 +412,7 @@ export function PrimeFactorGame() {
       setIsMultiplayer(false);
       setShowSetup(true);
       setShowModeSelect(false);
+      setPlayerNames(["Player 1", "Player 2"]);
       return;
     }
 
@@ -418,10 +433,15 @@ export function PrimeFactorGame() {
         const session = await joinGameLobby(lobbyId, playerName || "Player");
         if (session) {
           setSessionCode(session.session_code);
+          setSessionId(session.id);
           setIsMultiplayer(true);
           setMultiplayerMode("join");
           setWaitingForOpponent(false);
-          setOpponentName(playerName || "Opponent");
+          setOpponentName(session.player_1_name || "Opponent");
+          setPlayerNames([
+            session.player_1_name || "Player 1",
+            playerName || session.player_2_name || "Player 2",
+          ]);
           setShowLobby(false);
           // Move straight to setup so both players can start
           setShowSetup(true);
@@ -449,12 +469,52 @@ export function PrimeFactorGame() {
     setShowModeSelect(true);
   }, [sessionCode]);
 
+  // Sync game state across devices
+  const [lastSyncedAt, setLastSyncedAt] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isMultiplayer || !sessionId) return;
+    const channel = subscribeToGameState(sessionId, async (states) => {
+      if (!states || states.length === 0) return;
+      const latest = states.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
+      const updatedAt = new Date(latest.updated_at).getTime();
+      if (updatedAt <= lastSyncedAt) return;
+      setLastSyncedAt(updatedAt);
+      if (latest.game_data) {
+        setGameState(latest.game_data as GameState);
+        const players = (latest.game_data as any).players;
+        if (players) {
+          setPlayerNames([players[0]?.name || "Player 1", players[1]?.name || "Player 2"]);
+        }
+      }
+    });
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [isMultiplayer, sessionId, lastSyncedAt]);
+
+  useEffect(() => {
+    if (!isMultiplayer || !sessionId || !playerId) return;
+    const stateToSave: GameState = {
+      ...gameState,
+      players: gameState.players.map((p, idx) => ({ ...p, name: playerNames[idx] })),
+    } as GameState;
+    updateGameState(sessionId, playerId, stateToSave, gameState.currentPlayer).then((ok) => {
+      if (ok) setLastSyncedAt(Date.now());
+    });
+  }, [gameState, isMultiplayer, sessionId, playerId, playerNames]);
+
   // Host: auto-start when opponent joins
   useEffect(() => {
     if (!waitingForOpponent || !sessionCode) return;
     let cancelled = false;
     const channel = subscribeToSession(sessionCode, (session) => {
       if (cancelled || !session) return;
+      setSessionId(session.id);
+      setPlayerNames([
+        session.player_1_name || "Player 1",
+        session.player_2_name || "Player 2",
+      ]);
       if (session.player_2_id) {
         setWaitingForOpponent(false);
         setOpponentName(session.player_2_name || "Opponent");
@@ -488,11 +548,13 @@ export function PrimeFactorGame() {
         );
         if (session) {
           setSessionCode(session.session_code);
+          setSessionId(session.id);
           setIsMultiplayer(true);
           setMultiplayerMode("create");
           setWaitingForOpponent(true);
           setShowGameSetup(false);
           setShowLobby(false);
+          setPlayerNames([settings.playerName || "Player 1", "Player 2"]);
         }
       } catch (error) {
         console.error("Error creating lobby:", error);
