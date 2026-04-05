@@ -386,6 +386,41 @@ export function PrimeFactorGame() {
     return match !== null;
   }, [selectedSpace, gameState.selectedDice, currentPlayerDice]);
 
+  // Sync game state across devices
+  const [lastSyncedAt, setLastSyncedAt] = useState<number>(0);
+
+  const persistGameState = useCallback((reason?: string) => {
+    if (!isMultiplayer || !sessionId || !playerId) return;
+    const stateToSave: GameState = {
+      ...gameState,
+      players: gameState.players.map((p, idx) => ({ ...p, name: playerNames[idx] })),
+    } as GameState;
+    updateGameState(sessionId, playerId, stateToSave, gameState.currentPlayer).then((ok) => {
+      if (ok) setLastSyncedAt(Date.now());
+    });
+  }, [gameState, isMultiplayer, sessionId, playerId, playerNames]);
+
+  useEffect(() => {
+    if (!isMultiplayer || !sessionId) return;
+    const channel = subscribeToGameState(sessionId, async (states) => {
+      if (!states || states.length === 0) return;
+      const latest = states.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
+      const updatedAt = new Date(latest.updated_at).getTime();
+      if (updatedAt <= lastSyncedAt) return;
+      setLastSyncedAt(updatedAt);
+      if (latest.game_data) {
+        setGameState(latest.game_data as GameState);
+        const players = (latest.game_data as any).players;
+        if (players) {
+          setPlayerNames([players[0]?.name || "Player 1", players[1]?.name || "Player 2"]);
+        }
+      }
+    });
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [isMultiplayer, sessionId, lastSyncedAt]);
+
   // Start game with target score
   const handleStartGame = useCallback((targetScore: number, enableBot: boolean, difficulty: BotDifficulty) => {
     setBotEnabled(enableBot);
