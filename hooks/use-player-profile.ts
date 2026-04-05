@@ -29,7 +29,7 @@ export function usePlayerProfile() {
 
   // Subscribe to auth state changes
   useEffect(() => {
-    const { data: subscription } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
@@ -39,9 +39,7 @@ export function usePlayerProfile() {
     });
 
     return () => {
-      if (subscription?.subscription) {
-        subscription.subscription.unsubscribe();
-      }
+      subscription?.unsubscribe();
     };
   }, []);
 
