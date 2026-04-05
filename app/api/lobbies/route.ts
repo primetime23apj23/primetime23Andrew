@@ -119,3 +119,33 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { sessionCode, sessionId } = body;
+
+    if (!sessionCode && !sessionId) {
+      return NextResponse.json({ error: 'sessionCode or sessionId required' }, { status: 400 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from('game_sessions')
+      .delete()
+      .match(sessionId ? { id: sessionId } : { session_code: sessionCode });
+
+    if (error) {
+      console.error('[v0] Delete lobby error:', error);
+      throw error;
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[v0] Error deleting lobby:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json(
+      { error: 'Failed to delete lobby', details: errorMessage },
+      { status: 500 }
+    );
+  }
+}

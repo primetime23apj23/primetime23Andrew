@@ -235,6 +235,26 @@ export interface GameLobby extends GameSession {
   created_by_player_id?: string;
 }
 
+export async function cancelGameLobby(sessionCode: string): Promise<boolean> {
+  try {
+    const response = await fetch('/api/lobbies', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionCode }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Lobby cancel failed HTTP', response.status, text);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error canceling game lobby:', error);
+    return false;
+  }
+}
+
 export async function getAvailableLobbies(
   gameType: 'multiplication' | 'give-or-take'
 ): Promise<GameLobby[]> {
