@@ -70,7 +70,7 @@ export function MultiplayerModeDialog({ open, onOpenChange, onModeSelect, gameNa
             </div>
             <div className="flex-1 text-left">
               <div className="font-semibold">Find Multiplayer Match</div>
-              <div className="text-sm text-muted-foreground">Creates a room and waits for another player.</div>
+              <div className="text-sm text-muted-foreground">Browse open lobbies or create a new game.</div>
             </div>
           </button>
         </div>

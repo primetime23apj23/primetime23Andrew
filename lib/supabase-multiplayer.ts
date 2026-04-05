@@ -199,3 +199,150 @@ export async function getGameSession(sessionCode: string): Promise<GameSession |
     return null;
   }
 }
+
+export interface GameLobby extends GameSession {
+  player_1_name?: string;
+  target_score?: number;
+  bot_difficulty?: string;
+  is_public?: boolean;
+  created_by_player_id?: string;
+}
+
+export async function getAvailableLobbies(
+  gameType: 'multiplication' | 'give-or-take'
+): Promise<GameLobby[]> {
+  try {
+    const { data, error } = await supabase
+      .from('game_sessions')
+      .select(`
+        *,
+        player_1:game_players!game_sessions_player_1_id_fkey(player_name)
+      `)
+      .eq('game_type', gameType)
+      .eq('status', 'waiting');
+
+    if (error) throw error;
+    
+    return (data || []).map((session: any) => ({
+      ...session,
+      player_1_name: session.player_1?.[0]?.player_name || 'Unknown Player',
+    })) as GameLobby[];
+  } catch (error) {
+    console.error('Error fetching available lobbies:', error);
+    return [];
+  }
+}
+
+export async function createGameLobby(
+  gameType: 'multiplication' | 'give-or-take',
+  playerName: string,
+  settings: {
+    targetScore?: number;
+    botDifficulty?: string;
+  }
+): Promise<GameSession | null> {
+  const playerId = generatePlayerId();
+  const sessionCode = await generateSessionCode();
+
+  try {
+    const insertData: any = {
+      game_type: gameType,
+      session_code: sessionCode,
+      player_1_id: playerId,
+      player_2_id: null,
+      status: 'waiting',
+    };
+
+    // Only include optional columns if they're provided
+    if (settings.targetScore) insertData.target_score = settings.targetScore;
+    if (settings.botDifficulty) insertData.bot_difficulty = settings.botDifficulty;
+
+    const { data, error } = await supabase
+      .from('game_sessions')
+      .insert(insertData)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Store player info
+    await supabase.from('game_players').insert({
+      player_id: playerId,
+      player_name: playerName,
+    }).select().single();
+
+    return data as GameSession;
+  } catch (error) {
+    console.error('Error creating game lobby:', error);
+    return null;
+  }
+}
+
+export async function joinGameLobby(
+  sessionId: string,
+  playerName: string
+): Promise<GameSession | null> {
+  const playerId = generatePlayerId();
+
+  try {
+    // Get the current session
+    const { data: session, error: findError } = await supabase
+      .from('game_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .single();
+
+    if (findError || !session) {
+      console.error('Session not found');
+      return null;
+    }
+
+    // Update session with second player
+    const { data, error: updateError } = await supabase
+      .from('game_sessions')
+      .update({
+        player_2_id: playerId,
+        status: 'active',
+      })
+      .eq('id', sessionId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    // Store player info
+    await supabase.from('game_players').insert({
+      player_id: playerId,
+      player_name: playerName,
+    }).select().single();
+
+    return data as GameSession;
+  } catch (error) {
+    console.error('Error joining game lobby:', error);
+    return null;
+  }
+}
+
+export function subscribeToLobbies(
+  gameType: 'multiplication' | 'give-or-take',
+  callback: (lobbies: GameLobby[]) => void
+) {
+  const channel = supabase.channel(`lobbies:${gameType}`);
+  
+  channel
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'game_sessions',
+        filter: `game_type=eq.${gameType}`,
+      },
+      () => {
+        getAvailableLobbies(gameType).then(callback);
+      }
+    )
+    .subscribe();
+
+  return channel;
+}

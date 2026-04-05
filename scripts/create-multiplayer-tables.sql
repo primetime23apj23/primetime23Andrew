@@ -7,6 +7,10 @@ CREATE TABLE IF NOT EXISTS game_sessions (
   player_2_id UUID,
   status TEXT NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting', 'active', 'finished')),
   winner_id UUID,
+  is_public BOOLEAN DEFAULT true,
+  target_score INTEGER,
+  bot_difficulty TEXT,
+  created_by_player_id UUID,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

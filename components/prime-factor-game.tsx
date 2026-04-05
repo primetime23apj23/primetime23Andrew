@@ -34,6 +34,8 @@ import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeDialog } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
+import { GameLobby } from "./game-lobby";
+import { GameSetupDialog } from "./game-setup-dialog";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +44,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { createGameLobby, joinGameLobby } from "@/lib/supabase-multiplayer";
 
 const createInitialState = (targetScore: number): GameState => ({
   board: generateBoard(),
@@ -69,11 +72,15 @@ export function PrimeFactorGame() {
   
   // Multiplayer state
   const [isMultiplayer, setIsMultiplayer] = useState(false);
-  const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | null>(null);
+  const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | "lobby" | null>(null);
   const [sessionCode, setSessionCode] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [opponentName, setOpponentName] = useState<string | null>(null);
+  const [showLobby, setShowLobby] = useState(false);
+  const [selectedGameType, setSelectedGameType] = useState<"multiplication" | "give-or-take">("multiplication");
+  const [showGameSetup, setShowGameSetup] = useState(false);
+  const [lobbyLoading, setLobbyLoading] = useState(false);
   
   // Track each player's dice separately
   const [player1Dice, setPlayer1Dice] = useState<Die[]>([]);
@@ -377,7 +384,7 @@ export function PrimeFactorGame() {
     }
   }, [showSetup, gameState.phase]);
 
-  const handleModeSelect = useCallback((mode: "bot" | "local" | "create") => {
+  const handleModeSelect = useCallback((mode: "bot" | "local" | "create" | "join") => {
     if (mode === "bot") {
       setBotEnabled(true);
       setIsMultiplayer(false);
@@ -394,14 +401,76 @@ export function PrimeFactorGame() {
       return;
     }
 
-    // create multiplayer
-    setIsMultiplayer(true);
-    setMultiplayerMode("create");
-    setShowModeSelect(false);
-    setWaitingForOpponent(true);
-    // In a real implementation, this would create a session via backend
-    setSessionCode("ABC123");
+    // Show lobby to find/create multiplayer game
+    if (mode === "create" || mode === "join") {
+      setSelectedGameType("multiplication");
+      setShowLobby(true);
+      setMultiplayerMode("lobby");
+      setShowModeSelect(false);
+    }
   }, []);
+
+  // Handle lobby selection
+  const handleSelectLobby = useCallback(
+    async (lobbyId: string, playerName?: string) => {
+      setLobbyLoading(true);
+      try {
+        const session = await joinGameLobby(lobbyId, playerName || "Player");
+        if (session) {
+          setSessionCode(session.session_code);
+          setIsMultiplayer(true);
+          setMultiplayerMode("join");
+          setWaitingForOpponent(true);
+          setOpponentName(playerName || "Opponent");
+          setShowLobby(false);
+        }
+      } catch (error) {
+        console.error("Error joining lobby:", error);
+      } finally {
+        setLobbyLoading(false);
+      }
+    },
+    []
+  );
+
+  // Handle create new lobby button
+  const handleCreateNewLobby = useCallback(() => {
+    setShowGameSetup(true);
+  }, []);
+
+  // Handle game setup submission
+  const handleGameSetupSubmit = useCallback(
+    async (settings: {
+      playerName: string;
+      targetScore?: number;
+      botDifficulty?: string;
+    }) => {
+      setLobbyLoading(true);
+      try {
+        const session = await createGameLobby(
+          selectedGameType,
+          settings.playerName,
+          {
+            targetScore: settings.targetScore,
+            botDifficulty: settings.botDifficulty,
+          }
+        );
+        if (session) {
+          setSessionCode(session.session_code);
+          setIsMultiplayer(true);
+          setMultiplayerMode("create");
+          setWaitingForOpponent(true);
+          setShowGameSetup(false);
+          setShowLobby(false);
+        }
+      } catch (error) {
+        console.error("Error creating lobby:", error);
+      } finally {
+        setLobbyLoading(false);
+      }
+    },
+    [selectedGameType]
+  );
 
   // Roll dice for both players at game start
   const handleRoll = useCallback(() => {
@@ -1009,6 +1078,35 @@ export function PrimeFactorGame() {
     onOpenChange={setShowModeSelect}
     onModeSelect={handleModeSelect}
     gameName="Multiplication Game"
+  />
+
+  {/* Game Lobby Dialog */}
+  {showLobby && (
+    <Dialog open={showLobby} onOpenChange={setShowLobby}>
+      <DialogContent className="max-h-[70vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Find a Multiplayer Game</DialogTitle>
+          <DialogDescription>
+            Browse open lobbies or create your own game
+          </DialogDescription>
+        </DialogHeader>
+        <GameLobby
+          gameType={selectedGameType}
+          onSelectLobby={handleSelectLobby}
+          onCreateNew={handleCreateNewLobby}
+          isOpen={showLobby}
+        />
+      </DialogContent>
+    </Dialog>
+  )}
+
+  {/* Game Setup Dialog */}
+  <GameSetupDialog
+    open={showGameSetup}
+    onOpenChange={setShowGameSetup}
+    gameType={selectedGameType}
+    onCreateLobby={handleGameSetupSubmit}
+    isLoading={lobbyLoading}
   />
 
   {/* Waiting Room */}
