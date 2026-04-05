@@ -63,11 +63,11 @@ export function PrimeFactorGame() {
   const [selectedSpace, setSelectedSpace] = useState<BoardSpace | null>(null);
   const [showRules, setShowRules] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [showSetup, setShowSetup] = useState(true);
+  const [showSetup, setShowSetup] = useState(false);
+  const [showModeSelect, setShowModeSelect] = useState(true);
   const [diceSkins, setDiceSkins] = useState<DiceSkin[]>(DEFAULT_SKINS);
   
   // Multiplayer state
-  const [showMultiplayerMode, setShowMultiplayerMode] = useState(false);
   const [isMultiplayer, setIsMultiplayer] = useState(false);
   const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | null>(null);
   const [sessionCode, setSessionCode] = useState<string | null>(null);
@@ -377,20 +377,30 @@ export function PrimeFactorGame() {
     }
   }, [showSetup, gameState.phase]);
 
-  const handleMultiplayerModeSelect = useCallback((mode: "create" | "join" | "local") => {
-    if (mode === "local") {
+  const handleModeSelect = useCallback((mode: "bot" | "local" | "create") => {
+    if (mode === "bot") {
+      setBotEnabled(true);
       setIsMultiplayer(false);
-      setShowMultiplayerMode(false);
       setShowSetup(true);
-    } else {
-      setIsMultiplayer(true);
-      setMultiplayerMode(mode);
-      setShowMultiplayerMode(false);
-      if (mode === "create") {
-        setWaitingForOpponent(true);
-        // In a real implementation, this would create a session via Supabase
-      }
+      setShowModeSelect(false);
+      return;
     }
+
+    if (mode === "local") {
+      setBotEnabled(false);
+      setIsMultiplayer(false);
+      setShowSetup(true);
+      setShowModeSelect(false);
+      return;
+    }
+
+    // create multiplayer
+    setIsMultiplayer(true);
+    setMultiplayerMode("create");
+    setShowModeSelect(false);
+    setWaitingForOpponent(true);
+    // In a real implementation, this would create a session via backend
+    setSessionCode("ABC123");
   }, []);
 
   // Roll dice for both players at game start
@@ -995,22 +1005,23 @@ export function PrimeFactorGame() {
   
   {/* Multiplayer Mode Selector */}
   <MultiplayerModeDialog
-    open={showMultiplayerMode}
-    onOpenChange={setShowMultiplayerMode}
-    onModeSelect={handleMultiplayerModeSelect}
+    open={showModeSelect}
+    onOpenChange={setShowModeSelect}
+    onModeSelect={handleModeSelect}
     gameName="Multiplication Game"
   />
 
   {/* Waiting Room */}
   {isMultiplayer && waitingForOpponent && (
     <WaitingRoomDialog
-      sessionCode={sessionCode}
+      sessionCode={sessionCode ?? ""}
       playerName="Player 1"
       onCancel={() => {
         setIsMultiplayer(false);
         setWaitingForOpponent(false);
-        setShowMultiplayerMode(false);
+        setShowModeSelect(true);
       }}
+      isOpen
     />
   )}
   
@@ -1019,7 +1030,10 @@ export function PrimeFactorGame() {
     onOpenChange={setShowSetup}
     onStartGame={handleStartGame}
     onShowTutorial={() => setShowTutorial(true)}
-    onPlayOnline={() => setShowMultiplayerMode(true)}
+    onPlayOnline={() => {
+      setShowModeSelect(true);
+      setShowSetup(false);
+    }}
   />
   
   {/* Exit Confirmation Dialog */}

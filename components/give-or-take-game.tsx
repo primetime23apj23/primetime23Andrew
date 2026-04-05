@@ -75,6 +75,7 @@ const createInitialState = (playerNames: [string, string], playerColors: [string
 export function GiveOrTakeGame() {
   const [gameState, setGameState] = useState<GotGameState>(createInitialState(["Player 1", "Player 2"], [PLAYER_COLORS[0], PLAYER_COLORS[1]]));
   const [showSetup, setShowSetup] = useState(false);
+  const [showModeSelect, setShowModeSelect] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
   const [displayDie, setDisplayDie] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -102,7 +103,6 @@ export function GiveOrTakeGame() {
   const [playerPositions, setPlayerPositions] = useState<[number[], number[]]>([[], []]);
 
   // Multiplayer state
-  const [showMultiplayerMode, setShowMultiplayerMode] = useState(false);
   const [isMultiplayer, setIsMultiplayer] = useState(false);
   const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | null>(null);
   const [sessionCode, setSessionCode] = useState<string | null>(null);
@@ -377,20 +377,28 @@ export function GiveOrTakeGame() {
     }
   }, [showSetup, gameState.phase]);
 
-  const handleMultiplayerModeSelect = useCallback((mode: "create" | "join" | "local") => {
-    if (mode === "local") {
+  const handleModeSelect = useCallback((mode: "bot" | "local" | "create") => {
+    if (mode === "bot") {
+      setBotEnabled(true);
       setIsMultiplayer(false);
-      setShowMultiplayerMode(false);
       setShowSetup(true);
-    } else {
-      setIsMultiplayer(true);
-      setMultiplayerMode(mode);
-      setShowMultiplayerMode(false);
-      if (mode === "create") {
-        setWaitingForOpponent(true);
-        // In a real implementation, this would create a session via Supabase
-      }
+      setShowModeSelect(false);
+      return;
     }
+
+    if (mode === "local") {
+      setBotEnabled(false);
+      setIsMultiplayer(false);
+      setShowSetup(true);
+      setShowModeSelect(false);
+      return;
+    }
+
+    setIsMultiplayer(true);
+    setMultiplayerMode("create");
+    setShowModeSelect(false);
+    setWaitingForOpponent(true);
+    setSessionCode("ABC123");
   }, []);
 
   // Bot auto-play effect
@@ -636,11 +644,11 @@ export function GiveOrTakeGame() {
         {/* Setup Dialog */}
         <GiveOrTakeTutorial open={showTutorial} onOpenChange={setShowTutorial} />
         
-        {/* Multiplayer Mode Selector */}
+        {/* Multiplayer / Bot Mode Selector */}
         <MultiplayerModeDialog
-          open={showMultiplayerMode}
-          onOpenChange={setShowMultiplayerMode}
-          onModeSelect={handleMultiplayerModeSelect}
+          open={showModeSelect}
+          onOpenChange={setShowModeSelect}
+          onModeSelect={handleModeSelect}
           gameName="Give or Take"
         />
 
@@ -652,8 +660,9 @@ export function GiveOrTakeGame() {
             onCancel={() => {
               setIsMultiplayer(false);
               setWaitingForOpponent(false);
-              setShowMultiplayerMode(false);
+              setShowModeSelect(true);
             }}
+            isOpen
           />
         )}
         
@@ -813,8 +822,14 @@ export function GiveOrTakeGame() {
               <Button onClick={() => setShowTutorial(true)} variant="outline">
                 How to Play
               </Button>
-              <Button onClick={() => setShowMultiplayerMode(true)} variant="outline">
-                Play Online
+              <Button
+                onClick={() => {
+                  setShowModeSelect(true);
+                  setShowSetup(false);
+                }}
+                variant="outline"
+              >
+                Multiplayer / Bot
               </Button>
               <Button onClick={handleStartGame} size="lg" className="font-bold">
                 Start Game

@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface WaitingRoomProps {
   sessionCode: string;
   playerName: string;
-  isOpen: boolean;
+  isOpen?: boolean;
   onCancel: () => void;
   onOpponentJoined?: () => void;
 }
@@ -13,7 +13,7 @@ interface WaitingRoomProps {
 export function WaitingRoomDialog({
   sessionCode,
   playerName,
-  isOpen,
+  isOpen = true,
   onCancel,
   onOpponentJoined,
 }: WaitingRoomProps) {

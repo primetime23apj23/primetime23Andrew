@@ -1,158 +1,83 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Gamepad2, Users, Bot } from "lucide-react";
 
-interface MultiplayerModeProps {
-  gameType: 'multiplication' | 'give-or-take';
-  onSinglePlayer: () => void;
-  onCreateMultiplayer: (playerName: string) => void;
-  onJoinMultiplayer: (sessionCode: string, playerName: string) => void;
-  isOpen: boolean;
+type ModeOption = "bot" | "local" | "create" | "join";
+
+interface MultiplayerModeDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onModeSelect: (mode: ModeOption) => void;
+  gameName: string;
 }
 
-export function MultiplayerModeDialog({
-  gameType,
-  onSinglePlayer,
-  onCreateMultiplayer,
-  onJoinMultiplayer,
-  isOpen,
-}: MultiplayerModeProps) {
-  const [mode, setMode] = useState<'select' | 'create' | 'join'>('select');
-  const [playerName, setPlayerName] = useState('');
-  const [sessionCode, setSessionCode] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleCreate = async () => {
-    if (!playerName.trim()) return;
-    setLoading(true);
-    onCreateMultiplayer(playerName);
-    setLoading(false);
-  };
-
-  const handleJoin = async () => {
-    if (!playerName.trim() || !sessionCode.trim()) return;
-    setLoading(true);
-    onJoinMultiplayer(sessionCode.toUpperCase(), playerName);
-    setLoading(false);
-  };
-
+export function MultiplayerModeDialog({ open, onOpenChange, onModeSelect, gameName }: MultiplayerModeDialogProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent>
-        {mode === 'select' && (
-          <>
-            <DialogHeader>
-              <DialogTitle>Play {gameType === 'multiplication' ? 'Multiplication' : 'Give or Take'}</DialogTitle>
-              <DialogDescription>Choose how you want to play</DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col gap-3">
-              <Button
-                onClick={onSinglePlayer}
-                variant="default"
-                size="lg"
-                className="w-full"
-              >
-                Single Player
-              </Button>
-              <Button
-                onClick={() => setMode('create')}
-                variant="outline"
-                size="lg"
-                className="w-full"
-              >
-                Create Multiplayer Game
-              </Button>
-              <Button
-                onClick={() => setMode('join')}
-                variant="outline"
-                size="lg"
-                className="w-full"
-              >
-                Join Multiplayer Game
-              </Button>
-            </div>
-          </>
-        )}
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>How do you want to play?</DialogTitle>
+          <DialogDescription>
+            Choose your mode for {gameName}. You'll configure details after picking a mode.
+          </DialogDescription>
+        </DialogHeader>
 
-        {mode === 'create' && (
-          <>
-            <DialogHeader>
-              <DialogTitle>Create Multiplayer Game</DialogTitle>
-              <DialogDescription>Enter your name to create a new game</DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col gap-4">
-              <Input
-                placeholder="Your name (anonymous)"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                maxLength={20}
-              />
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    setMode('select');
-                    setPlayerName('');
-                  }}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Back
-                </Button>
-                <Button
-                  onClick={handleCreate}
-                  disabled={!playerName.trim() || loading}
-                  className="flex-1"
-                >
-                  {loading ? 'Creating...' : 'Create Game'}
-                </Button>
-              </div>
+        <div className="grid gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              onModeSelect("bot");
+              onOpenChange(false);
+            }}
+            className="flex items-center gap-3 p-4 rounded-lg border-2 border-border hover:border-primary/60 hover:bg-primary/5 transition"
+          >
+            <div className="p-2 rounded-full bg-primary/10 text-primary">
+              <Bot className="h-5 w-5" />
             </div>
-          </>
-        )}
+            <div className="flex-1 text-left">
+              <div className="font-semibold">Play vs Bot</div>
+              <div className="text-sm text-muted-foreground">Opens setup to pick target score and bot difficulty.</div>
+            </div>
+          </button>
 
-        {mode === 'join' && (
-          <>
-            <DialogHeader>
-              <DialogTitle>Join Multiplayer Game</DialogTitle>
-              <DialogDescription>Enter the session code and your name</DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col gap-4">
-              <Input
-                placeholder="Session code (6 letters)"
-                value={sessionCode}
-                onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
-                maxLength={6}
-              />
-              <Input
-                placeholder="Your name (anonymous)"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                maxLength={20}
-              />
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    setMode('select');
-                    setPlayerName('');
-                    setSessionCode('');
-                  }}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Back
-                </Button>
-                <Button
-                  onClick={handleJoin}
-                  disabled={!playerName.trim() || !sessionCode.trim() || loading}
-                  className="flex-1"
-                >
-                  {loading ? 'Joining...' : 'Join Game'}
-                </Button>
-              </div>
+          <button
+            type="button"
+            onClick={() => {
+              onModeSelect("local");
+              onOpenChange(false);
+            }}
+            className="flex items-center gap-3 p-4 rounded-lg border-2 border-border hover:border-primary/60 hover:bg-primary/5 transition"
+          >
+            <div className="p-2 rounded-full bg-secondary/20 text-secondary-foreground">
+              <Gamepad2 className="h-5 w-5" />
             </div>
-          </>
-        )}
+            <div className="flex-1 text-left">
+              <div className="font-semibold">Local Pass & Play</div>
+              <div className="text-sm text-muted-foreground">Two players on one device without bots.</div>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              onModeSelect("create");
+              onOpenChange(false);
+            }}
+            className="flex items-center gap-3 p-4 rounded-lg border-2 border-border hover:border-primary/60 hover:bg-primary/5 transition"
+          >
+            <div className="p-2 rounded-full bg-muted text-foreground">
+              <Users className="h-5 w-5" />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="font-semibold">Find Multiplayer Match</div>
+              <div className="text-sm text-muted-foreground">Creates a room and waits for another player.</div>
+            </div>
+          </button>
+        </div>
+
+        <p className="text-xs text-muted-foreground text-center pt-2">
+          You can switch modes anytime from the setup dialog.
+        </p>
       </DialogContent>
     </Dialog>
   );
