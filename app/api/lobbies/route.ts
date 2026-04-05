@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     
     const { data, error } = await supabaseAdmin
       .from('game_sessions')
-      .select('*')
+      .select('*, player1:player_1_id (player_name)')
       .eq('game_type', gameType)
       .eq('status', 'waiting');
 
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     const lobbies = (data || []).map((session: any) => ({
       ...session,
-      player_1_name: 'Unknown Player',
+      player_1_name: session.player1?.player_name ?? 'Unknown Player',
     }));
 
     return NextResponse.json(lobbies);
@@ -106,7 +106,10 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Session created:', sessionData);
 
-    return NextResponse.json(sessionData);
+    return NextResponse.json({
+      ...sessionData,
+      player_1_name: playerName,
+    });
   } catch (error) {
     console.error('[v0] Error creating lobby:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';

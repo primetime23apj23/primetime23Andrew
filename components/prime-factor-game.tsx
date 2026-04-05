@@ -1097,6 +1097,7 @@ export function PrimeFactorGame() {
           onSelectLobby={handleSelectLobby}
           onCreateNew={handleCreateNewLobby}
           isOpen={showLobby}
+          onChangeGameType={(type) => setSelectedGameType(type)}
         />
       </DialogContent>
     </Dialog>

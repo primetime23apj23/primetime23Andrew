@@ -10,6 +10,7 @@ interface GameLobbyProps {
   onSelectLobby: (lobbyId: string, playerName?: string) => void;
   onCreateNew: () => void;
   isOpen: boolean;
+  onChangeGameType?: (gameType: "multiplication" | "give-or-take") => void;
 }
 
 export function GameLobby({
@@ -17,6 +18,7 @@ export function GameLobby({
   onSelectLobby,
   onCreateNew,
   isOpen,
+  onChangeGameType,
 }: GameLobbyProps) {
   const [lobbies, setLobbies] = useState<GameLobby[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +54,23 @@ export function GameLobby({
 
   return (
     <div className="flex flex-col gap-4 py-4">
+      {onChangeGameType && (
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant={gameType === "multiplication" ? "default" : "outline"}
+            onClick={() => onChangeGameType("multiplication")}
+          >
+            Multiplication
+          </Button>
+          <Button
+            variant={gameType === "give-or-take" ? "default" : "outline"}
+            onClick={() => onChangeGameType("give-or-take")}
+          >
+            Give or Take
+          </Button>
+        </div>
+      )}
+
       <div>
         <h2 className="text-lg font-semibold mb-2">Available Lobbies</h2>
         <p className="text-sm text-muted-foreground mb-4">
