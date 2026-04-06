@@ -13,7 +13,7 @@ interface WaitingRoomProps {
   onCancel: () => void;
   onOpponentJoined?: () => void;
   gameType?: "multiplication" | "give-or-take";
-  onJoinLobby?: (lobbyId: string, playerName?: string) => void;
+  onJoinLobby?: (lobbyId: string) => void;
   onCreateNew?: () => void;
   opponentHasJoined?: boolean;
 }
@@ -116,7 +116,7 @@ export function WaitingRoomDialog({
               {otherLobbies.map((lobby) => (
                 <button
                   key={lobby.id}
-                  onClick={() => onJoinLobby(lobby.id, lobby.player_1_name)}
+                  onClick={() => onJoinLobby(lobby.id)}
                   className="w-full flex items-center justify-between p-3 rounded-lg border border-border hover:bg-primary/5 hover:border-primary/30 transition"
                 >
                   <div className="text-left">

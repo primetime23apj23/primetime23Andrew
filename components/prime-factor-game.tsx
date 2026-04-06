@@ -732,10 +732,15 @@ export function PrimeFactorGame() {
 
   // Handle lobby selection
   const handleSelectLobby = useCallback(
-    async (lobbyId: string, playerName?: string) => {
+    async (lobbyId: string) => {
       setLobbyLoading(true);
       try {
-        const session = await joinGameLobby(lobbyId, playerName || "Player", userId || playerId || undefined);
+        const joiningPlayerName = authUser?.playerName || playerNames[0] || "Player";
+        const session = await joinGameLobby(
+          lobbyId,
+          joiningPlayerName,
+          userId || playerId || undefined
+        );
         if (session) {
           setSessionCode(session.session_code);
           setSessionId(session.id);
@@ -747,7 +752,7 @@ export function PrimeFactorGame() {
           setOpponentName(session.player_1_name || "Opponent");
           setPlayerNames([
             session.player_1_name || "Player 1",
-            playerName || session.player_2_name || "Player 2",
+            session.player_2_name || joiningPlayerName || "Player 2",
           ]);
           setShowLobby(false);
           // Move straight to setup so both players can start
@@ -759,7 +764,7 @@ export function PrimeFactorGame() {
         setLobbyLoading(false);
       }
     },
-    []
+    [authUser?.playerName, playerId, playerNames, userId]
   );
 
   // Handle create new lobby button
@@ -1738,7 +1743,7 @@ export function PrimeFactorGame() {
         setShowSetup(true);
         setShowModeSelect(false);
       }}
-      onJoinLobby={(lobbyId, name) => handleSelectLobby(lobbyId, name)}
+      onJoinLobby={handleSelectLobby}
       onCreateNew={() => {
         setShowLobby(true);
         setShowModeSelect(false);

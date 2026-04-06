@@ -7,7 +7,7 @@ import { getAvailableLobbies, subscribeToLobbies, type GameLobby } from "@/lib/s
 
 interface GameLobbyProps {
   gameType: "multiplication" | "give-or-take";
-  onSelectLobby: (lobbyId: string, playerName?: string) => void;
+  onSelectLobby: (lobbyId: string) => void;
   onCreateNew: () => void;
   isOpen: boolean;
   onChangeGameType?: (gameType: "multiplication" | "give-or-take") => void;
@@ -92,7 +92,7 @@ export function GameLobby({
             {lobbies.map((lobby) => (
               <button
                 key={lobby.id}
-                onClick={() => onSelectLobby(lobby.id, lobby.player_1_name)}
+                onClick={() => onSelectLobby(lobby.id)}
                 className="w-full flex items-center justify-between p-3 rounded-lg border border-border hover:bg-primary/5 hover:border-primary/30 transition group"
               >
                 <div className="text-left flex-1">
