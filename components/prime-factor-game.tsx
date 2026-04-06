@@ -568,20 +568,28 @@ export function PrimeFactorGame() {
       gameStateVersionRef.current = incomingVersion;
     }
 
-    setGameState((prev) => ({
-      ...prev,
-      board: Array.isArray(savedState.board) ? savedState.board : prev.board,
-      players: Array.isArray(savedState.players) ? savedState.players : prev.players,
-      currentPlayer:
-        typeof savedState.currentPlayer === "number" ? savedState.currentPlayer : prev.currentPlayer,
-      phase: savedState.phase || prev.phase,
-      roundNumber:
-        typeof savedState.roundNumber === "number" ? savedState.roundNumber : prev.roundNumber,
-      selectedDice: Array.isArray(savedState.selectedDice) ? savedState.selectedDice : [],
-      message: typeof savedState.message === "string" ? savedState.message : prev.message,
-      targetScore:
-        typeof savedState.targetScore === "number" ? savedState.targetScore : prev.targetScore,
-    }));
+    setGameState((prev) => {
+      // Only update selectedDice if the current player changed (turn switch)
+      // Otherwise, preserve local selection
+      const shouldClearSelection = 
+        typeof savedState.currentPlayer === "number" && 
+        savedState.currentPlayer !== prev.currentPlayer;
+      
+      return {
+        ...prev,
+        board: Array.isArray(savedState.board) ? savedState.board : prev.board,
+        players: Array.isArray(savedState.players) ? savedState.players : prev.players,
+        currentPlayer:
+          typeof savedState.currentPlayer === "number" ? savedState.currentPlayer : prev.currentPlayer,
+        phase: savedState.phase || prev.phase,
+        roundNumber:
+          typeof savedState.roundNumber === "number" ? savedState.roundNumber : prev.roundNumber,
+        selectedDice: shouldClearSelection ? [] : (Array.isArray(savedState.selectedDice) ? savedState.selectedDice : prev.selectedDice),
+        message: typeof savedState.message === "string" ? savedState.message : prev.message,
+        targetScore:
+          typeof savedState.targetScore === "number" ? savedState.targetScore : prev.targetScore,
+      };
+    });
 
     setPlayer1Dice(Array.isArray(savedState.player1Dice) ? savedState.player1Dice : []);
     setPlayer2Dice(Array.isArray(savedState.player2Dice) ? savedState.player2Dice : []);
