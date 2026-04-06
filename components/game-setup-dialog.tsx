@@ -42,6 +42,7 @@ interface GameSetupFormProps {
   }) => void;
   onCancel?: () => void;
   isLoading?: boolean;
+  isMultiplayer?: boolean;
 }
 
 export function GameSetupForm({
@@ -50,6 +51,7 @@ export function GameSetupForm({
   onCreateLobby,
   onCancel,
   isLoading = false,
+  isMultiplayer = false,
 }: GameSetupFormProps) {
   const [playerName, setPlayerName] = useState("");
   const [targetScore, setTargetScore] = useState("37");
@@ -125,7 +127,7 @@ export function GameSetupForm({
           </div>
         )}
 
-        {gameType === "give-or-take" && (
+        {gameType === "give-or-take" && !isMultiplayer && (
           <div>
             <Label htmlFor="difficulty" className="text-sm font-medium">
               Difficulty
