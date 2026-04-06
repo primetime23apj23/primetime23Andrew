@@ -84,6 +84,7 @@ export function PrimeFactorGame() {
   const [sessionCode, setSessionCode] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
+  const [opponentPlayerId, setOpponentPlayerId] = useState<string | null>(null);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [opponentHasJoined, setOpponentHasJoined] = useState(false);
   const [opponentName, setOpponentName] = useState<string | null>(null);
@@ -436,6 +437,46 @@ export function PrimeFactorGame() {
     if (isMultiplayer) persistGameState('start');
   }, [playerNames, isMultiplayer, persistGameState]);
 
+  // Sync player names to game state when they change
+  useEffect(() => {
+    setGameState((prev) => ({
+      ...prev,
+      players: [
+        { ...prev.players[0], name: playerNames[0] },
+        { ...prev.players[1], name: playerNames[1] },
+      ],
+    }));
+  }, [playerNames]);
+
+  // Set current turn when game starts in multiplayer
+  useEffect(() => {
+    if (
+      isMultiplayer &&
+      sessionId &&
+      playerId &&
+      gameState.phase === "rolling" &&
+      !diceRolled
+    ) {
+      // Set Player 1 as current turn (should always be player_1_id initially)
+      updateCurrentTurn(sessionId, playerId);
+    }
+  }, [isMultiplayer, sessionId, playerId, gameState.phase, diceRolled]);
+
+  // Update database when turn changes
+  useEffect(() => {
+    if (!isMultiplayer || !sessionId) return;
+
+    if (gameState.phase === "playing") {
+      if (gameState.currentPlayer === 0 && playerId) {
+        // It's player 1's turn
+        updateCurrentTurn(sessionId, playerId);
+      } else if (gameState.currentPlayer === 1 && opponentPlayerId) {
+        // It's player 2's turn
+        updateCurrentTurn(sessionId, opponentPlayerId);
+      }
+    }
+  }, [gameState.currentPlayer, gameState.phase, isMultiplayer, sessionId, playerId, opponentPlayerId]);
+
   // Sort dice by value
   const sortDice = (dice: Die[]): Die[] => {
     return [...dice].sort((a, b) => {
@@ -591,6 +632,7 @@ export function PrimeFactorGame() {
       if (session.player_2_id) {
         setOpponentHasJoined(true);
         setOpponentName(session.player_2_name || "Opponent");
+        setOpponentPlayerId(session.player_2_id);
       }
     });
 
