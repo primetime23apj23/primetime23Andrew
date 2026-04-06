@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { getCurrentUser, AuthUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase-multiplayer';
 
+type GuestUser = { id: string; email: string; playerName: string };
+
 const log = (...args: any[]) => console.debug('[usePlayerProfile]', ...args);
 
 export function usePlayerProfile() {
@@ -19,7 +21,18 @@ export function usePlayerProfile() {
         log('init: fetching current user');
         const currentUser = await getCurrentUser();
         log('init: user', currentUser);
-        setUser(currentUser);
+        if (currentUser) {
+          setUser(currentUser);
+        } else {
+          const guestName = typeof window !== 'undefined' ? localStorage.getItem('pf_player_name') : null;
+          if (guestName) {
+            const guest: GuestUser = { id: 'guest', email: '', playerName: guestName };
+            log('init: guest from localStorage', guestName);
+            setUser(guest);
+          } else {
+            setUser(null);
+          }
+        }
       } catch (err) {
         console.error('Error fetching user:', err);
         setError('Failed to load user profile');
