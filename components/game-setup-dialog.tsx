@@ -80,12 +80,12 @@ export function GameSetupForm({
 
   return (
     <div className="space-y-4">
-      <DialogHeader className="space-y-3">
-        <DialogTitle>Set Up Your Game</DialogTitle>
-        <DialogDescription>
+      <div className="space-y-3">
+        <h2 className="text-2xl font-semibold tracking-tight">Set Up Your Game</h2>
+        <p className="text-sm text-muted-foreground">
           Configure your settings before creating a lobby.
-        </DialogDescription>
-      </DialogHeader>
+        </p>
+      </div>
 
       <div className="space-y-4">
         <div>
@@ -181,6 +181,12 @@ export function GameSetupDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Set Up Your Game</DialogTitle>
+          <DialogDescription>
+            Configure your settings before creating a lobby.
+          </DialogDescription>
+        </DialogHeader>
         <GameSetupForm
           gameType={gameType}
           defaultPlayerName={defaultPlayerName}

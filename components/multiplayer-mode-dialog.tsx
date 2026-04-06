@@ -27,12 +27,12 @@ export function MultiplayerModeSelector({
 }: MultiplayerModeSelectorProps) {
   return (
     <>
-      <DialogHeader className="space-y-3">
-        <DialogTitle>How do you want to play?</DialogTitle>
-        <DialogDescription>
+      <div className="space-y-3">
+        <h2 className="text-2xl font-semibold tracking-tight">How do you want to play?</h2>
+        <p className="text-sm text-muted-foreground">
           Choose your mode for {gameName}. You&apos;ll configure details after picking a mode.
-        </DialogDescription>
-      </DialogHeader>
+        </p>
+      </div>
 
       <div className="grid gap-3">
         {hasActiveGames && (
@@ -112,6 +112,12 @@ export function MultiplayerModeDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
+        <DialogHeader className="sr-only">
+          <DialogTitle>How do you want to play?</DialogTitle>
+          <DialogDescription>
+            Choose your mode for {gameName}. You&apos;ll configure details after picking a mode.
+          </DialogDescription>
+        </DialogHeader>
         <MultiplayerModeSelector
           onModeSelect={(mode) => {
             onModeSelect(mode);
