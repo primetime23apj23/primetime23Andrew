@@ -700,10 +700,7 @@ export function PrimeFactorGame() {
     void loadLatestSavedGameState(sessionId);
 
     const pollInterval = setInterval(() => {
-      // Skip polling when it's your turn to avoid interfering with local interactions
-      if (!isLocalPlayersTurn) {
-        void loadLatestSavedGameState(sessionId);
-      }
+      void loadLatestSavedGameState(sessionId);
     }, 1500);
 
     const channel = subscribeToGameState(sessionId, (states) => {
