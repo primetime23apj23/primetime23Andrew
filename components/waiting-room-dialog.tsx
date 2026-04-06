@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { getAvailableLobbies, type GameLobby } from "@/lib/supabase-multiplayer";
-import { Copy, Check, ArrowRight } from "lucide-react";
+import { Copy, Check, ArrowRight, Users } from "lucide-react";
 
 interface WaitingRoomProps {
   sessionCode: string;
