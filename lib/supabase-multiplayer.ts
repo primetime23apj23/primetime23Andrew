@@ -64,42 +64,13 @@ export interface GameSession {
 
 async function fetchSessionById(id: string): Promise<GameSession | null> {
   try {
-    const { data: sessionData, error } = await supabase
-      .from('game_sessions')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) throw error;
-    if (!sessionData) return null;
-
-    // Manually fetch player names
-    let player_1_name = 'Player 1';
-    let player_2_name = 'Player 2';
-
-    if (sessionData.player_1_id) {
-      const { data: p1 } = await supabase
-        .from('game_players')
-        .select('player_name')
-        .eq('player_id', sessionData.player_1_id)
-        .single();
-      if (p1) player_1_name = p1.player_name;
+    const response = await fetch(`/api/lobbies?sessionId=${encodeURIComponent(id)}`);
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Session fetch by id failed HTTP', response.status, text);
+      return null;
     }
-
-    if (sessionData.player_2_id) {
-      const { data: p2 } = await supabase
-        .from('game_players')
-        .select('player_name')
-        .eq('player_id', sessionData.player_2_id)
-        .single();
-      if (p2) player_2_name = p2.player_name;
-    }
-
-    return {
-      ...sessionData,
-      player_1_name,
-      player_2_name,
-    } as GameSession;
+    return (await response.json()) as GameSession;
   } catch (error) {
     console.error('Error fetching session by id:', error);
     return null;
@@ -298,42 +269,13 @@ export function subscribeToSession(
 
 export async function getGameSession(sessionCode: string): Promise<GameSession | null> {
   try {
-    const { data, error } = await supabase
-      .from('game_sessions')
-      .select('*')
-      .eq('session_code', sessionCode)
-      .single();
-
-    if (error) throw error;
-    if (!data) return null;
-
-    // Manually fetch player names
-    let player_1_name = 'Player 1';
-    let player_2_name = 'Player 2';
-
-    if (data.player_1_id) {
-      const { data: p1 } = await supabase
-        .from('game_players')
-        .select('player_name')
-        .eq('player_id', data.player_1_id)
-        .single();
-      if (p1) player_1_name = p1.player_name;
+    const response = await fetch(`/api/lobbies?sessionCode=${encodeURIComponent(sessionCode)}`);
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Session fetch by code failed HTTP', response.status, text);
+      return null;
     }
-
-    if (data.player_2_id) {
-      const { data: p2 } = await supabase
-        .from('game_players')
-        .select('player_name')
-        .eq('player_id', data.player_2_id)
-        .single();
-      if (p2) player_2_name = p2.player_name;
-    }
-
-    return {
-      ...data,
-      player_1_name,
-      player_2_name,
-    } as GameSession;
+    return (await response.json()) as GameSession;
   } catch (error) {
     console.error('Error fetching game session:', error);
     return null;

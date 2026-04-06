@@ -571,14 +571,31 @@ export function PrimeFactorGame() {
   }, [applySavedGameState]);
 
   // Start game with target score
-  const handleStartGame = useCallback((targetScore: number, enableBot: boolean, difficulty: BotDifficulty) => {
+  const handleStartGame = useCallback(async (targetScore: number, enableBot: boolean, difficulty: BotDifficulty) => {
+    let resolvedPlayerNames: [string, string] = playerNames;
+
+    if (isMultiplayer && sessionId) {
+      const latestSession = await getGameSessionById(sessionId);
+      if (latestSession) {
+        resolvedPlayerNames = [
+          latestSession.player_1_name || playerNames[0],
+          latestSession.player_2_name || playerNames[1],
+        ];
+        setPlayerNames(resolvedPlayerNames);
+        setOpponentName(latestSession.player_2_name || opponentName);
+      }
+    }
+
     setBotEnabled(enableBot);
     setBotDifficulty(difficulty);
     const initial = createInitialState(targetScore);
     initial.players = [
-      { ...initial.players[0], name: playerNames[0] },
-      { ...initial.players[1], name: enableBot ? "Bot" : playerNames[1] },
+      { ...initial.players[0], name: resolvedPlayerNames[0] },
+      { ...initial.players[1], name: enableBot ? "Bot" : resolvedPlayerNames[1] },
     ];
+    initial.phase = "rolling";
+    initial.message = `${resolvedPlayerNames[0]}, roll the dice to start the game!`;
+
     setGameState(initial);
     setShowSetup(false);
     setSelectedSpace(null);
@@ -587,17 +604,9 @@ export function PrimeFactorGame() {
     setDiceRolled(false);
     setBonusHistory([]);
     setCompletedTracks([]);
-    
-    setGameState((prev) => ({
-      ...prev,
-      players: enableBot 
-        ? [prev.players[0], { ...prev.players[1], name: "Bot" }]
-        : prev.players,
-      phase: "rolling",
-      message: "Player 1, roll the dice to start the game!",
-    }));
+
     if (isMultiplayer) persistGameState('start');
-  }, [playerNames, isMultiplayer, persistGameState]);
+  }, [isMultiplayer, opponentName, persistGameState, playerNames, sessionId]);
 
   // Sync player names to game state when they change
   useEffect(() => {

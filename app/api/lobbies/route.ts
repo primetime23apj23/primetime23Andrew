@@ -9,6 +9,37 @@ const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
 export async function GET(request: NextRequest) {
   const gameType = request.nextUrl.searchParams.get('gameType');
+  const sessionId = request.nextUrl.searchParams.get('sessionId');
+  const sessionCode = request.nextUrl.searchParams.get('sessionCode');
+
+  if (sessionId || sessionCode) {
+    try {
+      const query = supabaseAdmin
+        .from('game_sessions_with_names')
+        .select('*');
+
+      const { data, error } = await (sessionId
+        ? query.eq('id', sessionId).single()
+        : query.eq('session_code', sessionCode).single());
+
+      if (error) {
+        console.error('[v0] Error fetching session:', error);
+        return NextResponse.json(
+          { error: 'Failed to fetch session', details: error.message },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(data);
+    } catch (error) {
+      console.error('[v0] Error fetching single session:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return NextResponse.json(
+        { error: 'Failed to fetch session', details: errorMessage },
+        { status: 500 }
+      );
+    }
+  }
 
   if (!gameType || !['multiplication', 'give-or-take'].includes(gameType)) {
     return NextResponse.json(
