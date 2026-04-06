@@ -1539,7 +1539,7 @@ export function PrimeFactorGame() {
               {showModeSelect && (
                 <MultiplayerModeSelector
                   onModeSelect={handleModeSelect}
-                  gameName="Prime Factorization Games"
+                  gameName="Multiplication Game"
                   hasActiveGames={hasResumableGames}
                   onViewActiveGames={() => setShowActiveGames(true)}
                 />
