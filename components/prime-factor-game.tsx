@@ -700,7 +700,10 @@ export function PrimeFactorGame() {
     void loadLatestSavedGameState(sessionId);
 
     const pollInterval = setInterval(() => {
-      void loadLatestSavedGameState(sessionId);
+      // Skip polling when it's your turn to avoid interfering with local interactions
+      if (!isLocalPlayersTurn) {
+        void loadLatestSavedGameState(sessionId);
+      }
     }, 1500);
 
     const channel = subscribeToGameState(sessionId, (states) => {
@@ -1532,9 +1535,7 @@ export function PrimeFactorGame() {
 
   if (showPreGameSetupPage) {
     const setupTitle = showGameSetup ? "Create a Multiplayer Lobby" : "Set Up Your Game";
-    const setupDescription = showGameSetup
-      ? "Choose how this match should run before you open the lobby."
-"Pick the way you want to play, then we’ll move you straight into the right experience.";
+    const setupDescription = showGameSetup ? "Choose how this match should run before you open the lobby." : "Pick the way you want to play, then we'll move you straight into the right experience.";
 
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.16),_transparent_35%),linear-gradient(180deg,#f8fbff_0%,#eef5ff_48%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.2),_transparent_30%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#030712_100%)]">
