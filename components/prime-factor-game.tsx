@@ -780,7 +780,7 @@ export function PrimeFactorGame() {
 
   const handleModeSelect = useCallback((mode: ModeOption) => {
     // Force auth for multiplayer flows
-    if ((mode === "create" || mode === "join") && !playerNames[0]) {
+    if ((mode === "create" || mode === "join") && !authUser?.id) {
       setShowAuth(true);
       return;
     }
@@ -813,7 +813,7 @@ export function PrimeFactorGame() {
       setMultiplayerMode("lobby");
       setShowModeSelect(false);
     }
-  }, []);
+  }, [authUser?.id]);
 
   // Handle lobby selection
   const handleSelectLobby = useCallback(

@@ -561,6 +561,12 @@ export function GiveOrTakeGame() {
   }, [showSetup, gameState.phase]);
 
   const handleModeSelect = useCallback((mode: "bot" | "local" | "create") => {
+    // Force auth for multiplayer flows
+    if (mode === "create" && !authUser?.id) {
+      setShowAuth(true);
+      return;
+    }
+
     if (mode === "bot") {
       setBotEnabled(true);
       setIsMultiplayer(false);
@@ -577,12 +583,13 @@ export function GiveOrTakeGame() {
       return;
     }
 
-    setIsMultiplayer(true);
-    setMultiplayerMode("create");
-    setShowModeSelect(false);
-    setWaitingForOpponent(true);
-    setSessionCode("ABC123");
-  }, []);
+    // Show lobby to find/create multiplayer game
+    if (mode === "create") {
+      setShowLobby(true);
+      setMultiplayerMode("lobby");
+      setShowModeSelect(false);
+    }
+  }, [authUser?.id]);
 
   // Bot auto-play effect
   useEffect(() => {
