@@ -15,6 +15,7 @@ interface WaitingRoomProps {
   gameType?: "multiplication" | "give-or-take";
   onJoinLobby?: (lobbyId: string, playerName?: string) => void;
   onCreateNew?: () => void;
+  opponentHasJoined?: boolean;
 }
 
 export function WaitingRoomDialog({
@@ -26,10 +27,22 @@ export function WaitingRoomDialog({
   gameType,
   onJoinLobby,
   onCreateNew,
+  opponentHasJoined = false,
 }: WaitingRoomProps) {
   const [copied, setCopied] = useState(false);
   const [lobbies, setLobbies] = useState<GameLobby[]>([]);
   const [loadingLobbies, setLoadingLobbies] = useState(false);
+
+  // Auto-trigger opponent joined callback when opponent joins
+  useEffect(() => {
+    if (opponentHasJoined && onOpponentJoined) {
+      // Small delay to ensure smooth UI transition
+      const timer = setTimeout(() => {
+        onOpponentJoined();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [opponentHasJoined, onOpponentJoined]);
 
   useEffect(() => {
     if (!gameType || !isOpen) return;
@@ -87,7 +100,7 @@ export function WaitingRoomDialog({
           <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
           <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
         </div>
-        <p className="text-sm text-muted-foreground">Waiting for opponent to join...</p>
+        <p className="text-sm text-muted-foreground">{opponentHasJoined ? 'Opponent joined! Ready to start.' : 'Waiting for opponent to join...'}</p>
       </div>
 
       {gameType && onJoinLobby && (
@@ -125,11 +138,11 @@ export function WaitingRoomDialog({
         </div>
       )}
 
-      {onOpponentJoined && (
+      {onOpponentJoined && opponentHasJoined && (
         <Button onClick={onOpponentJoined} className="w-full">
           Opponent Joined — Start Match
         </Button>
-          )}
+      )}
 
       <Button onClick={onCancel} variant="outline" className="w-full">
         Cancel

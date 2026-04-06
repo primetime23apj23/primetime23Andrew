@@ -85,6 +85,7 @@ export function PrimeFactorGame() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [opponentHasJoined, setOpponentHasJoined] = useState(false);
   const [opponentName, setOpponentName] = useState<string | null>(null);
   const [playerNames, setPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
   const [showAuth, setShowAuth] = useState(false);
@@ -568,10 +569,8 @@ export function PrimeFactorGame() {
         session.player_2_name || "Player 2",
       ]);
       if (session.player_2_id) {
-        setWaitingForOpponent(false);
+        setOpponentHasJoined(true);
         setOpponentName(session.player_2_name || "Opponent");
-        setShowSetup(true);
-        setShowModeSelect(false);
       }
     });
 
@@ -1316,6 +1315,7 @@ export function PrimeFactorGame() {
       }}
       onOpponentJoined={() => {
         setWaitingForOpponent(false);
+        setOpponentHasJoined(false);
         setShowSetup(true);
         setShowModeSelect(false);
       }}
@@ -1324,6 +1324,7 @@ export function PrimeFactorGame() {
         setShowLobby(true);
         setShowModeSelect(false);
       }}
+      opponentHasJoined={opponentHasJoined}
       isOpen
     />
   )}

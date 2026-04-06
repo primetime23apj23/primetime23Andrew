@@ -108,6 +108,7 @@ export function GiveOrTakeGame() {
   const [sessionCode, setSessionCode] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [opponentHasJoined, setOpponentHasJoined] = useState(false);
   const [opponentName, setOpponentName] = useState<string | null>(null);
 
   // Exit confirmation dialog
@@ -664,9 +665,11 @@ export function GiveOrTakeGame() {
             }}
             onOpponentJoined={() => {
               setWaitingForOpponent(false);
+              setOpponentHasJoined(false);
               setShowSetup(true);
               setShowModeSelect(false);
             }}
+            opponentHasJoined={opponentHasJoined}
             isOpen
           />
         )}
