@@ -1628,29 +1628,6 @@ export function PrimeFactorGame() {
                   Setup Flow
                 </span>
               </div>
-
-              <div className="mt-6 space-y-4">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-sm font-semibold">
-                    {authUser?.playerName ? "Signed in as" : "Current player"}
-                  </p>
-                  <p className="mt-1 text-2xl font-bold text-white">
-                    {authUser?.playerName || playerNames[0] || "Player 1"}
-                  </p>
-                  <p className="mt-2 text-sm text-slate-300">
-                    Your setup now lives on its own screen, so you can focus before the board appears.
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-sky-400/20 bg-sky-400/10 p-4">
-                  <p className="text-sm font-semibold text-sky-200">What happens next</p>
-                  <ul className="mt-3 space-y-3 text-sm text-slate-200">
-                    <li>Choose bot, local play, or multiplayer.</li>
-                    <li>For multiplayer, browse live rooms or create one with your signed-in profile.</li>
-                    <li>Once setup is done, you drop into the game instead of stacking dialogs on top of it.</li>
-                  </ul>
-                </div>
-              </div>
             </aside>
           </div>
         </div>
