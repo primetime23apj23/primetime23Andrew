@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { getAvailableLobbies, type GameLobby } from "@/lib/supabase-multiplayer";
 import { Users } from "lucide-react";
@@ -73,8 +73,11 @@ export function WaitingRoomDialog({
     <Dialog open={isOpen} onOpenChange={() => {}}>
       <DialogContent>
         <DialogHeader>
-      <DialogTitle>Waiting for Opponent...</DialogTitle>
-    </DialogHeader>
+          <DialogTitle>Waiting for Opponent...</DialogTitle>
+          <DialogDescription>
+            Share the session code or wait here while another player joins your multiplayer match.
+          </DialogDescription>
+        </DialogHeader>
     <div className="flex flex-col gap-4">
       <div className="text-center">
         <p className="text-sm text-muted-foreground mb-2">Your Name</p>

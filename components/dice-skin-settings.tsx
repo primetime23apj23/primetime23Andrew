@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -88,9 +89,9 @@ export function DiceSkinSettings({ skins, onSkinsChange }: DiceSkinSettingsProps
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Customize Dice Images</DialogTitle>
-          <p className="text-sm text-muted-foreground">
+          <DialogDescription>
             Associate images with dice values to help visualize prime numbers
-          </p>
+          </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="h-[400px] pr-4">

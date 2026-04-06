@@ -3,6 +3,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -19,6 +20,9 @@ export function RulesDialog({ open, onOpenChange }: RulesDialogProps) {
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="text-2xl">How to Play Prime Factor</DialogTitle>
+          <DialogDescription>
+            Learn the rules, scoring, and turn flow for the Prime Factorization game.
+          </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[60vh] pr-4">
           <div className="space-y-6 text-sm">
