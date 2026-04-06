@@ -65,8 +65,6 @@ const createInitialState = (targetScore: number): GameState => ({
   targetScore,
 });
 
-const authFlowLog = (...args: any[]) => console.debug("[PrimeFactorGame/auth]", ...args);
-
 export function PrimeFactorGame() {
   const [gameState, setGameState] = useState<GameState>(createInitialState(37));
   const [selectedSpace, setSelectedSpace] = useState<BoardSpace | null>(null);
@@ -77,7 +75,7 @@ export function PrimeFactorGame() {
   const [diceSkins, setDiceSkins] = useState<DiceSkin[]>(DEFAULT_SKINS);
   
   // Authentication and session recovery
-  const { user: authUser, loading: authLoading, isAuthenticated } = usePlayerProfile();
+  const { user: authUser, isAuthenticated } = usePlayerProfile();
   const [userId, setUserId] = useState<string | null>(null);
   const [showActiveGames, setShowActiveGames] = useState(false);
   const [hasResumableGames, setHasResumableGames] = useState(false);
@@ -130,30 +128,6 @@ export function PrimeFactorGame() {
   const [botEnabled, setBotEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
   const gameStateVersionRef = useRef<number>(-1);
-
-  useEffect(() => {
-    authFlowLog("state snapshot", {
-      authLoading,
-      isAuthenticated,
-      authUserId: authUser?.id ?? null,
-      authPlayerName: authUser?.playerName ?? null,
-      userId,
-      showAuth,
-      waitingForOpponent,
-      sessionId,
-      sessionCode,
-    });
-  }, [
-    authLoading,
-    authUser?.id,
-    authUser?.playerName,
-    isAuthenticated,
-    sessionCode,
-    sessionId,
-    showAuth,
-    userId,
-    waitingForOpponent,
-  ]);
 
   // Local player id
   useEffect(() => {
