@@ -386,6 +386,26 @@ export function PrimeFactorGame() {
     return match !== null;
   }, [selectedSpace, gameState.selectedDice, currentPlayerDice]);
 
+  // Persist game state to database for multiplayer
+  const persistGameState = useCallback(async (actionType: string) => {
+    if (!isMultiplayer || !sessionId || !playerId) return;
+    
+    try {
+      await updateGameState(sessionId, playerId, {
+        board: gameState.board,
+        players: gameState.players,
+        currentPlayer: gameState.currentPlayer,
+        phase: gameState.phase,
+        roundNumber: gameState.roundNumber,
+        selectedDice: gameState.selectedDice,
+        actionType,
+        timestamp: Date.now(),
+      }, gameState.roundNumber);
+    } catch (error) {
+      console.error('Error persisting game state:', error);
+    }
+  }, [isMultiplayer, sessionId, playerId, gameState, updateGameState]);
+
   // Start game with target score
   const handleStartGame = useCallback((targetScore: number, enableBot: boolean, difficulty: BotDifficulty) => {
     setBotEnabled(enableBot);
