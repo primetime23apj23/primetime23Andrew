@@ -62,13 +62,42 @@ export interface GameSession {
 
 async function fetchSessionById(id: string): Promise<GameSession | null> {
   try {
-    const { data, error } = await supabase
-      .from('game_sessions_with_names')
+    const { data: sessionData, error } = await supabase
+      .from('game_sessions')
       .select('*')
       .eq('id', id)
       .single();
+    
     if (error) throw error;
-    return data as GameSession;
+    if (!sessionData) return null;
+
+    // Manually fetch player names
+    let player_1_name = 'Player 1';
+    let player_2_name = 'Player 2';
+
+    if (sessionData.player_1_id) {
+      const { data: p1 } = await supabase
+        .from('game_players')
+        .select('player_name')
+        .eq('player_id', sessionData.player_1_id)
+        .single();
+      if (p1) player_1_name = p1.player_name;
+    }
+
+    if (sessionData.player_2_id) {
+      const { data: p2 } = await supabase
+        .from('game_players')
+        .select('player_name')
+        .eq('player_id', sessionData.player_2_id)
+        .single();
+      if (p2) player_2_name = p2.player_name;
+    }
+
+    return {
+      ...sessionData,
+      player_1_name,
+      player_2_name,
+    } as GameSession;
   } catch (error) {
     console.error('Error fetching session by id:', error);
     return null;
@@ -138,14 +167,14 @@ export async function joinGameSession(
       player_name: playerName,
     });
 
-    // Find session
-    const { data: session, error: findError } = await supabase
-      .from('game_sessions_with_names')
+    // Find session by code
+    const { data: sessionData, error: findError } = await supabase
+      .from('game_sessions')
       .select('*')
       .eq('session_code', sessionCode)
       .single();
 
-    if (findError || !session) {
+    if (findError || !sessionData) {
       console.error('Session not found');
       return null;
     }
@@ -157,7 +186,7 @@ export async function joinGameSession(
         player_2_id: playerId,
         status: 'active',
       })
-      .eq('id', session.id)
+      .eq('id', sessionData.id)
       .select()
       .single();
 
@@ -264,13 +293,41 @@ export function subscribeToSession(
 export async function getGameSession(sessionCode: string): Promise<GameSession | null> {
   try {
     const { data, error } = await supabase
-      .from('game_sessions_with_names')
+      .from('game_sessions')
       .select('*')
       .eq('session_code', sessionCode)
       .single();
 
     if (error) throw error;
-    return data as GameSession;
+    if (!data) return null;
+
+    // Manually fetch player names
+    let player_1_name = 'Player 1';
+    let player_2_name = 'Player 2';
+
+    if (data.player_1_id) {
+      const { data: p1 } = await supabase
+        .from('game_players')
+        .select('player_name')
+        .eq('player_id', data.player_1_id)
+        .single();
+      if (p1) player_1_name = p1.player_name;
+    }
+
+    if (data.player_2_id) {
+      const { data: p2 } = await supabase
+        .from('game_players')
+        .select('player_name')
+        .eq('player_id', data.player_2_id)
+        .single();
+      if (p2) player_2_name = p2.player_name;
+    }
+
+    return {
+      ...data,
+      player_1_name,
+      player_2_name,
+    } as GameSession;
   } catch (error) {
     console.error('Error fetching game session:', error);
     return null;

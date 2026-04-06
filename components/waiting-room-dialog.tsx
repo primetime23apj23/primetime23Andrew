@@ -33,22 +33,11 @@ export function WaitingRoomDialog({
   const [lobbies, setLobbies] = useState<GameLobby[]>([]);
   const [loadingLobbies, setLoadingLobbies] = useState(false);
 
-  useEffect(() => {
-    console.log("[v0] WaitingRoomDialog mounted/updated with props:", {
-      isOpen,
-      opponentHasJoined,
-      onOpponentJoinedExists: !!onOpponentJoined,
-    });
-  }, [isOpen, opponentHasJoined, onOpponentJoined]);
-
   // Auto-trigger opponent joined callback when opponent joins
   useEffect(() => {
-    console.log("[v0] WaitingRoom - opponentHasJoined:", opponentHasJoined, "onOpponentJoined:", !!onOpponentJoined);
     if (opponentHasJoined && onOpponentJoined) {
-      console.log("[v0] WaitingRoom - Triggering onOpponentJoined callback");
       // Small delay to ensure smooth UI transition
       const timer = setTimeout(() => {
-        console.log("[v0] WaitingRoom - Calling onOpponentJoined");
         onOpponentJoined();
       }, 300);
       return () => clearTimeout(timer);

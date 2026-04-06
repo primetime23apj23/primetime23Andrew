@@ -567,21 +567,12 @@ export function PrimeFactorGame() {
       if (cancelled) return;
       try {
         const session = await getGameSession(sessionCode);
-        if (session) {
-          console.log("[v0] Poll check - session data:", {
-            session_id: session.id,
-            player_1_id: session.player_1_id,
-            player_2_id: session.player_2_id,
-            player_2_name: session.player_2_name,
-          });
-          if (session.player_2_id) {
-            console.log("[v0] Poll detected opponent join - setting opponentHasJoined");
-            setOpponentHasJoined(true);
-            setOpponentName(session.player_2_name || "Opponent");
-          }
+        if (session && session.player_2_id) {
+          setOpponentHasJoined(true);
+          setOpponentName(session.player_2_name || "Opponent");
         }
       } catch (err) {
-        console.error("[v0] Error polling session:", err);
+        console.error('Error polling session:', err);
       }
     };
     
@@ -592,19 +583,12 @@ export function PrimeFactorGame() {
     // Also set up real-time subscription
     const channel = subscribeToSession(sessionCode, (session) => {
       if (cancelled || !session) return;
-      console.log("[v0] Subscription received session update:", {
-        session_id: session.id,
-        player_1_id: session.player_1_id,
-        player_2_id: session.player_2_id,
-        player_2_name: session.player_2_name,
-      });
       setSessionId(session.id);
       setPlayerNames([
         session.player_1_name || "Player 1",
         session.player_2_name || "Player 2",
       ]);
       if (session.player_2_id) {
-        console.log("[v0] Subscription detected opponent join - setting opponentHasJoined");
         setOpponentHasJoined(true);
         setOpponentName(session.player_2_name || "Opponent");
       }
