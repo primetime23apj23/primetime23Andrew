@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,7 @@ interface GameSetupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   gameType: "multiplication" | "give-or-take";
+  defaultPlayerName?: string;
   onCreateLobby: (settings: {
     playerName: string;
     targetScore?: number;
@@ -35,6 +36,7 @@ export function GameSetupDialog({
   open,
   onOpenChange,
   gameType,
+  defaultPlayerName = "",
   onCreateLobby,
   isLoading = false,
 }: GameSetupDialogProps) {
@@ -43,6 +45,11 @@ export function GameSetupDialog({
   const [botDifficulty, setBotDifficulty] = useState<"easy" | "medium" | "hard">(
     "medium"
   );
+
+  useEffect(() => {
+    if (!open) return;
+    setPlayerName(defaultPlayerName);
+  }, [defaultPlayerName, open]);
 
   const handleCreate = () => {
     if (!playerName.trim()) return;

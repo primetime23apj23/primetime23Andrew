@@ -13,21 +13,23 @@ export function AppHeader() {
   const { user, isAuthenticated, loading } = usePlayerProfile();
   const [showAuth, setShowAuth] = useState(false);
   const showLoadingPlaceholder = loading && !user;
+  const userId = user?.id ?? null;
+  const playerName = user?.playerName ?? null;
 
   useEffect(() => {
     headerLog("state snapshot", {
       loading,
       isAuthenticated,
       showAuth,
-      userId: user?.id ?? null,
-      playerName: user?.playerName ?? null,
+      userId,
+      playerName,
     });
-  }, [isAuthenticated, loading, showAuth, user?.id, user?.playerName]);
+  }, [isAuthenticated, loading, playerName, showAuth, userId]);
 
   const handleLogout = async () => {
     headerLog("logout:start", {
-      userId: user?.id ?? null,
-      playerName: user?.playerName ?? null,
+      userId,
+      playerName,
     });
     await supabase.auth.signOut();
     localStorage.removeItem("pf_player_name");
@@ -38,8 +40,8 @@ export function AppHeader() {
 
   if (showLoadingPlaceholder) {
     headerLog("render: loading placeholder visible", {
-      userId: user?.id ?? null,
-      playerName: user?.playerName ?? null,
+      userId,
+      playerName,
       isAuthenticated,
     });
     return (

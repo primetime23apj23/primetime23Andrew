@@ -161,6 +161,21 @@ export function PrimeFactorGame() {
     }
   }, [authUser]);
 
+  useEffect(() => {
+    if (!authUser?.playerName) return;
+
+    setPlayerNames((prev) => {
+      const shouldReplacePlaceholder =
+        !prev[0] || prev[0] === "Player 1" || prev[0] === "Player";
+
+      if (!shouldReplacePlaceholder || prev[0] === authUser.playerName) {
+        return prev;
+      }
+
+      return [authUser.playerName, prev[1]];
+    });
+  }, [authUser?.playerName]);
+
   // Setup heartbeat for multiplayer
   useEffect(() => {
     if (isMultiplayer && sessionId && userId) {
@@ -1389,6 +1404,7 @@ export function PrimeFactorGame() {
     open={showGameSetup}
     onOpenChange={setShowGameSetup}
     gameType={selectedGameType}
+    defaultPlayerName={authUser?.playerName || playerNames[0]}
     onCreateLobby={handleGameSetupSubmit}
     isLoading={lobbyLoading}
   />
