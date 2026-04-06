@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase-multiplayer';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
 /**
  * GET /api/active-games?userId=<userId>
@@ -17,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Query games where user is player 1 or player 2
-    const { data: games, error } = await supabase
+    const { data: games, error } = await supabaseAdmin
       .from('game_sessions_with_names')
       .select('*')
       .or(`player_1_id.eq.${userId},player_2_id.eq.${userId}`)

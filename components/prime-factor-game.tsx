@@ -80,6 +80,7 @@ export function PrimeFactorGame() {
   const { user: authUser, loading: authLoading, isAuthenticated } = usePlayerProfile();
   const [userId, setUserId] = useState<string | null>(null);
   const [showActiveGames, setShowActiveGames] = useState(false);
+  const [hasResumableGames, setHasResumableGames] = useState(false);
   
   // Multiplayer state
   const [isMultiplayer, setIsMultiplayer] = useState(false);
@@ -165,6 +166,40 @@ export function PrimeFactorGame() {
       setPlayerId(authUser.id);
     }
   }, [authUser]);
+
+  useEffect(() => {
+    if (!userId) {
+      setHasResumableGames(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkActiveGames = async () => {
+      try {
+        const response = await fetch(`/api/active-games?userId=${userId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!cancelled) {
+          setHasResumableGames(Boolean(data.success && (data.count || 0) > 0));
+        }
+      } catch (error) {
+        console.warn("Could not determine active game count", error);
+        if (!cancelled) {
+          setHasResumableGames(false);
+        }
+      }
+    };
+
+    void checkActiveGames();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   useEffect(() => {
     if (!authUser?.playerName) return;
@@ -1402,7 +1437,7 @@ export function PrimeFactorGame() {
                 <MultiplayerModeSelector
                   onModeSelect={handleModeSelect}
                   gameName="Multiplication Game"
-                  hasActiveGames={isAuthenticated}
+                  hasActiveGames={hasResumableGames}
                   onViewActiveGames={() => setShowActiveGames(true)}
                 />
               )}
