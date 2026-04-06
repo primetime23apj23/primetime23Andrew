@@ -86,6 +86,8 @@ export function PrimeFactorGame() {
   const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | "lobby" | null>(null);
   const [sessionCode, setSessionCode] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionPlayer1Id, setSessionPlayer1Id] = useState<string | null>(null);
+  const [sessionPlayer2Id, setSessionPlayer2Id] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [opponentPlayerId, setOpponentPlayerId] = useState<string | null>(null);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
@@ -604,29 +606,27 @@ export function PrimeFactorGame() {
     if (
       isMultiplayer &&
       sessionId &&
-      playerId &&
+      sessionPlayer1Id &&
       gameState.phase === "rolling" &&
       !diceRolled
     ) {
-      // Set Player 1 as current turn (should always be player_1_id initially)
-      updateCurrentTurn(sessionId, playerId);
+      // Player 1 always opens a multiplayer match.
+      updateCurrentTurn(sessionId, sessionPlayer1Id);
     }
-  }, [isMultiplayer, sessionId, playerId, gameState.phase, diceRolled]);
+  }, [isMultiplayer, sessionId, sessionPlayer1Id, gameState.phase, diceRolled]);
 
   // Update database when turn changes
   useEffect(() => {
     if (!isMultiplayer || !sessionId) return;
 
     if (gameState.phase === "playing") {
-      if (gameState.currentPlayer === 0 && playerId) {
-        // It's player 1's turn
-        updateCurrentTurn(sessionId, playerId);
-      } else if (gameState.currentPlayer === 1 && opponentPlayerId) {
-        // It's player 2's turn
-        updateCurrentTurn(sessionId, opponentPlayerId);
+      if (gameState.currentPlayer === 0 && sessionPlayer1Id) {
+        updateCurrentTurn(sessionId, sessionPlayer1Id);
+      } else if (gameState.currentPlayer === 1 && sessionPlayer2Id) {
+        updateCurrentTurn(sessionId, sessionPlayer2Id);
       }
     }
-  }, [gameState.currentPlayer, gameState.phase, isMultiplayer, sessionId, playerId, opponentPlayerId]);
+  }, [gameState.currentPlayer, gameState.phase, isMultiplayer, sessionId, sessionPlayer1Id, sessionPlayer2Id]);
 
   // Sort dice by value
   const sortDice = (dice: Die[]): Die[] => {
@@ -704,6 +704,8 @@ export function PrimeFactorGame() {
         if (session) {
           setSessionCode(session.session_code);
           setSessionId(session.id);
+          setSessionPlayer1Id(session.player_1_id);
+          setSessionPlayer2Id(session.player_2_id);
           setIsMultiplayer(true);
           setMultiplayerMode("join");
           setWaitingForOpponent(false);
@@ -746,6 +748,8 @@ export function PrimeFactorGame() {
 
         setSessionCode(session.session_code);
         setSessionId(session.id);
+        setSessionPlayer1Id(session.player_1_id);
+        setSessionPlayer2Id(session.player_2_id);
         setSelectedGameType(session.game_type);
         setIsMultiplayer(true);
         setMultiplayerMode("join");
@@ -790,6 +794,8 @@ export function PrimeFactorGame() {
     }
     setIsMultiplayer(false);
     setWaitingForOpponent(false);
+    setSessionPlayer1Id(null);
+    setSessionPlayer2Id(null);
     setShowModeSelect(true);
   }, [sessionCode]);
   // Host: auto-start when opponent joins
@@ -803,6 +809,8 @@ export function PrimeFactorGame() {
       try {
         const session = await getGameSession(sessionCode);
         if (session && session.player_2_id) {
+          setSessionPlayer1Id(session.player_1_id);
+          setSessionPlayer2Id(session.player_2_id);
           setOpponentHasJoined(true);
           setOpponentName(session.player_2_name || "Opponent");
         }
@@ -819,6 +827,8 @@ export function PrimeFactorGame() {
     const channel = subscribeToSession(sessionCode, (session) => {
       if (cancelled || !session) return;
       setSessionId(session.id);
+      setSessionPlayer1Id(session.player_1_id);
+      setSessionPlayer2Id(session.player_2_id);
       setPlayerNames([
         session.player_1_name || "Player 1",
         session.player_2_name || "Player 2",
@@ -858,6 +868,8 @@ export function PrimeFactorGame() {
         if (session) {
           setSessionCode(session.session_code);
           setSessionId(session.id);
+          setSessionPlayer1Id(session.player_1_id);
+          setSessionPlayer2Id(session.player_2_id);
           setIsMultiplayer(true);
           setMultiplayerMode("create");
           setWaitingForOpponent(true);

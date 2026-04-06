@@ -541,16 +541,15 @@ export async function updateCurrentTurn(
   playerId: string
 ): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('game_sessions')
-      .update({
-        current_turn_player_id: playerId,
-        last_move_at: new Date().toISOString(),
-      })
-      .eq('id', sessionId);
+    const response = await fetch('/api/turn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, playerId }),
+    });
 
-    if (error) {
-      console.error('Error updating turn:', error);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Error updating turn:', errorData);
       return false;
     }
 

@@ -79,7 +79,12 @@ export async function POST(request: NextRequest) {
       // Try to claim empty slot
       const { data: updatedSession, error: updateError } = await supabaseAdmin
         .from('game_sessions')
-        .update({ player_2_id: playerId, status: 'active' })
+        .update({
+          player_2_id: playerId,
+          status: 'active',
+          current_turn_player_id: null,
+          last_move_at: null,
+        })
         .eq('id', joinSessionId)
         .is('player_2_id', null)
         .select()

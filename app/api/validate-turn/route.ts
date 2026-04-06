@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase-multiplayer';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
 /**
  * POST /api/validate-turn
@@ -18,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the current game session
-    const { data: session, error: sessionError } = await supabase
+    const { data: session, error: sessionError } = await supabaseAdmin
       .from('game_sessions')
       .select('*')
       .eq('id', sessionId)
@@ -31,6 +36,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!session.current_turn_player_id) {
+      const initialTurnPlayerId = session.player_1_id;
+
+      const { error: initTurnError } = await supabaseAdmin
+        .from('game_sessions')
+        .update({
+          current_turn_player_id: initialTurnPlayerId,
+          last_move_at: session.last_move_at || new Date().toISOString(),
+        })
+        .eq('id', sessionId);
+
+      if (initTurnError) {
+        console.error('Error initializing turn owner:', initTurnError);
+        return NextResponse.json(
+          { success: false, error: 'Failed to initialize turn owner' },
+          { status: 500 }
+        );
+      }
+
+      session.current_turn_player_id = initialTurnPlayerId;
+    }
+
     // Validate that it's this player's turn
     if (session.current_turn_player_id !== playerId) {
       return NextResponse.json(
@@ -39,19 +66,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if too much time has passed since last move (prevent stale moves)
-    if (session.last_move_at) {
+    // Only reject moves that were created against older state than the current turn state.
+    if (session.last_move_at && timestamp) {
       const lastMoveTime = new Date(session.last_move_at).getTime();
-      const moveTime = timestamp ? new Date(timestamp).getTime() : Date.now();
-      const timeSinceLastMove = moveTime - lastMoveTime;
+      const moveTime = new Date(timestamp).getTime();
 
-      // Allow moves within 30 seconds of last move (reasonable for network latency)
-      if (timeSinceLastMove > 30000) {
+      if (Number.isFinite(moveTime) && moveTime < lastMoveTime) {
         console.warn(
-          `Move rejected: too old. Last move: ${lastMoveTime}, Move time: ${moveTime}, Diff: ${timeSinceLastMove}ms`
+          `Move rejected: stale client state. Last move: ${lastMoveTime}, Move time: ${moveTime}`
         );
         return NextResponse.json(
-          { success: false, error: 'Move is too old, game state may have changed' },
+          { success: false, error: 'Move is based on older game state' },
           { status: 409 }
         );
       }
