@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Users, Plus, Loader2 } from "lucide-react";
+import { Users, Plus, Loader2, ArrowRight } from "lucide-react";
 import { getAvailableLobbies, subscribeToLobbies, type GameLobby } from "@/lib/supabase-multiplayer";
 
 interface GameLobbyProps {
@@ -50,78 +50,92 @@ export function GameLobby({
     };
   }, [isOpen, gameType]);
 
-  const gameTypeLabel = gameType === "multiplication" ? "Times of Primes" : "Give or Take";
+  const gameTypeLabel = gameType === "multiplication" ? "Multiplication Game" : "Give or Take Game";
+  const gameTypeDesc = gameType === "multiplication" 
+    ? "Multiply numbers to reach the target"
+    : "Add or subtract numbers to reach the target";
 
   return (
-    <div className="flex flex-col gap-4 py-4">
+    <div className="flex flex-col gap-6 py-4">
+      {/* Game Type Selector */}
       {onChangeGameType && (
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            variant={gameType === "multiplication" ? "default" : "outline"}
-            onClick={() => onChangeGameType("multiplication")}
-          >
-            Multiplication
-          </Button>
-          <Button
-            variant={gameType === "give-or-take" ? "default" : "outline"}
-            onClick={() => onChangeGameType("give-or-take")}
-          >
-            Give or Take
-          </Button>
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Choose Game Type</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => onChangeGameType("multiplication")}
+              className={`p-3 rounded-lg border-2 transition text-left ${
+                gameType === "multiplication"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border hover:border-primary/50 hover:bg-primary/5"
+              }`}
+            >
+              <div className="font-semibold text-sm">Multiplication Game</div>
+              <div className="text-xs text-muted-foreground mt-1">Multiply to target</div>
+            </button>
+            <button
+              onClick={() => onChangeGameType("give-or-take")}
+              className={`p-3 rounded-lg border-2 transition text-left ${
+                gameType === "give-or-take"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border hover:border-primary/50 hover:bg-primary/5"
+              }`}
+            >
+              <div className="font-semibold text-sm">Give or Take Game</div>
+              <div className="text-xs text-muted-foreground mt-1">Add/subtract to target</div>
+            </button>
+          </div>
         </div>
       )}
 
-      <div>
-        <h2 className="text-lg font-semibold mb-2">Available Lobbies</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          {gameTypeLabel} • {lobbies.length} game{lobbies.length !== 1 ? "s" : ""} waiting
-        </p>
+      {/* Available Games Section */}
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold mb-1">Open Games</h2>
+          <p className="text-sm text-muted-foreground">
+            {gameTypeLabel} • {lobbies.length} game{lobbies.length !== 1 ? "s" : ""} waiting
+          </p>
+        </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : lobbies.length === 0 ? (
           <div className="rounded-lg border-2 border-dashed border-muted-foreground/30 p-8 text-center">
             <Users className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
-            <p className="text-muted-foreground text-sm">No games waiting right now</p>
+            <p className="text-muted-foreground text-sm font-medium">No open games</p>
             <p className="text-xs text-muted-foreground/70 mt-1">Be the first to create one!</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-64 overflow-y-auto">
             {lobbies.map((lobby) => (
               <button
                 key={lobby.id}
                 onClick={() => onSelectLobby(lobby.id)}
-                className="w-full flex items-center justify-between p-3 rounded-lg border border-border hover:bg-primary/5 hover:border-primary/30 transition group"
+                className="w-full flex items-center justify-between p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition group"
               >
                 <div className="text-left flex-1">
-                  <p className="font-medium text-sm group-hover:text-primary transition">
-                    {lobby.player_1_name || "Player"}
+                  <p className="font-semibold text-sm group-hover:text-primary transition">
+                    {lobby.player_1_name || "Anonymous Player"}
                   </p>
                   {gameType === "multiplication" && lobby.target_score && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Target: {lobby.target_score} points
                     </p>
                   )}
                   {gameType === "give-or-take" && lobby.bot_difficulty && (
-                    <p className="text-xs text-muted-foreground capitalize">
+                    <p className="text-xs text-muted-foreground mt-1 capitalize">
                       Difficulty: {lobby.bot_difficulty}
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-2 ml-2">
+                <div className="flex items-center gap-3 ml-3">
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-xs font-medium">
                     <Users className="h-3 w-3" />
                     1/2
                   </span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="group-hover:border-primary/50 group-hover:text-primary transition"
-                  >
-                    Join
-                  </Button>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition" />
                 </div>
               </button>
             ))}
@@ -129,15 +143,19 @@ export function GameLobby({
         )}
       </div>
 
-      <div className="flex gap-2 pt-2 border-t">
+      {/* Create Game Button */}
+      <div className="pt-3 border-t">
         <Button
           onClick={onCreateNew}
-          className="flex-1 gap-2"
-          variant="outline"
+          size="lg"
+          className="w-full gap-2"
         >
           <Plus className="h-4 w-4" />
-          Create Game
+          Create New Game
         </Button>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          Can&apos;t find a game? Start your own and wait for others to join
+        </p>
       </div>
     </div>
   );

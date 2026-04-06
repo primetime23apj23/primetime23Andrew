@@ -1528,7 +1528,7 @@ export function PrimeFactorGame() {
     return Array.from(set);
   }, [validMoves, possibleMoveHighlights]);
 
-  const showPreGameSetupPage = showModeSelect || showGameSetup;
+  const showPreGameSetupPage = showModeSelect || showGameSetup || showLobby;
 
   if (showPreGameSetupPage) {
     return (
@@ -1543,6 +1543,34 @@ export function PrimeFactorGame() {
                   hasActiveGames={hasResumableGames}
                   onViewActiveGames={() => setShowActiveGames(true)}
                 />
+              )}
+              
+              {showLobby && (
+                <div className="space-y-4">
+                  <button
+                    onClick={() => {
+                      setShowLobby(false);
+                      setShowModeSelect(true);
+                    }}
+                    className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2"
+                  >
+                    ← Back to modes
+                  </button>
+                  <GameLobby
+                    gameType={selectedGameType}
+                    onSelectLobby={(lobbyId) => {
+                      handleSelectLobby(lobbyId);
+                    }}
+                    onCreateNew={() => {
+                      setShowGameSetup(true);
+                      setShowLobby(false);
+                    }}
+                    isOpen={showLobby}
+                    onChangeGameType={(gameType) => {
+                      setSelectedGameType(gameType);
+                    }}
+                  />
+                </div>
               )}
             </div>
           </div>
