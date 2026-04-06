@@ -34,6 +34,22 @@ import {
 import { GiveOrTakeTutorial } from "./give-or-take-tutorial";
 import { MultiplayerModeDialog } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
+import { 
+  createGameLobby, 
+  joinGameLobby, 
+  cancelGameLobby, 
+  getGameSession, 
+  getGameSessionById, 
+  getGameStates, 
+  subscribeToSession, 
+  subscribeToGameState, 
+  updateGameState, 
+  generatePlayerId, 
+  sendHeartbeat, 
+  validateTurn, 
+  updateCurrentTurn 
+} from "@/lib/supabase-multiplayer";
+import { usePlayerProfile } from "@/hooks/use-player-profile";
 
 const DEFAULT_TARGET_SCORE = 13;
 
@@ -84,9 +100,46 @@ export function GiveOrTakeGame() {
   const [setupTimer, setSetupTimer] = useState<number | null>(null);
   const [setupPlayerNames, setSetupPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
   const [setupPlayerColors, setSetupPlayerColors] = useState<[string, string]>([PLAYER_COLORS[0], PLAYER_COLORS[1]]);
-  const [selectedDiceSize, setSelectedDiceSize] = useState<DiceSize | null>(null); // Persistent dice selection
+  const [selectedDiceSize, setSelectedDiceSize] = useState<DiceSize | null>(null);
   const [botEnabled, setBotEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
+
+  // Authentication and session recovery
+  const { user: authUser, isAuthenticated } = usePlayerProfile();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showActiveGames, setShowActiveGames] = useState(false);
+  const [hasResumableGames, setHasResumableGames] = useState(false);
+
+  // Multiplayer state
+  const [isMultiplayer, setIsMultiplayer] = useState(false);
+  const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | "lobby" | null>(null);
+  const [sessionCode, setSessionCode] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionPlayer1Id, setSessionPlayer1Id] = useState<string | null>(null);
+  const [sessionPlayer2Id, setSessionPlayer2Id] = useState<string | null>(null);
+  const [sessionLocalPlayerId, setSessionLocalPlayerId] = useState<string | null>(null);
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [opponentPlayerId, setOpponentPlayerId] = useState<string | null>(null);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [opponentHasJoined, setOpponentHasJoined] = useState(false);
+  const [opponentName, setOpponentName] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [heartbeatInterval, setHeartbeatInterval] = useState<NodeJS.Timeout | null>(null);
+
+  // Exit confirmation dialog
+  const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
+  const [pendingExitUrl, setPendingExitUrl] = useState<string | null>(null);
+
+  // Track all positions per player (not just last) [player0 positions, player1 positions]
+  const [playerPositions, setPlayerPositions] = useState<[number[], number[]]>([[], []]);
+
+  // Turn timer
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Animations
+  const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
+  const [fireworks, setFireworks] = useState<FireworkParticle[]>([]);
 
   // Auto-update Player 2 name when bot is enabled/disabled
   useEffect(() => {
@@ -99,29 +152,158 @@ export function GiveOrTakeGame() {
     }
   }, [botEnabled]);
 
-  // Track all positions per player (not just last) [player0 positions, player1 positions]
-  const [playerPositions, setPlayerPositions] = useState<[number[], number[]]>([[], []]);
+  // Local player id
+  useEffect(() => {
+    const id = generatePlayerId();
+    setPlayerId(id || null);
+  }, []);
 
-  // Multiplayer state
-  const [isMultiplayer, setIsMultiplayer] = useState(false);
-  const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | null>(null);
-  const [sessionCode, setSessionCode] = useState<string | null>(null);
-  const [playerId, setPlayerId] = useState<string | null>(null);
-  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
-  const [opponentHasJoined, setOpponentHasJoined] = useState(false);
-  const [opponentName, setOpponentName] = useState<string | null>(null);
+  // Set userId from auth user
+  useEffect(() => {
+    if (authUser?.id) {
+      setUserId(authUser.id);
+      setPlayerId(authUser.id);
+    }
+  }, [authUser]);
 
-  // Exit confirmation dialog
-  const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
-  const [pendingExitUrl, setPendingExitUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!sessionId) {
+      if (sessionLocalPlayerId !== null) {
+        setSessionLocalPlayerId(null);
+      }
+      return;
+    }
 
-  // Turn timer
-  const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const matchedIdentity = [userId, playerId].find(
+      (candidate): candidate is string =>
+        Boolean(candidate) &&
+        (candidate === sessionPlayer1Id || candidate === sessionPlayer2Id)
+    );
 
-  // Animations
-  const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
-  const [fireworks, setFireworks] = useState<FireworkParticle[]>([]);
+    if (matchedIdentity && matchedIdentity !== sessionLocalPlayerId) {
+      setSessionLocalPlayerId(matchedIdentity);
+      return;
+    }
+
+    if (!sessionLocalPlayerId) {
+      if (multiplayerMode === "create" && sessionPlayer1Id) {
+        setSessionLocalPlayerId(sessionPlayer1Id);
+      } else if (multiplayerMode === "join" && sessionPlayer2Id) {
+        setSessionLocalPlayerId(sessionPlayer2Id);
+      }
+    }
+  }, [
+    multiplayerMode,
+    playerId,
+    sessionId,
+    sessionLocalPlayerId,
+    sessionPlayer1Id,
+    sessionPlayer2Id,
+    userId,
+  ]);
+
+  useEffect(() => {
+    if (!userId) {
+      setHasResumableGames(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const checkActiveGames = async () => {
+      try {
+        const response = await fetch(`/api/active-games?userId=${userId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (!cancelled) {
+          setHasResumableGames(Boolean(data.success && (data.count || 0) > 0));
+        }
+      } catch (error) {
+        console.warn("Could not determine active game count", error);
+      }
+    };
+
+    checkActiveGames();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // Setup heartbeat for multiplayer
+  useEffect(() => {
+    if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+      // Send initial heartbeat
+      sendHeartbeat(sessionLocalPlayerId, sessionId, true);
+
+      // Setup periodic heartbeat every 10 seconds
+      const interval = setInterval(() => {
+        sendHeartbeat(sessionLocalPlayerId, sessionId, true);
+      }, 10000);
+
+      setHeartbeatInterval(interval);
+
+      return () => {
+        clearInterval(interval);
+        // Mark player as offline when leaving
+        sendHeartbeat(sessionLocalPlayerId, sessionId, false);
+      };
+    }
+  }, [isMultiplayer, sessionId, sessionLocalPlayerId]);
+
+  // Subscribe to game state updates
+  useEffect(() => {
+    if (!isMultiplayer || !sessionId) return;
+
+    const channel = subscribeToGameState(sessionId, (states) => {
+      const latestState = states[states.length - 1];
+      if (latestState?.game_state) {
+        try {
+          const newState = JSON.parse(latestState.game_state);
+          setGameState(newState);
+        } catch (error) {
+          console.error("Failed to parse game state:", error);
+        }
+      }
+    });
+
+    return () => {
+      channel?.unsubscribe();
+    };
+  }, [isMultiplayer, sessionId]);
+
+  // Subscribe to session updates for opponent joining/leaving
+  useEffect(() => {
+    if (!isMultiplayer || !sessionCode) return;
+
+    const channel = subscribeToSession(sessionCode, (session) => {
+      if (!session) return;
+
+      setSessionId(session.id);
+      setSessionPlayer1Id(session.player_1_id);
+      setSessionPlayer2Id(session.player_2_id);
+
+      // Check if opponent has joined
+      const opponentId = sessionLocalPlayerId === session.player_1_id ? session.player_2_id : session.player_1_id;
+      const opponentJoined = opponentId !== null;
+      
+      if (opponentJoined && !opponentHasJoined) {
+        setOpponentHasJoined(true);
+        if (session.player_1_id === sessionLocalPlayerId) {
+          setOpponentName(session.player_2_name || "Player 2");
+        } else {
+          setOpponentName(session.player_1_name || "Player 1");
+        }
+      }
+    });
+
+    return () => {
+      channel?.unsubscribe();
+    };
+  }, [isMultiplayer, sessionCode, sessionLocalPlayerId, opponentHasJoined]);
 
   const spawnPointAnimation = useCallback((x: number, y: number, points: number, isBonus: boolean) => {
     setFloatingEmojis((prev) => [
