@@ -1572,6 +1572,30 @@ export function PrimeFactorGame() {
                   />
                 </div>
               )}
+
+              {showGameSetup && (
+                <div className="space-y-4">
+                  <button
+                    onClick={() => {
+                      setShowGameSetup(false);
+                      setShowLobby(true);
+                    }}
+                    className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2"
+                  >
+                    ← Back to lobby
+                  </button>
+                  <GameSetupForm
+                    gameType={selectedGameType}
+                    defaultPlayerName={playerNames[0] || ""}
+                    onCreateLobby={handleGameSetupSubmit}
+                    onCancel={() => {
+                      setShowGameSetup(false);
+                      setShowLobby(true);
+                    }}
+                    isLoading={lobbyLoading}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
