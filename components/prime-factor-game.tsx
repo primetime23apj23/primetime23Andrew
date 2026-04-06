@@ -89,6 +89,7 @@ export function PrimeFactorGame() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionPlayer1Id, setSessionPlayer1Id] = useState<string | null>(null);
   const [sessionPlayer2Id, setSessionPlayer2Id] = useState<string | null>(null);
+  const [sessionLocalPlayerId, setSessionLocalPlayerId] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [opponentPlayerId, setOpponentPlayerId] = useState<string | null>(null);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
@@ -169,6 +170,42 @@ export function PrimeFactorGame() {
   }, [authUser]);
 
   useEffect(() => {
+    if (!sessionId) {
+      if (sessionLocalPlayerId !== null) {
+        setSessionLocalPlayerId(null);
+      }
+      return;
+    }
+
+    const matchedIdentity = [userId, playerId].find(
+      (candidate): candidate is string =>
+        Boolean(candidate) &&
+        (candidate === sessionPlayer1Id || candidate === sessionPlayer2Id)
+    );
+
+    if (matchedIdentity && matchedIdentity !== sessionLocalPlayerId) {
+      setSessionLocalPlayerId(matchedIdentity);
+      return;
+    }
+
+    if (!sessionLocalPlayerId) {
+      if (multiplayerMode === "create" && sessionPlayer1Id) {
+        setSessionLocalPlayerId(sessionPlayer1Id);
+      } else if (multiplayerMode === "join" && sessionPlayer2Id) {
+        setSessionLocalPlayerId(sessionPlayer2Id);
+      }
+    }
+  }, [
+    multiplayerMode,
+    playerId,
+    sessionId,
+    sessionLocalPlayerId,
+    sessionPlayer1Id,
+    sessionPlayer2Id,
+    userId,
+  ]);
+
+  useEffect(() => {
     if (!userId) {
       setHasResumableGames(false);
       return;
@@ -219,13 +256,13 @@ export function PrimeFactorGame() {
 
   // Setup heartbeat for multiplayer
   useEffect(() => {
-    if (isMultiplayer && sessionId && userId) {
+    if (isMultiplayer && sessionId && sessionLocalPlayerId) {
       // Send initial heartbeat
-      sendHeartbeat(userId, sessionId, true);
+      sendHeartbeat(sessionLocalPlayerId, sessionId, true);
 
       // Setup periodic heartbeat every 10 seconds
       const interval = setInterval(() => {
-        sendHeartbeat(userId, sessionId, true);
+        sendHeartbeat(sessionLocalPlayerId, sessionId, true);
       }, 10000);
 
       setHeartbeatInterval(interval);
@@ -233,10 +270,10 @@ export function PrimeFactorGame() {
       return () => {
         clearInterval(interval);
         // Mark player as offline when leaving
-        sendHeartbeat(userId, sessionId, false);
+        sendHeartbeat(sessionLocalPlayerId, sessionId, false);
       };
     }
-  }, [isMultiplayer, sessionId, userId]);
+  }, [isMultiplayer, sessionId, sessionLocalPlayerId]);
 
   // Exit confirmation dialog
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -472,19 +509,19 @@ export function PrimeFactorGame() {
 
   // Persist game state to database for multiplayer
   const persistGameState = useCallback((actionType: string) => {
-    if (!isMultiplayer || !sessionId || !playerId) return;
+    if (!isMultiplayer || !sessionId || !sessionLocalPlayerId) return;
     pendingPersistActionRef.current = actionType;
-  }, [isMultiplayer, sessionId, playerId]);
+  }, [isMultiplayer, sessionId, sessionLocalPlayerId]);
 
   useEffect(() => {
     const actionType = pendingPersistActionRef.current;
-    if (!actionType || !isMultiplayer || !sessionId || !playerId) return;
+    if (!actionType || !isMultiplayer || !sessionId || !sessionLocalPlayerId) return;
 
     pendingPersistActionRef.current = null;
 
     const saveState = async () => {
       try {
-        await updateGameState(sessionId, playerId, {
+        await updateGameState(sessionId, sessionLocalPlayerId, {
           board: gameState.board,
           players: gameState.players,
           currentPlayer: gameState.currentPlayer,
@@ -510,7 +547,7 @@ export function PrimeFactorGame() {
   }, [
     isMultiplayer,
     sessionId,
-    playerId,
+    sessionLocalPlayerId,
     gameState,
     player1Dice,
     player2Dice,
@@ -749,13 +786,14 @@ export function PrimeFactorGame() {
         const session = await joinGameLobby(
           lobbyId,
           joiningPlayerName,
-          userId || playerId || undefined
+          authUser?.id || userId || playerId || undefined
         );
         if (session) {
           setSessionCode(session.session_code);
           setSessionId(session.id);
           setSessionPlayer1Id(session.player_1_id);
           setSessionPlayer2Id(session.player_2_id);
+          setSessionLocalPlayerId(session.player_2_id || null);
           setMultiplayerTargetScore(session.target_score || 37);
           setIsMultiplayer(true);
           setMultiplayerMode("join");
@@ -775,7 +813,7 @@ export function PrimeFactorGame() {
         setLobbyLoading(false);
       }
     },
-    [authUser?.playerName, playerId, playerNames, userId]
+    [authUser?.id, authUser?.playerName, playerId, playerNames, userId]
   );
 
   // Handle create new lobby button
@@ -790,6 +828,11 @@ export function PrimeFactorGame() {
       if (session) {
         const activePlayerId = userId || playerId;
         const isCurrentUserPlayerOne = activePlayerId === session.player_1_id;
+        const resolvedLocalPlayerId = isCurrentUserPlayerOne
+          ? session.player_1_id
+          : activePlayerId === session.player_2_id
+            ? session.player_2_id
+            : session.player_1_id;
         const resolvedOpponentId = isCurrentUserPlayerOne
           ? session.player_2_id
           : session.player_1_id;
@@ -801,6 +844,7 @@ export function PrimeFactorGame() {
         setSessionId(session.id);
         setSessionPlayer1Id(session.player_1_id);
         setSessionPlayer2Id(session.player_2_id);
+        setSessionLocalPlayerId(resolvedLocalPlayerId);
         setMultiplayerTargetScore(session.target_score || 37);
         setSelectedGameType(session.game_type);
         setIsMultiplayer(true);
@@ -846,8 +890,11 @@ export function PrimeFactorGame() {
     }
     setIsMultiplayer(false);
     setWaitingForOpponent(false);
+    setSessionId(null);
+    setSessionCode(null);
     setSessionPlayer1Id(null);
     setSessionPlayer2Id(null);
+    setSessionLocalPlayerId(null);
     setShowModeSelect(true);
   }, [sessionCode]);
   // Host: auto-start when opponent joins
@@ -917,13 +964,14 @@ export function PrimeFactorGame() {
             targetScore: settings.targetScore,
             botDifficulty: settings.botDifficulty,
           },
-          userId || playerId || undefined
+          authUser?.id || userId || playerId || undefined
         );
         if (session) {
           setSessionCode(session.session_code);
           setSessionId(session.id);
           setSessionPlayer1Id(session.player_1_id);
           setSessionPlayer2Id(session.player_2_id);
+          setSessionLocalPlayerId(session.player_1_id);
           setMultiplayerTargetScore(settings.targetScore || session.target_score || 37);
           setIsMultiplayer(true);
           setMultiplayerMode("create");
@@ -938,13 +986,13 @@ export function PrimeFactorGame() {
         setLobbyLoading(false);
       }
     },
-    [selectedGameType]
+    [authUser?.id, playerId, selectedGameType, userId]
   );
 
   // Roll dice for both players at game start
   const handleRoll = useCallback(async () => {
-    if (isMultiplayer && sessionId && playerId) {
-      const valid = await validateTurn(sessionId, playerId);
+    if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+      const valid = await validateTurn(sessionId, sessionLocalPlayerId);
       if (!valid.valid) {
         setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
         return;
@@ -966,14 +1014,14 @@ export function PrimeFactorGame() {
     }));
 
     persistGameState('roll');
-  }, [isMultiplayer, sessionId, playerId, persistGameState]);
+  }, [isMultiplayer, sessionId, sessionLocalPlayerId, persistGameState]);
 
   // Claim a space
   const handleClaim = useCallback(async () => {
     if (!selectedSpace || !canClaimSpace) return;
 
-    if (isMultiplayer && sessionId && playerId) {
-      const valid = await validateTurn(sessionId, playerId);
+    if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+      const valid = await validateTurn(sessionId, sessionLocalPlayerId);
       if (!valid.valid) {
         setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
         return;
@@ -1118,7 +1166,7 @@ export function PrimeFactorGame() {
     
     setSelectedSpace(null);
     persistGameState('claim');
-  }, [selectedSpace, canClaimSpace, gameState.selectedDice, gameState.currentPlayer, getAnimationPosition, spawnPointAnimation, spawnFireworks, isMultiplayer, sessionId, playerId, validateTurn, persistGameState]);
+  }, [selectedSpace, canClaimSpace, gameState.selectedDice, gameState.currentPlayer, getAnimationPosition, spawnPointAnimation, spawnFireworks, isMultiplayer, sessionId, sessionLocalPlayerId, persistGameState]);
 
   // Cancel selection
   const handleCancel = useCallback(() => {
@@ -1146,8 +1194,8 @@ export function PrimeFactorGame() {
 
   // End turn
   const handleEndTurn = useCallback(async () => {
-    if (isMultiplayer && sessionId && playerId) {
-      const valid = await validateTurn(sessionId, playerId);
+    if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+      const valid = await validateTurn(sessionId, sessionLocalPlayerId);
       if (!valid.valid) {
         setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
         return;
@@ -1197,7 +1245,7 @@ export function PrimeFactorGame() {
       return newState;
     });
     persistGameState('end-turn');
-  }, [hasAnyValidMove, checkPlayerHasMoves, isMultiplayer, sessionId, playerId, validateTurn, persistGameState]);
+  }, [hasAnyValidMove, checkPlayerHasMoves, isMultiplayer, sessionId, sessionLocalPlayerId, persistGameState]);
 
   // Timer expired
   const handleTimeUp = useCallback(() => {
@@ -1398,6 +1446,7 @@ export function PrimeFactorGame() {
 
   // New game
   const handleNewGame = useCallback(() => {
+    setSessionLocalPlayerId(null);
     setShowSetup(true);
   }, []);
 
@@ -1541,7 +1590,10 @@ export function PrimeFactorGame() {
           open={showAuth}
           onOpenChange={setShowAuth}
           onAuthed={(name, _email, userId) => {
-            if (userId) setPlayerId(userId);
+            if (userId) {
+              setUserId(userId);
+              setPlayerId(userId);
+            }
             setPlayerNames([name || "Player 1", playerNames[1]]);
           }}
         />
@@ -1719,7 +1771,10 @@ export function PrimeFactorGame() {
     open={showAuth}
     onOpenChange={setShowAuth}
     onAuthed={(name, _email, userId) => {
-      if (userId) setPlayerId(userId);
+      if (userId) {
+        setUserId(userId);
+        setPlayerId(userId);
+      }
       setPlayerNames([name || "Player 1", playerNames[1]]);
     }}
   />
