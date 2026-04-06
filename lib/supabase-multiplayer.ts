@@ -10,7 +10,15 @@ export async function generateSessionCode(): Promise<string> {
 }
 
 export function generatePlayerId(): string {
-  if (typeof window === 'undefined') return '';
+  if (typeof window === 'undefined') {
+    // Server-side: generate a UUID without localStorage
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+    return uuid;
+  }
   
   let playerId = localStorage.getItem('game_player_id');
   const isUuid = playerId ? /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(playerId) : false;
