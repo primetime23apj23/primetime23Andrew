@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { getAvailableLobbies, type GameLobby } from "@/lib/supabase-multiplayer";
-import { Users } from "lucide-react";
+import { Copy, Check, ArrowRight } from "lucide-react";
 
 interface WaitingRoomProps {
   sessionCode: string;
@@ -32,6 +32,16 @@ export function WaitingRoomDialog({
   const [copied, setCopied] = useState(false);
   const [lobbies, setLobbies] = useState<GameLobby[]>([]);
   const [loadingLobbies, setLoadingLobbies] = useState(false);
+  const [gameLink, setGameLink] = useState<string>("");
+
+  // Generate shareable link
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionCode) {
+      const baseUrl = window.location.origin;
+      const link = `${baseUrl}?join=${sessionCode}`;
+      setGameLink(link);
+    }
+  }, [sessionCode]);
 
   // Auto-trigger opponent joined callback when opponent joins
   useEffect(() => {
@@ -61,8 +71,8 @@ export function WaitingRoomDialog({
     };
   }, [gameType, isOpen]);
 
-  const copySessionCode = () => {
-    navigator.clipboard.writeText(sessionCode);
+  const copyGameLink = () => {
+    navigator.clipboard.writeText(gameLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -84,18 +94,38 @@ export function WaitingRoomDialog({
         <p className="text-lg font-semibold">{playerName}</p>
       </div>
 
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">Session Code</p>
-            <p className="text-2xl font-mono font-bold tracking-wider">{sessionCode}</p>
-            <Button
-              onClick={copySessionCode}
-              variant="outline"
-              size="sm"
-              className="mt-2 w-full"
-            >
-              {copied ? 'Copied!' : 'Copy Code'}
-            </Button>
-          </div>
+      <div className="space-y-3 p-4 rounded-lg bg-muted/50 border border-border">
+        <p className="text-sm font-medium text-foreground">Game Link</p>
+        <div className="flex gap-2 items-center">
+          <input
+            type="text"
+            value={gameLink}
+            readOnly
+            className="flex-1 px-3 py-2 rounded bg-background border border-border text-sm font-mono text-foreground"
+          />
+          <Button
+            onClick={copyGameLink}
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+          >
+            {copied ? (
+              <>
+                <Check className="h-4 w-4 mr-1" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4 mr-1" />
+                Copy
+              </>
+            )}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Share this link with others to invite them to your game.
+        </p>
+      </div>
 
       <div className="text-center">
         <div className="flex justify-center gap-1 mb-2">
