@@ -1,19 +1,21 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Gamepad2, Users, Bot, History } from "lucide-react";
+import { Gamepad2, Users, Bot, History, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 export type ModeOption = "bot" | "local" | "create" | "join" | "active";
+export type GameType = "multiplication" | "give-or-take" | null;
 
 interface MultiplayerModeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onModeSelect: (mode: ModeOption) => void;
+  onModeSelect: (mode: ModeOption, gameType: GameType) => void;
   gameName: string;
   hasActiveGames?: boolean;
   onViewActiveGames?: () => void;
 }
 
 interface MultiplayerModeSelectorProps {
-  onModeSelect: (mode: ModeOption) => void;
+  onModeSelect: (mode: ModeOption, gameType: GameType) => void;
   gameName: string;
   hasActiveGames?: boolean;
   onViewActiveGames?: () => void;
@@ -25,19 +27,85 @@ export function MultiplayerModeSelector({
   hasActiveGames = false,
   onViewActiveGames,
 }: MultiplayerModeSelectorProps) {
+  const [selectedMode, setSelectedMode] = useState<ModeOption | null>(null);
+  const [showGameTypeSelection, setShowGameTypeSelection] = useState(false);
+
+  const handleModeClick = (mode: ModeOption) => {
+    setSelectedMode(mode);
+    setShowGameTypeSelection(true);
+  };
+
+  const handleGameTypeSelect = (gameType: GameType) => {
+    if (selectedMode && gameType) {
+      onModeSelect(selectedMode, gameType);
+      setShowGameTypeSelection(false);
+      setSelectedMode(null);
+    }
+  };
+
+  const handleBackToModes = () => {
+    setShowGameTypeSelection(false);
+    setSelectedMode(null);
+  };
+
+  if (showGameTypeSelection) {
+    return (
+      <>
+        <div className="space-y-3">
+          <button
+            onClick={handleBackToModes}
+            className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-4"
+          >
+            ← Back
+          </button>
+          <h2 className="text-2xl font-semibold tracking-tight">Which game?</h2>
+          <p className="text-sm text-muted-foreground">
+            Choose which game you'd like to play.
+          </p>
+        </div>
+
+        <div className="grid gap-3">
+          <button
+            type="button"
+            onClick={() => handleGameTypeSelect("multiplication")}
+            className="flex items-center gap-3 p-4 rounded-lg border-2 border-border hover:border-primary/60 hover:bg-primary/5 transition"
+          >
+            <div className="flex-1 text-left">
+              <div className="font-semibold">Multiplication Game</div>
+              <div className="text-sm text-muted-foreground">Multiply numbers together to reach the target.</div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleGameTypeSelect("give-or-take")}
+            className="flex items-center gap-3 p-4 rounded-lg border-2 border-border hover:border-primary/60 hover:bg-primary/5 transition"
+          >
+            <div className="flex-1 text-left">
+              <div className="font-semibold">Give or Take Game</div>
+              <div className="text-sm text-muted-foreground">Add or subtract numbers to reach the target.</div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </button>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">How do you want to play?</h2>
         <p className="text-sm text-muted-foreground">
-          Choose your mode for {gameName}. You&apos;ll configure details after picking a mode.
+          Choose your mode for Prime Factorization Games. You&apos;ll select a game type after picking a mode.
         </p>
       </div>
 
       <div className="grid gap-3">
         <button
           type="button"
-          onClick={() => onModeSelect("create")}
+          onClick={() => handleModeClick("create")}
           className="flex items-center gap-3 p-4 rounded-lg border-2 border-border hover:border-primary/60 hover:bg-primary/5 transition"
         >
           <div className="p-2 rounded-full bg-muted text-foreground">
@@ -67,7 +135,7 @@ export function MultiplayerModeSelector({
 
         <button
           type="button"
-          onClick={() => onModeSelect("bot")}
+          onClick={() => handleModeClick("bot")}
           className="flex items-center gap-3 p-4 rounded-lg border-2 border-border hover:border-primary/60 hover:bg-primary/5 transition"
         >
           <div className="p-2 rounded-full bg-primary/10 text-primary">
@@ -81,7 +149,7 @@ export function MultiplayerModeSelector({
 
         <button
           type="button"
-          onClick={() => onModeSelect("local")}
+          onClick={() => handleModeClick("local")}
           className="flex items-center gap-3 p-4 rounded-lg border-2 border-border hover:border-primary/60 hover:bg-primary/5 transition"
         >
           <div className="p-2 rounded-full bg-secondary/20 text-secondary-foreground">
@@ -115,12 +183,12 @@ export function MultiplayerModeDialog({
         <DialogHeader className="sr-only">
           <DialogTitle>How do you want to play?</DialogTitle>
           <DialogDescription>
-            Choose your mode for {gameName}. You&apos;ll configure details after picking a mode.
+            Choose your mode for Prime Factorization Games. You&apos;ll select a game type after picking a mode.
           </DialogDescription>
         </DialogHeader>
         <MultiplayerModeSelector
-          onModeSelect={(mode) => {
-            onModeSelect(mode);
+          onModeSelect={(mode, gameType) => {
+            onModeSelect(mode, gameType);
             onOpenChange(false);
           }}
           gameName={gameName}

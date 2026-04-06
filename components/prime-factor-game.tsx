@@ -32,7 +32,7 @@ import { BonusBreakdownPanel } from "./bonus-breakdown";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
-import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
+import { MultiplayerModeSelector, type ModeOption, type GameType } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
 import { GameLobby } from "./game-lobby";
 import { GameSetupForm } from "./game-setup-dialog";
@@ -777,7 +777,7 @@ export function PrimeFactorGame() {
     }
   }, [showGameSetup, showLobby, showModeSelect, showSetup, gameState.phase]);
 
-  const handleModeSelect = useCallback((mode: ModeOption) => {
+  const handleModeSelect = useCallback((mode: ModeOption, gameType?: string) => {
     // Force auth for multiplayer flows
     if ((mode === "create" || mode === "join") && !playerNames[0]) {
       setShowAuth(true);
@@ -793,6 +793,9 @@ export function PrimeFactorGame() {
       setShowSetup(true);
       setShowModeSelect(false);
       setPlayerNames(["Player 1", "Bot"]);
+      if (gameType) {
+        setSelectedGameType(gameType === "multiplication" ? "multiplication" : "give-or-take");
+      }
       return;
     }
 
@@ -802,12 +805,19 @@ export function PrimeFactorGame() {
       setShowSetup(true);
       setShowModeSelect(false);
       setPlayerNames(["Player 1", "Player 2"]);
+      if (gameType) {
+        setSelectedGameType(gameType === "multiplication" ? "multiplication" : "give-or-take");
+      }
       return;
     }
 
     // Show lobby to find/create multiplayer game
     if (mode === "create" || mode === "join") {
-      setSelectedGameType("multiplication");
+      if (gameType) {
+        setSelectedGameType(gameType === "multiplication" ? "multiplication" : "give-or-take");
+      } else {
+        setSelectedGameType("multiplication");
+      }
       setShowLobby(true);
       setMultiplayerMode("lobby");
       setShowModeSelect(false);
@@ -1539,7 +1549,7 @@ export function PrimeFactorGame() {
               {showModeSelect && (
                 <MultiplayerModeSelector
                   onModeSelect={handleModeSelect}
-                  gameName="Multiplication Game"
+                  gameName="Prime Factorization Games"
                   hasActiveGames={hasResumableGames}
                   onViewActiveGames={() => setShowActiveGames(true)}
                 />
