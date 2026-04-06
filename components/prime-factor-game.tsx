@@ -1593,6 +1593,7 @@ export function PrimeFactorGame() {
                       setShowLobby(true);
                     }}
                     isLoading={lobbyLoading}
+                    isMultiplayer={true}
                   />
                 </div>
               )}
