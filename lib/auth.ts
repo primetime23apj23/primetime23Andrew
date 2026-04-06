@@ -1,5 +1,7 @@
 import { supabase } from './supabase-multiplayer';
 
+const authLog = (...args: any[]) => console.debug('[auth]', ...args);
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -21,6 +23,7 @@ export async function signUp(
   playerName: string
 ): Promise<AuthResponse> {
   try {
+    authLog('signUp:start', { email: email?.toLowerCase(), playerName });
     if (!email || !password || !playerName) {
       return {
         success: false,
@@ -40,6 +43,7 @@ export async function signUp(
     }
 
     if (existingUser) {
+      authLog('signUp:existing-user', existingUser.email);
       return {
         success: false,
         error: 'Email already registered',
@@ -66,11 +70,18 @@ export async function signUp(
     }
 
     if (!authData.user) {
+      authLog('signUp:no-user-returned');
       return {
         success: false,
         error: 'Failed to create user',
       };
     }
+
+    authLog('signUp:auth-user-created', {
+      id: authData.user.id,
+      email: authData.user.email,
+      metadataName: authData.user.user_metadata?.player_name,
+    });
 
     // Create player profile
     const { error: profileError } = await supabase
@@ -85,6 +96,8 @@ export async function signUp(
     if (profileError) {
       console.error('Error creating player profile:', profileError);
       // Auth user was created, but profile failed. This is okay.
+    } else {
+      authLog('signUp:profile-upserted', authData.user.id);
     }
 
     return {
@@ -112,6 +125,7 @@ export async function signIn(
   password: string
 ): Promise<AuthResponse> {
   try {
+    authLog('signIn:start', { email: email?.toLowerCase() });
     if (!email || !password) {
       return {
         success: false,
@@ -133,11 +147,18 @@ export async function signIn(
     }
 
     if (!authData.user) {
+      authLog('signIn:no-user-returned');
       return {
         success: false,
         error: 'Failed to sign in',
       };
     }
+
+    authLog('signIn:auth-user', {
+      id: authData.user.id,
+      email: authData.user.email,
+      metadataName: authData.user.user_metadata?.player_name,
+    });
 
     // Get player profile
     const { data: playerData, error: playerError } = await supabase
@@ -148,6 +169,8 @@ export async function signIn(
 
     if (playerError) {
       console.error('Error fetching player profile:', playerError);
+    } else {
+      authLog('signIn:profile-result', playerData);
     }
 
     const playerName = playerData?.player_name || authData.user.user_metadata?.player_name || '';
@@ -201,13 +224,23 @@ export async function signOut(): Promise<AuthResponse> {
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
+    authLog('getCurrentUser:start');
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
     if (sessionError || !sessionData.session) {
+      authLog('getCurrentUser:no-session', {
+        hasError: !!sessionError,
+        error: sessionError?.message,
+      });
       return null;
     }
 
     const user = sessionData.session.user;
+    authLog('getCurrentUser:session-user', {
+      id: user.id,
+      email: user.email,
+      metadataName: user.user_metadata?.player_name,
+    });
 
     // Get player profile
     const { data: playerData, error: playerError } = await supabase
@@ -218,12 +251,18 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
     if (playerError) {
       console.error('Error fetching player profile:', playerError);
+    } else {
+      authLog('getCurrentUser:profile-result', playerData);
     }
 
     // If no profile, create one on the fly
     let playerName = playerData?.player_name || user.user_metadata?.player_name || '';
     if (!playerData) {
       const fallbackName = playerName || (user.email ? user.email.split('@')[0] : 'Player');
+      authLog('getCurrentUser:creating-profile', {
+        userId: user.id,
+        fallbackName,
+      });
       const { error: upsertError } = await supabase.from('game_players').upsert({
         player_id: user.id,
         auth_user_id: user.id,
@@ -233,14 +272,21 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       if (upsertError) {
         console.error('Error creating player profile:', upsertError);
       } else {
+        authLog('getCurrentUser:profile-created', user.id);
         playerName = fallbackName;
       }
     }
 
     if (!playerName && user.email) {
       playerName = user.email.split('@')[0];
+      authLog('getCurrentUser:fallback-email-name', playerName);
     }
 
+    authLog('getCurrentUser:return', {
+      id: user.id,
+      email: user.email || '',
+      playerName,
+    });
     return {
       id: user.id,
       email: user.email || '',

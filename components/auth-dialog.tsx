@@ -29,14 +29,32 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    log('state snapshot', {
+      open,
+      mode,
+      loading,
+      error,
+      email,
+      name,
+    });
+  }, [open, mode, loading, error, email, name]);
+
+  useEffect(() => {
     // Check if user is already authenticated
+    log('mount: checking current user');
     checkCurrentUser();
   }, []);
 
   const checkCurrentUser = async () => {
+    log('checkCurrentUser:start');
     const user = await getCurrentUser();
-    log('init current user', user);
+    log('checkCurrentUser:result', user);
     if (user) {
+      log('checkCurrentUser:already authed -> calling onAuthed', {
+        playerName: user.playerName,
+        email: user.email,
+        id: user.id,
+      });
       onAuthed(user.playerName, user.email, user.id);
       onOpenChange(false);
     }
@@ -56,15 +74,22 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
     setLoading(true);
     setError("");
 
-    log('signUp', email);
+    log('signUp:start', { email, name });
     const result = await signUp(email, password, name);
+    log('signUp:result', result);
 
     if (result.success && result.user) {
       localStorage.setItem("pf_player_name", result.user.playerName);
       localStorage.setItem("pf_player_email", result.user.email);
+      log('signUp:stored localStorage + calling onAuthed', {
+        playerName: result.user.playerName,
+        email: result.user.email,
+        id: result.user.id,
+      });
       onAuthed(result.user.playerName, result.user.email, result.user.id);
       onOpenChange(false);
     } else {
+      log('signUp:error', result.error);
       setError(result.error || "Failed to sign up");
     }
 
@@ -80,15 +105,22 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
     setLoading(true);
     setError("");
 
-    log('signIn', email);
+    log('signIn:start', { email });
     const result = await signIn(email, password);
+    log('signIn:result', result);
 
     if (result.success && result.user) {
       localStorage.setItem("pf_player_name", result.user.playerName);
       localStorage.setItem("pf_player_email", result.user.email);
+      log('signIn:stored localStorage + calling onAuthed', {
+        playerName: result.user.playerName,
+        email: result.user.email,
+        id: result.user.id,
+      });
       onAuthed(result.user.playerName, result.user.email, result.user.id);
       onOpenChange(false);
     } else {
+      log('signIn:error', result.error);
       setError(result.error || "Failed to sign in");
     }
 
@@ -102,12 +134,16 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
     }
 
     localStorage.setItem("pf_player_name", name.trim());
+    log('guest:start', { name: name.trim() });
     onAuthed(name.trim(), "", null);
     onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(nextOpen) => {
+      log('dialog:onOpenChange', nextOpen);
+      onOpenChange(nextOpen);
+    }}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Join the Game</DialogTitle>

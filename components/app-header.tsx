@@ -1,24 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePlayerProfile } from "@/hooks/use-player-profile";
 import { AuthDialog } from "./auth-dialog";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { supabase } from "@/lib/supabase-multiplayer";
 
+const headerLog = (...args: any[]) => console.debug("[AppHeader]", ...args);
+
 export function AppHeader() {
   const { user, isAuthenticated, loading } = usePlayerProfile();
   const [showAuth, setShowAuth] = useState(false);
 
+  useEffect(() => {
+    headerLog("state snapshot", {
+      loading,
+      isAuthenticated,
+      showAuth,
+      userId: user?.id ?? null,
+      playerName: user?.playerName ?? null,
+    });
+  }, [isAuthenticated, loading, showAuth, user?.id, user?.playerName]);
+
   const handleLogout = async () => {
+    headerLog("logout:start", {
+      userId: user?.id ?? null,
+      playerName: user?.playerName ?? null,
+    });
     await supabase.auth.signOut();
     localStorage.removeItem("pf_player_name");
     localStorage.removeItem("pf_player_email");
+    headerLog("logout:complete -> reloading page");
     window.location.reload();
   };
 
   if (loading) {
+    headerLog("render: loading placeholder visible", {
+      userId: user?.id ?? null,
+      playerName: user?.playerName ?? null,
+      isAuthenticated,
+    });
     return (
       <header className="border-b bg-background sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
@@ -57,7 +79,10 @@ export function AppHeader() {
             ) : (
               <Button
                 size="sm"
-                onClick={() => setShowAuth(true)}
+                onClick={() => {
+                  headerLog("open auth dialog");
+                  setShowAuth(true);
+                }}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               >
                 Sign In / Sign Up
@@ -69,8 +94,12 @@ export function AppHeader() {
 
       <AuthDialog
         open={showAuth}
-        onOpenChange={setShowAuth}
+        onOpenChange={(open) => {
+          headerLog("auth dialog open change", open);
+          setShowAuth(open);
+        }}
         onAuthed={() => {
+          headerLog("auth dialog onAuthed -> closing and reloading");
           setShowAuth(false);
           window.location.reload();
         }}
