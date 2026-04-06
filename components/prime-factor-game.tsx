@@ -997,6 +997,9 @@ export function PrimeFactorGame() {
     }) => {
       setLobbyLoading(true);
       try {
+        // Use the authenticated user ID if available, otherwise let createGameLobby generate one
+        const playerIdToUse = authUser?.id || userId;
+        
         const session = await createGameLobby(
           selectedGameType,
           settings.playerName,
@@ -1004,7 +1007,7 @@ export function PrimeFactorGame() {
             targetScore: settings.targetScore,
             botDifficulty: settings.botDifficulty,
           },
-          authUser?.id || userId || playerId || undefined
+          playerIdToUse
         );
         if (session) {
           gameStateVersionRef.current = -1;
