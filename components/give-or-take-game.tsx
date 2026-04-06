@@ -838,8 +838,9 @@ export function GiveOrTakeGame() {
         {/* Waiting Room */}
         {isMultiplayer && waitingForOpponent && (
           <WaitingRoomDialog
-            sessionCode={sessionCode}
+            sessionCode={sessionCode ?? ""}
             playerName={setupPlayerNames[0]}
+            gameType="give-or-take"
             onCancel={() => {
               setIsMultiplayer(false);
               setWaitingForOpponent(false);
@@ -850,6 +851,14 @@ export function GiveOrTakeGame() {
               setOpponentHasJoined(false);
               setShowSetup(true);
               setShowModeSelect(false);
+            }}
+            onJoinLobby={(lobbyId) => {
+              // Handle joining a different lobby
+              console.log("[v0] Joining lobby:", lobbyId);
+            }}
+            onCreateNew={() => {
+              setShowModeSelect(true);
+              setWaitingForOpponent(false);
             }}
             opponentHasJoined={opponentHasJoined}
             isOpen
