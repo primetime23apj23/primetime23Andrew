@@ -1565,6 +1565,7 @@ export function PrimeFactorGame() {
           userId={userId}
           onResumeGame={handleResumeGame}
         />
+        </div>
       </div>
     );
   }
