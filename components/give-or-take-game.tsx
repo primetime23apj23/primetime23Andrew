@@ -24,6 +24,7 @@ import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dia
 import { WaitingRoomDialog } from "./waiting-room-dialog";
 import { GameLobby } from "./game-lobby";
 import { GameSetupForm } from "./game-setup-dialog";
+import { DiceSkinSettings, DEFAULT_SKINS, type DiceSkin } from "./dice-skin-settings";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,8 @@ import { createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGam
 import { AuthDialog } from "./auth-dialog";
 import { ActiveGamesDialog } from "./active-games-dialog";
 import { usePlayerProfile } from "@/hooks/use-player-profile";
+import { BonusBreakdownPanel } from "./bonus-breakdown";
+import type { CompletedTrack } from "./connection-animation";
 
 const createInitialState = (playerNames: [string, string], playerColors: [string, string]): GotGameState => ({
   board: generateGotBoard(),

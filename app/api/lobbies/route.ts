@@ -1,19 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Service role client bypasses RLS
-const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Supabase env vars are not configured');
+  }
+
+  // Service role client bypasses RLS
+  return createClient(supabaseUrl, serviceRoleKey);
+}
 
 export async function GET(request: NextRequest) {
-  const gameType = request.nextUrl.searchParams.get('gameType');
-  const sessionId = request.nextUrl.searchParams.get('sessionId');
-  const sessionCode = request.nextUrl.searchParams.get('sessionCode');
+  try {
+    const supabaseAdmin = getSupabaseAdmin();
+    const gameType = request.nextUrl.searchParams.get('gameType');
+    const sessionId = request.nextUrl.searchParams.get('sessionId');
+    const sessionCode = request.nextUrl.searchParams.get('sessionCode');
 
-  if (sessionId || sessionCode) {
-    try {
+    if (sessionId || sessionCode) {
       const query = supabaseAdmin
         .from('game_sessions_with_names')
         .select('*');
@@ -31,26 +38,17 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.json(data);
-    } catch (error) {
-      console.error('[v0] Error fetching single session:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    }
+
+    if (!gameType || !['multiplication', 'give-or-take'].includes(gameType)) {
       return NextResponse.json(
-        { error: 'Failed to fetch session', details: errorMessage },
-        { status: 500 }
+        { error: 'Invalid game type' },
+        { status: 400 }
       );
     }
-  }
 
-  if (!gameType || !['multiplication', 'give-or-take'].includes(gameType)) {
-    return NextResponse.json(
-      { error: 'Invalid game type' },
-      { status: 400 }
-    );
-  }
-
-  try {
     console.log('[v0] Fetching lobbies for gameType:', gameType);
-    
+
     const { data, error } = await supabaseAdmin
       .from('game_sessions_with_names')
       .select('*')
@@ -82,6 +80,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const body = await request.json();
     const {
       gameType,
@@ -211,6 +210,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const body = await request.json();
     const { sessionCode, sessionId } = body;
 

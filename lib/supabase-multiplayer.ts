@@ -1,9 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const fallbackSupabaseUrl = 'https://placeholder.supabase.co';
+const fallbackSupabaseAnonKey = 'placeholder-anon-key';
+
+export const supabase = createClient(
+  supabaseUrl || fallbackSupabaseUrl,
+  supabaseAnonKey || fallbackSupabaseAnonKey
+);
 
 export async function generateSessionCode(): Promise<string> {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
