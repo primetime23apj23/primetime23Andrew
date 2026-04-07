@@ -3,19 +3,19 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 export const metadata = {
-  title: "Times of Primes – Fun Math Game for Kids | Learn Prime Factorization",
+  title: "Andrew's Game Prime Factorization Game",
   description:
-    "Times of Primes is a fun and educational math game for kids. Practice prime factorization, roll dice, solve number challenges, and win the board through strategy and math skills!",
+    "Andrew's Game Prime Factorization Game is a fun and educational math board game where players practice prime factorization, roll dice, solve number challenges, and win through strategy.",
   keywords: [
     "math game for kids",
     "prime factorization game",
+    "Andrew's Game Prime Factorization Game",
     "learn primes",
     "educational math game",
     "kids math board game",
     "number learning game",
-    "Times of Primes",
   ],
-  generator: "Times of Primes Math Game",
+  generator: "Andrew's Game Prime Factorization Game",
 
   icons: {
     icon: "/favicon.jpg",
@@ -24,7 +24,7 @@ export const metadata = {
   },
 
   openGraph: {
-    title: "Times of Primes – Fun Math Game for Kids",
+    title: "Andrew's Game Prime Factorization Game",
     description:
       "An exciting math board game where kids learn prime factorization through play, strategy, and dice rolls.",
     type: "website",
@@ -37,7 +37,7 @@ export const metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Times of Primes – Math Game for Kids",
+    title: "Andrew's Game Prime Factorization Game",
     description:
       "Learn prime numbers and factorization with a fun, strategic board game for kids!",
     images: ["/dice-skins/owl.jpg"],

@@ -1082,6 +1082,32 @@ export function GiveOrTakeGame() {
     ]
   );
 
+  const handleSwitchDiceSize = useCallback(
+    async (size: DiceSize) => {
+      if (gameState.phase !== "rolling" || isAnimating || !isLocalPlayersTurn) return;
+      if (!(await assertMultiplayerTurn())) return;
+
+      const nextState: GotGameState = {
+        ...gameState,
+        diceSize: size,
+        message: `${gameState.players[gameState.currentPlayer].name} switched to 1-${size}. Roll!`,
+      };
+
+      setSelectedDiceSize(size);
+      setGameState(nextState);
+      await persistMultiplayerState(nextState, playerPositions, size, displayDie, "switch-die");
+    },
+    [
+      assertMultiplayerTurn,
+      displayDie,
+      gameState,
+      isAnimating,
+      isLocalPlayersTurn,
+      persistMultiplayerState,
+      playerPositions,
+    ]
+  );
+
   const handleRoll = useCallback(async () => {
     if (gameState.phase !== "rolling" || isAnimating || !isLocalPlayersTurn) return;
     if (!(await assertMultiplayerTurn())) return;
@@ -1090,7 +1116,7 @@ export function GiveOrTakeGame() {
 
     let count = 0;
     const totalFlips = 12;
-    const diceSize = gameState.diceSize || selectedDiceSize || 9;
+    const diceSize = selectedDiceSize || gameState.diceSize || 9;
 
     const interval = setInterval(() => {
       setDisplayDie(rollOneDie(diceSize));
@@ -1114,7 +1140,7 @@ export function GiveOrTakeGame() {
         void persistMultiplayerState(
           nextState,
           playerPositions,
-          selectedDiceSize,
+          diceSize,
           finalValue,
           "roll"
         );
@@ -1588,17 +1614,21 @@ export function GiveOrTakeGame() {
                 className="px-8 py-6 text-lg font-bold"
                 style={{ backgroundColor: currentPlayer.color }}
               >
-                {isAnimating ? "Rolling..." : `${currentPlayer.name} - Roll 1-${gameState.diceSize}!`}
+                {isAnimating
+                  ? "Rolling..."
+                  : `${currentPlayer.name} - Roll 1-${selectedDiceSize || gameState.diceSize || 9}!`}
               </Button>
               <div className="flex gap-2">
                 {DICE_OPTIONS.map((option) => (
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => setSelectedDiceSize(option.value)}
+                    onClick={() => {
+                      void handleSwitchDiceSize(option.value);
+                    }}
                     disabled={isAnimating || !isLocalPlayersTurn}
                     className={`rounded-lg border-2 px-3 py-1 text-xs font-semibold transition-all ${
-                      selectedDiceSize === option.value
+                      (selectedDiceSize || gameState.diceSize) === option.value
                         ? "border-primary bg-primary/10 shadow-md"
                         : "border-border hover:border-primary/50 hover:bg-muted"
                     } ${isAnimating || !isLocalPlayersTurn ? "opacity-50" : ""}`}

@@ -19,6 +19,15 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
+const CUSTOM_TARGET_SCORE = "custom";
+const MULTIPLICATION_TARGET_SCORE_OPTIONS = [
+  { value: "25", label: "25 Points" },
+  { value: "31", label: "31 Points" },
+  { value: "37", label: "37 Points (Standard)" },
+  { value: "43", label: "43 Points" },
+  { value: "50", label: "50 Points" },
+] as const;
+
 interface GameSetupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -55,6 +64,7 @@ export function GameSetupForm({
 }: GameSetupFormProps) {
   const [playerName, setPlayerName] = useState("");
   const [targetScore, setTargetScore] = useState("37");
+  const [customTargetScore, setCustomTargetScore] = useState("");
   const [botDifficulty, setBotDifficulty] = useState<"easy" | "medium" | "hard">(
     "medium"
   );
@@ -63,14 +73,28 @@ export function GameSetupForm({
     setPlayerName(defaultPlayerName);
   }, [defaultPlayerName]);
 
+  const resolvedTargetScore =
+    gameType !== "multiplication"
+      ? undefined
+      : targetScore === CUSTOM_TARGET_SCORE
+      ? Number.parseInt(customTargetScore, 10)
+      : Number.parseInt(targetScore, 10);
+
+  const isCustomTargetScoreValid =
+    targetScore !== CUSTOM_TARGET_SCORE ||
+    (Number.isInteger(resolvedTargetScore) &&
+      (resolvedTargetScore ?? 0) >= 1 &&
+      (resolvedTargetScore ?? 0) <= 999);
+
   const handleCreate = () => {
     if (!playerName.trim()) return;
+    if (gameType === "multiplication" && !isCustomTargetScoreValid) return;
 
     const settings =
       gameType === "multiplication"
         ? {
             playerName,
-            targetScore: parseInt(targetScore),
+            targetScore: resolvedTargetScore,
           }
         : {
             playerName,
@@ -117,13 +141,46 @@ export function GameSetupForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="25">25 Points</SelectItem>
-                <SelectItem value="31">31 Points</SelectItem>
-                <SelectItem value="37">37 Points (Standard)</SelectItem>
-                <SelectItem value="43">43 Points</SelectItem>
-                <SelectItem value="50">50 Points</SelectItem>
+                {MULTIPLICATION_TARGET_SCORE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+                <SelectItem value={CUSTOM_TARGET_SCORE}>Custom Score</SelectItem>
               </SelectContent>
             </Select>
+
+            {targetScore === CUSTOM_TARGET_SCORE && (
+              <div className="mt-3 space-y-2">
+                <Label htmlFor="custom-target-score" className="text-sm font-medium">
+                  Custom Score
+                </Label>
+                <Input
+                  id="custom-target-score"
+                  type="number"
+                  min={1}
+                  max={999}
+                  inputMode="numeric"
+                  placeholder="Enter a score from 1 to 999"
+                  value={customTargetScore}
+                  onChange={(e) => setCustomTargetScore(e.target.value)}
+                  disabled={isLoading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && playerName.trim() && isCustomTargetScoreValid) {
+                      handleCreate();
+                    }
+                  }}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Pick any whole-number score between 1 and 999.
+                </p>
+                {!isCustomTargetScoreValid && customTargetScore.trim() && (
+                  <p className="text-sm text-destructive">
+                    Enter a valid whole number between 1 and 999.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -153,7 +210,11 @@ export function GameSetupForm({
         <div className="flex gap-2 pt-4">
           <Button
             onClick={handleCreate}
-            disabled={!playerName.trim() || isLoading}
+            disabled={
+              !playerName.trim() ||
+              isLoading ||
+              (gameType === "multiplication" && !isCustomTargetScoreValid)
+            }
             className="flex-1"
           >
             {isLoading ? "Creating..." : "Create Lobby"}

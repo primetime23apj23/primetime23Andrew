@@ -13,7 +13,7 @@ interface AppHeaderProps {
   title?: string;
 }
 
-export function AppHeader({ title = "Prime Factorization Game" }: AppHeaderProps) {
+export function AppHeader({ title = "Andrew's Game Prime Factorization Game" }: AppHeaderProps) {
   const { user, isAuthenticated, loading } = usePlayerProfile();
   const [showAuth, setShowAuth] = useState(false);
   const [cachedPlayerName, setCachedPlayerName] = useState<string | null>(null);
