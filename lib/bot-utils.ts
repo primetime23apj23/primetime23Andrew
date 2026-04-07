@@ -126,7 +126,7 @@ interface GiveOrTakeBotMove {
  */
 export function getBotDiceSizeForGiveOrTake(
   board: GotBoardSpace[],
-  lastPosition: number | null,
+  playerPositions: number[],
   isFirstMove: boolean,
   difficulty: BotDifficulty
 ): DiceSize {
@@ -145,7 +145,7 @@ export function getBotDiceSizeForGiveOrTake(
   for (const size of sizes) {
     let primeCount = 0;
     
-    if (isFirstMove || lastPosition === null) {
+    if (isFirstMove || playerPositions.length === 0) {
       // Count primes directly reachable
       for (let v = 1; v <= size; v++) {
         if (v <= 99 && board[v]?.owner === null && isPrime(v)) {
@@ -153,13 +153,24 @@ export function getBotDiceSizeForGiveOrTake(
         }
       }
     } else {
-      // Count primes reachable by add/subtract
-      for (let v = 1; v <= size; v++) {
-        const add = lastPosition + v;
-        const sub = lastPosition - v;
-        if (add <= 99 && board[add]?.owner === null && isPrime(add)) primeCount++;
-        if (sub >= 1 && board[sub]?.owner === null && isPrime(sub)) primeCount++;
+      // Count unique primes reachable by add/subtract from any owned space
+      const reachablePrimes = new Set<number>();
+
+      for (const position of playerPositions) {
+        for (let v = 1; v <= size; v++) {
+          const add = position + v;
+          const sub = position - v;
+
+          if (add <= 99 && board[add]?.owner === null && isPrime(add)) {
+            reachablePrimes.add(add);
+          }
+          if (sub >= 1 && board[sub]?.owner === null && isPrime(sub)) {
+            reachablePrimes.add(sub);
+          }
+        }
       }
+
+      primeCount = reachablePrimes.size;
     }
     
     if (primeCount > bestPrimeCount) {
@@ -184,11 +195,11 @@ export function getBotDiceSizeForGiveOrTake(
 export function getBotPlacementForGiveOrTake(
   board: GotBoardSpace[],
   dieValue: number,
-  lastPosition: number | null,
+  playerPositions: number[],
   isFirstMove: boolean,
   difficulty: BotDifficulty
 ): number | null {
-  const reachable = getReachableSpaces(board, dieValue, lastPosition, isFirstMove);
+  const reachable = getReachableSpaces(board, dieValue, playerPositions, isFirstMove);
   
   const allTargets: number[] = [
     ...reachable.addTargets,
