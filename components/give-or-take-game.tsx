@@ -533,7 +533,36 @@ export function GiveOrTakeGame() {
   );
 
   // Start / New game
-  const handleStartGame = useCallback(() => {
+  const handleStartGame = useCallback(async () => {
+    if (isMultiplayer && multiplayerMode === "create") {
+      try {
+        const creatorId = authUser?.id || userId || playerId || undefined;
+        const session = await createGameLobby(
+          "give-or-take",
+          setupPlayerNames[0] || "Player 1",
+          { targetScore: DEFAULT_TARGET_SCORE },
+          creatorId
+        );
+
+        if (!session) {
+          return;
+        }
+
+        setSessionCode(session.session_code);
+        setSessionId(session.id);
+        setSessionPlayer1Id(session.player_1_id);
+        setSessionPlayer2Id(session.player_2_id);
+        setSessionLocalPlayerId(session.player_1_id);
+        setWaitingForOpponent(true);
+        setOpponentHasJoined(false);
+        setShowSetup(false);
+        return;
+      } catch (error) {
+        console.error("Error creating Give or Take lobby:", error);
+        return;
+      }
+    }
+
     const state = createInitialState(setupPlayerNames, setupPlayerColors, setupTimer, selectedDiceSize || 9);
     if (botEnabled) {
       state.players = [state.players[0], { ...state.players[1], name: "Bot" }];
@@ -545,7 +574,7 @@ export function GiveOrTakeGame() {
     setFloatingEmojis([]);
     setFireworks([]);
     stopTimer();
-  }, [setupTimer, setupPlayerNames, setupPlayerColors, selectedDiceSize, botEnabled, stopTimer]);
+  }, [isMultiplayer, multiplayerMode, authUser?.id, userId, playerId, setupPlayerNames, setupTimer, setupPlayerColors, selectedDiceSize, botEnabled, stopTimer]);
 
   const handleNewGame = useCallback(() => setShowSetup(true), []);
 
@@ -579,9 +608,9 @@ export function GiveOrTakeGame() {
 
     setIsMultiplayer(true);
     setMultiplayerMode("create");
+    setBotEnabled(false);
     setShowModeSelect(false);
-    setWaitingForOpponent(true);
-    setSessionCode("ABC123");
+    setShowSetup(true);
   }, []);
 
   // Bot auto-play effect
@@ -842,8 +871,16 @@ export function GiveOrTakeGame() {
             playerName={setupPlayerNames[0]}
             gameType="give-or-take"
             onCancel={() => {
+              if (sessionCode) {
+                void cancelGameLobby(sessionCode);
+              }
               setIsMultiplayer(false);
               setWaitingForOpponent(false);
+              setSessionCode(null);
+              setSessionId(null);
+              setSessionPlayer1Id(null);
+              setSessionPlayer2Id(null);
+              setSessionLocalPlayerId(null);
               setShowModeSelect(true);
             }}
             onOpponentJoined={() => {
@@ -857,8 +894,18 @@ export function GiveOrTakeGame() {
               console.log("[v0] Joining lobby:", lobbyId);
             }}
             onCreateNew={() => {
-              setShowModeSelect(true);
+              if (sessionCode) {
+                void cancelGameLobby(sessionCode);
+              }
               setWaitingForOpponent(false);
+              setOpponentHasJoined(false);
+              setSessionCode(null);
+              setSessionId(null);
+              setSessionPlayer1Id(null);
+              setSessionPlayer2Id(null);
+              setSessionLocalPlayerId(null);
+              setShowSetup(true);
+              setShowModeSelect(false);
             }}
             opponentHasJoined={opponentHasJoined}
             isOpen
