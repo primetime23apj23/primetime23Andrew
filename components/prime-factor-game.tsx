@@ -937,6 +937,22 @@ export function PrimeFactorGame() {
     setSessionLocalPlayerId(null);
     setShowModeSelect(true);
   }, [sessionCode]);
+
+  const handleCreateNewGameFromWaitingRoom = useCallback(async () => {
+    if (sessionCode) {
+      await cancelGameLobby(sessionCode);
+    }
+    setWaitingForOpponent(false);
+    setOpponentHasJoined(false);
+    setSessionId(null);
+    setSessionCode(null);
+    setSessionPlayer1Id(null);
+    setSessionPlayer2Id(null);
+    setSessionLocalPlayerId(null);
+    setShowLobby(false);
+    setShowGameSetup(true);
+    setShowModeSelect(false);
+  }, [sessionCode]);
   // Host: auto-start when opponent joins
   useEffect(() => {
     if (!waitingForOpponent || !sessionCode) return;
@@ -1835,10 +1851,7 @@ export function PrimeFactorGame() {
         setShowModeSelect(false);
       }}
       onJoinLobby={handleSelectLobby}
-      onCreateNew={() => {
-        setShowLobby(true);
-        setShowModeSelect(false);
-      }}
+      onCreateNew={handleCreateNewGameFromWaitingRoom}
       opponentHasJoined={opponentHasJoined}
       isOpen
     />
