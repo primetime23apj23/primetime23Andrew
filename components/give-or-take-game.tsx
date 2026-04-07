@@ -808,7 +808,9 @@ export function GiveOrTakeGame() {
         onOpponentJoined={() => {
           setWaitingForOpponent(false);
           setOpponentHasJoined(false);
-          setShowSetup(true);
+          setShowSetup(false);
+          setShowModeSelect(false);
+          // Game is now live, continue to main game view
         }}
         onJoinLobby={(lobbyId) => {
           // TODO: Handle joining a different lobby
@@ -824,8 +826,10 @@ export function GiveOrTakeGame() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background p-4">
+  // Show setup if single player modes
+  if (showSetup && !isMultiplayer) {
+    return (
+      <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Header */}
         <header className="flex items-center justify-between gap-4">
@@ -1016,6 +1020,14 @@ export function GiveOrTakeGame() {
           fireworks={fireworks}
           onAnimationComplete={handleAnimationComplete}
         />
+      </div>
+    </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background p-4">
+      <div className="max-w-4xl mx-auto space-y-4">
         {/* Setup Dialog */}
         <GiveOrTakeTutorial open={showTutorial} onOpenChange={setShowTutorial} />
         
@@ -1026,84 +1038,10 @@ export function GiveOrTakeGame() {
           onModeSelect={handleModeSelect}
           gameName="Give or Take"
         />
-
-        {/* Game Setup Form */}
-        {showGameSetup && (
-          <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
-            <div className="rounded-[28px] border border-slate-200/70 bg-white/90 p-6 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-              <div className="space-y-4">
-                <button
-                  onClick={() => {
-                    setShowGameSetup(false);
-                    setShowLobby(true);
-                  }}
-                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2"
-                >
-                  ← Back to lobby
-                </button>
-                <GameSetupForm
-                  gameType="give-or-take"
-                  defaultPlayerName={setupPlayerNames[0] || ""}
-                  onCreateLobby={handleGameSetupSubmit}
-                  onCancel={() => {
-                    setShowGameSetup(false);
-                    setShowLobby(true);
-                  }}
-                  isLoading={lobbyLoading}
-                  isMultiplayer={true}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Waiting Room */}
-        {isMultiplayer && waitingForOpponent && (
-          <WaitingRoomDialog
-            sessionCode={sessionCode ?? ""}
-            playerName={setupPlayerNames[0]}
-            gameType="give-or-take"
-            onCancel={() => {
-              if (sessionCode) {
-                void cancelGameLobby(sessionCode);
-              }
-              setIsMultiplayer(false);
-              setWaitingForOpponent(false);
-              setSessionCode(null);
-              setSessionId(null);
-              setSessionPlayer1Id(null);
-              setSessionPlayer2Id(null);
-              setSessionLocalPlayerId(null);
-              setShowModeSelect(true);
-            }}
-            onOpponentJoined={() => {
-              setWaitingForOpponent(false);
-              setOpponentHasJoined(false);
-              setShowSetup(true);
-              setShowModeSelect(false);
-            }}
-            onJoinLobby={(lobbyId) => {
-              // Handle joining a different lobby
-              console.log("[v0] Joining lobby:", lobbyId);
-            }}
-            onCreateNew={() => {
-              if (sessionCode) {
-                void cancelGameLobby(sessionCode);
-              }
-              setWaitingForOpponent(false);
-              setOpponentHasJoined(false);
-              setSessionCode(null);
-              setSessionId(null);
-              setSessionPlayer1Id(null);
-              setSessionPlayer2Id(null);
-              setSessionLocalPlayerId(null);
-              setShowSetup(true);
-              setShowModeSelect(false);
-            }}
-            opponentHasJoined={opponentHasJoined}
-            isOpen
-          />
-        )}
+      </div>
+    </div>
+  );
+}
         
         <Dialog open={showSetup} onOpenChange={setShowSetup}>
           <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
