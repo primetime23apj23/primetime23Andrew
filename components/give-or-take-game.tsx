@@ -717,6 +717,113 @@ export function GiveOrTakeGame() {
 
   const currentPlayer = gameState.players[gameState.currentPlayer];
 
+  // Show lobby if browsing for games
+  if (showLobby) {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+        <div className="rounded-[28px] border border-slate-200/70 bg-white/90 p-6 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+          <div className="space-y-4">
+            <button
+              onClick={() => {
+                setShowLobby(false);
+                setShowModeSelect(true);
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2"
+            >
+              ← Back to modes
+            </button>
+            <GameLobby
+              gameType="give-or-take"
+              onSelectLobby={(lobbyId) => {
+                // TODO: Handle joining a lobby
+                console.log("[v0] Joining lobby:", lobbyId);
+              }}
+              onCreateNew={() => {
+                setShowGameSetup(true);
+                setShowLobby(false);
+              }}
+              isOpen={showLobby}
+              onChangeGameType={() => {
+                // Give or Take is fixed for this component
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show game setup form
+  if (showGameSetup) {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+        <div className="rounded-[28px] border border-slate-200/70 bg-white/90 p-6 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
+          <div className="space-y-4">
+            <button
+              onClick={() => {
+                setShowGameSetup(false);
+                setShowLobby(true);
+              }}
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2"
+            >
+              ← Back to lobby
+            </button>
+            <GameSetupForm
+              gameType="give-or-take"
+              defaultPlayerName={setupPlayerNames[0] || ""}
+              onCreateLobby={handleGameSetupSubmit}
+              onCancel={() => {
+                setShowGameSetup(false);
+                setShowLobby(true);
+              }}
+              isLoading={lobbyLoading}
+              isMultiplayer={true}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show waiting room for multiplayer
+  if (isMultiplayer && waitingForOpponent) {
+    return (
+      <WaitingRoomDialog
+        sessionCode={sessionCode ?? ""}
+        playerName={setupPlayerNames[0]}
+        gameType="give-or-take"
+        onCancel={() => {
+          if (sessionCode) {
+            void cancelGameLobby(sessionCode);
+          }
+          setIsMultiplayer(false);
+          setWaitingForOpponent(false);
+          setSessionCode(null);
+          setSessionId(null);
+          setSessionPlayer1Id(null);
+          setSessionPlayer2Id(null);
+          setSessionLocalPlayerId(null);
+          setShowModeSelect(true);
+        }}
+        onOpponentJoined={() => {
+          setWaitingForOpponent(false);
+          setOpponentHasJoined(false);
+          setShowSetup(true);
+        }}
+        onJoinLobby={(lobbyId) => {
+          // TODO: Handle joining a different lobby
+          console.log("[v0] Joining lobby:", lobbyId);
+        }}
+        onCreateNew={() => {
+          setShowModeSelect(true);
+          setWaitingForOpponent(false);
+        }}
+        opponentHasJoined={opponentHasJoined}
+        isOpen
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto space-y-4">
@@ -919,40 +1026,6 @@ export function GiveOrTakeGame() {
           onModeSelect={handleModeSelect}
           gameName="Give or Take"
         />
-
-        {/* Lobby - Browse Games */}
-        {showLobby && (
-          <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
-            <div className="rounded-[28px] border border-slate-200/70 bg-white/90 p-6 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-              <div className="space-y-4">
-                <button
-                  onClick={() => {
-                    setShowLobby(false);
-                    setShowModeSelect(true);
-                  }}
-                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2"
-                >
-                  ← Back to modes
-                </button>
-                <GameLobby
-                  gameType="give-or-take"
-                  onSelectLobby={(lobbyId) => {
-                    // TODO: Handle joining a lobby
-                    console.log("[v0] Joining lobby:", lobbyId);
-                  }}
-                  onCreateNew={() => {
-                    setShowGameSetup(true);
-                    setShowLobby(false);
-                  }}
-                  isOpen={showLobby}
-                  onChangeGameType={() => {
-                    // Give or Take is fixed for this component
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Game Setup Form */}
         {showGameSetup && (
