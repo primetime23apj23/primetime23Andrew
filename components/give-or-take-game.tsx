@@ -17,6 +17,10 @@ import { MultiplayerModeDialog } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
 import { GameLobby } from "./game-lobby";
 import { GameSetupForm } from "./game-setup-dialog";
+import { AuthDialog } from "./auth-dialog";
+import { ActiveGamesDialog } from "./active-games-dialog";
+import { usePlayerProfile } from "@/hooks/use-player-profile";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -28,20 +32,23 @@ import { Button } from "@/components/ui/button";
 import { createGameLobby, cancelGameLobby, subscribeToSession, subscribeToGameState, generatePlayerId, sendHeartbeat } from "@/lib/supabase-multiplayer";
 import { usePlayerProfile } from "@/hooks/use-player-profile";
 
-const createInitialState = (playerNames: [string, string], playerColors: [string, string]): GotGameState => ({
+const createInitialState = (
+  playerNames: [string, string],
+  playerColors: [string, string],
+  timerSeconds: number | null = null
+): GotGameState => ({
   board: generateGotBoard(),
   players: [
-    { name: playerNames[0], color: playerColors[0], position: [], score: 0 },
-    { name: playerNames[1], color: playerColors[1], position: [], score: 0 },
+    { name: playerNames[0], color: playerColors[0], score: 0 },
+    { name: playerNames[1], color: playerColors[1], score: 0 },
   ],
   currentPlayer: 0,
-  diceSize: 9,
-  phase: "playing",
-  gameStartTime: Date.now(),
-  moves: [],
-  turnStartTime: Date.now(),
-  gameId: "",
-  targetScore: 13,
+  phase: "chooseDice",
+  message: `${playerNames[0]}, choose your die size!`,
+  targetScore: DEFAULT_TARGET_SCORE,
+  dieValue: null,
+  diceSize: null,
+  timerSeconds,
 });
 
 export function GiveOrTakeGame() {
@@ -61,7 +68,9 @@ export function GiveOrTakeGame() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionPlayer1Id, setSessionPlayer1Id] = useState<string | null>(null);
   const [sessionPlayer2Id, setSessionPlayer2Id] = useState<string | null>(null);
-  const [sessionLocalPlayerId, setSessionLocalPlayerId] = useState<string | null>(null);
+  const [sessionLocalPlayerId, setSessionLocalPlayerId] = useState<string | null>(
+    null
+  );
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const [opponentHasJoined, setOpponentHasJoined] = useState(false);
@@ -105,7 +114,6 @@ export function GiveOrTakeGame() {
         sendHeartbeat(sessionLocalPlayerId, sessionId, false);
       };
     }
-  }, [isMultiplayer, sessionId, sessionLocalPlayerId]);
 
   // Subscribe to game state updates
   useEffect(() => {
@@ -318,6 +326,12 @@ export function GiveOrTakeGame() {
             />
           </div>
         </div>
+
+        <PointAnimations
+          animations={floatingEmojis}
+          fireworks={fireworks}
+          onAnimationComplete={handleAnimationComplete}
+        />
       </div>
     </div>
   );

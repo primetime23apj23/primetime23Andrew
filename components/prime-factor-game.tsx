@@ -96,7 +96,7 @@ export function PrimeFactorGame() {
   const [playerNames, setPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
   const [showAuth, setShowAuth] = useState(false);
   const [showLobby, setShowLobby] = useState(false);
-  const [selectedGameType, setSelectedGameType] = useState<"multiplication" | "give-or-take">("multiplication");
+  const selectedGameType: "multiplication" = "multiplication";
   const [showGameSetup, setShowGameSetup] = useState(false);
   const [lobbyLoading, setLobbyLoading] = useState(false);
   const [heartbeatInterval, setHeartbeatInterval] = useState<NodeJS.Timeout | null>(null);
@@ -190,7 +190,11 @@ export function PrimeFactorGame() {
 
     const checkActiveGames = async () => {
       try {
-        const response = await fetch(`/api/active-games?userId=${userId}`);
+        const params = new URLSearchParams({
+          userId,
+          gameType: selectedGameType,
+        });
+        const response = await fetch(`/api/active-games?${params.toString()}`);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -212,7 +216,7 @@ export function PrimeFactorGame() {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [selectedGameType, userId]);
 
   useEffect(() => {
     if (!authUser?.playerName) return;
@@ -807,7 +811,6 @@ export function PrimeFactorGame() {
 
     // Show lobby to find/create multiplayer game
     if (mode === "create" || mode === "join") {
-      setSelectedGameType("multiplication");
       setShowLobby(true);
       setMultiplayerMode("lobby");
       setShowModeSelect(false);
@@ -864,6 +867,11 @@ export function PrimeFactorGame() {
     try {
       const session = await getGameSessionById(resumeSessionId);
       if (session) {
+        if (session.game_type !== selectedGameType) {
+          window.location.href = "/give-or-take";
+          return;
+        }
+
         gameStateVersionRef.current = -1;
         const activePlayerId = userId || playerId;
         const isCurrentUserPlayerOne = activePlayerId === session.player_1_id;
@@ -885,7 +893,6 @@ export function PrimeFactorGame() {
         setSessionPlayer2Id(session.player_2_id);
         setSessionLocalPlayerId(resolvedLocalPlayerId);
         setMultiplayerTargetScore(session.target_score || 37);
-        setSelectedGameType(session.game_type);
         setIsMultiplayer(true);
         setMultiplayerMode("join");
         setWaitingForOpponent(false);
@@ -1586,7 +1593,9 @@ export function PrimeFactorGame() {
                     }}
                     isOpen={showLobby}
                     onChangeGameType={(gameType) => {
-                      setSelectedGameType(gameType);
+                      if (gameType === "give-or-take") {
+                        window.location.href = "/give-or-take";
+                      }
                     }}
                   />
                 </div>
@@ -1635,6 +1644,7 @@ export function PrimeFactorGame() {
           open={showActiveGames}
           onOpenChange={setShowActiveGames}
           userId={userId}
+          gameType={selectedGameType}
           onResumeGame={handleResumeGame}
         />
         </div>
@@ -1826,6 +1836,7 @@ export function PrimeFactorGame() {
     open={showActiveGames}
     onOpenChange={setShowActiveGames}
     userId={userId}
+    gameType={selectedGameType}
     onResumeGame={handleResumeGame}
   />
 
@@ -1859,6 +1870,7 @@ export function PrimeFactorGame() {
     isMultiplayer={isMultiplayer}
     isLocalPlay={!botEnabled && !isMultiplayer}
     fixedTargetScore={multiplayerTargetScore}
+    initialBotEnabled={botEnabled && !isMultiplayer}
     onPlayOnline={() => {
       setShowModeSelect(true);
       setShowSetup(false);

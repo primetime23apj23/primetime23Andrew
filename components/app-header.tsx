@@ -9,7 +9,11 @@ import { supabase } from "@/lib/supabase-multiplayer";
 
 const headerLog = (...args: any[]) => console.debug("[AppHeader]", ...args);
 
-export function AppHeader() {
+interface AppHeaderProps {
+  title?: string;
+}
+
+export function AppHeader({ title = "Andrew's Game Prime Factorization Game" }: AppHeaderProps) {
   const { user, isAuthenticated, loading } = usePlayerProfile();
   const [showAuth, setShowAuth] = useState(false);
   const [cachedPlayerName, setCachedPlayerName] = useState<string | null>(null);
@@ -50,7 +54,7 @@ export function AppHeader() {
     <>
       <header className="border-b bg-background sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-          <div className="font-bold text-lg">Prime Factorization Game</div>
+          <div className="font-bold text-lg">{title}</div>
 
           <div className="flex items-center gap-3">
             {isAuthenticated && user ? (

@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { BotDifficulty } from "@/lib/bot-utils";
 
 interface TargetScoreSelectorProps {
@@ -22,6 +22,7 @@ interface TargetScoreSelectorProps {
   isMultiplayer?: boolean;
   isLocalPlay?: boolean;
   fixedTargetScore?: number;
+  initialBotEnabled?: boolean;
 }
 
 const BOT_DIFFICULTIES: { label: string; value: BotDifficulty; description: string }[] = [
@@ -45,11 +46,23 @@ export function TargetScoreSelector({
   isMultiplayer = false,
   isLocalPlay = false,
   fixedTargetScore = 37,
+  initialBotEnabled = false,
 }: TargetScoreSelectorProps) {
   const [selectedDifficulty, setSelectedDifficulty] = useState<number | "custom">(1);
   const [customScore, setCustomScore] = useState("");
   const [botEnabled, setBotEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (isMultiplayer || isLocalPlay) {
+      setBotEnabled(false);
+      return;
+    }
+
+    setBotEnabled(initialBotEnabled);
+  }, [initialBotEnabled, isLocalPlay, isMultiplayer, open]);
 
   const activeScore =
     isMultiplayer
@@ -147,7 +160,7 @@ export function TargetScoreSelector({
                 <div className="space-y-3">
                   <button
                     type="button"
-                    onClick={() => setBotEnabled(!botEnabled)}
+                    onClick={() => setBotEnabled((prev) => !prev)}
                     className={`w-full flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
                       botEnabled
                         ? "border-primary bg-primary/10 shadow-md"

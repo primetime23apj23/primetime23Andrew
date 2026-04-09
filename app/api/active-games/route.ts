@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Supabase env vars are not configured');
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey);
+}
 
 /**
  * GET /api/active-games?userId=<userId>
@@ -12,7 +18,9 @@ const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
  */
 export async function GET(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdmin();
     const userId = request.nextUrl.searchParams.get('userId');
+    const gameType = request.nextUrl.searchParams.get('gameType');
 
     if (!userId) {
       return NextResponse.json(
@@ -21,13 +29,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (gameType && !['multiplication', 'give-or-take'].includes(gameType)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid gameType parameter' },
+        { status: 400 }
+      );
+    }
+
     // Query games where user is player 1 or player 2
-    const { data: games, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('game_sessions_with_names')
       .select('*')
       .or(`player_1_id.eq.${userId},player_2_id.eq.${userId}`)
-      .in('status', ['waiting', 'active'])
-      .order('updated_at', { ascending: false });
+      .in('status', ['waiting', 'active']);
+
+    if (gameType) {
+      query = query.eq('game_type', gameType);
+    }
+
+    const { data: games, error } = await query.order('updated_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching active games:', error);

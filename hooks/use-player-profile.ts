@@ -1,13 +1,25 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getCurrentUser, AuthUser } from '@/lib/auth';
+import type { User } from '@supabase/supabase-js';
+import { getCurrentUser, getCurrentUserFromSession, AuthUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase-multiplayer';
 
 type GuestUser = { id: string; email: string; playerName: string };
 
 const log = (...args: any[]) => console.debug('[usePlayerProfile]', ...args);
 let hookInstanceCounter = 0;
+
+function buildOptimisticUser(sessionUser: Pick<User, 'id' | 'email' | 'user_metadata'>): AuthUser {
+  const email = sessionUser.email || '';
+  return {
+    id: sessionUser.id,
+    email,
+    playerName:
+      sessionUser.user_metadata?.player_name ||
+      (email ? email.split('@')[0] : 'Player'),
+  };
+}
 
 export function usePlayerProfile() {
   const instanceIdRef = useRef<number | null>(null);
@@ -22,6 +34,8 @@ export function usePlayerProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const latestUserRef = useRef<AuthUser | GuestUser | null>(null);
+  const authChangeSequenceRef = useRef(0);
+  const authSyncTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     latestUserRef.current = user;
@@ -109,7 +123,14 @@ export function usePlayerProfile() {
   // Subscribe to auth state changes
   useEffect(() => {
     debug('auth subscription: registering');
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const clearPendingSync = () => {
+      if (authSyncTimeoutRef.current !== null) {
+        window.clearTimeout(authSyncTimeoutRef.current);
+        authSyncTimeoutRef.current = null;
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       debug('auth state change:start', {
         event,
         sessionUserId: session?.user?.id ?? null,
@@ -128,41 +149,67 @@ export function usePlayerProfile() {
         setLoading(true);
       }
 
-      try {
-        if (session?.user) {
-          const currentUser = await getCurrentUser();
-          debug('auth state change:getCurrentUser result', currentUser);
+      if (!session?.user) {
+        clearPendingSync();
+        debug('auth state change:no session');
+        const guest = readGuestFromStorage(`auth state change:${event}:no-session`);
+        debug('auth state change:setting fallback user', guest);
+        setUser(guest);
+        setLoading(false);
+        return;
+      }
+
+      const optimisticUser = buildOptimisticUser(session.user);
+      debug('auth state change:setting optimistic auth user', optimisticUser);
+      setUser(optimisticUser);
+
+      const sequenceId = authChangeSequenceRef.current + 1;
+      authChangeSequenceRef.current = sequenceId;
+      clearPendingSync();
+
+      authSyncTimeoutRef.current = window.setTimeout(async () => {
+        try {
+          const currentUser = await getCurrentUserFromSession(session.user);
+          debug('auth state change:getCurrentUserFromSession result', currentUser);
+          if (authChangeSequenceRef.current !== sequenceId) {
+            debug('auth state change:discarding stale sync result', {
+              sequenceId,
+              latestSequenceId: authChangeSequenceRef.current,
+            });
+            return;
+          }
+
           if (currentUser) {
             debug('auth state change:setting authed user', {
               id: currentUser.id,
               playerName: currentUser.playerName,
             });
             setUser(currentUser);
+            setError(null);
           } else {
-            const guest = readGuestFromStorage(`auth state change:${event}:guest-fallback`);
-            debug('auth state change:no current user after session, using guest', guest);
-            setUser(guest);
+            debug('auth state change:no resolved user, keeping optimistic session user', optimisticUser);
+            setUser(optimisticUser);
           }
-        } else {
-          debug('auth state change:no session');
-          const guest = readGuestFromStorage(`auth state change:${event}:no-session`);
-          debug('auth state change:setting fallback user', guest);
-          setUser(guest);
+        } catch (err) {
+          console.error('Error handling auth state change:', err);
+          debug('auth state change:error', err);
+          setUser(optimisticUser);
+          setError('Failed to fully sync auth state');
+        } finally {
+          if (authChangeSequenceRef.current === sequenceId) {
+            debug('auth state change:complete -> loading false', {
+              event,
+              nextKnownUserId: session.user.id,
+              sequenceId,
+            });
+            setLoading(false);
+          }
         }
-      } catch (err) {
-        console.error('Error handling auth state change:', err);
-        debug('auth state change:error', err);
-        setError('Failed to sync auth state');
-      } finally {
-        debug('auth state change:complete -> loading false', {
-          event,
-          nextKnownUserId: session?.user?.id ?? latestUserRef.current?.id ?? null,
-        });
-        setLoading(false);
-      }
+      }, 0);
     });
 
     return () => {
+      clearPendingSync();
       debug('auth subscription: unsubscribing');
       subscription?.unsubscribe();
     };

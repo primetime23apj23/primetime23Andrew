@@ -1,3 +1,4 @@
+import type { User } from '@supabase/supabase-js';
 import { supabase } from './supabase-multiplayer';
 
 const authLog = (...args: any[]) => console.debug('[auth]', ...args);
@@ -19,6 +20,71 @@ export interface AuthResponse {
   success: boolean;
   user?: AuthUser;
   error?: string;
+}
+
+type SessionAuthUser = Pick<User, 'id' | 'email' | 'user_metadata'>;
+
+function buildFallbackPlayerName(user: SessionAuthUser): string {
+  return user.user_metadata?.player_name || (user.email ? user.email.split('@')[0] : 'Player');
+}
+
+async function resolveAuthUser(user: SessionAuthUser): Promise<AuthUser> {
+  authLog('resolveAuthUser:start', {
+    id: user.id,
+    email: user.email,
+    metadataName: user.user_metadata?.player_name,
+  });
+
+  const { data: playerData, error: playerError } = await supabase
+    .from('game_players')
+    .select('*')
+    .eq('auth_user_id', user.id)
+    .maybeSingle();
+
+  if (playerError) {
+    console.error('Error fetching player profile:', playerError);
+  } else {
+    authLog('resolveAuthUser:profile-result', playerData);
+  }
+
+  let playerName = playerData?.player_name || user.user_metadata?.player_name || '';
+
+  if (!playerData) {
+    const fallbackName = buildFallbackPlayerName(user);
+    authLog('resolveAuthUser:creating-profile', {
+      userId: user.id,
+      fallbackName,
+    });
+
+    const { error: upsertError } = await supabase.from('game_players').upsert({
+      player_id: user.id,
+      auth_user_id: user.id,
+      email: user.email?.toLowerCase() || null,
+      player_name: fallbackName,
+    });
+
+    if (upsertError) {
+      console.error('Error creating player profile:', upsertError);
+    } else {
+      authLog('resolveAuthUser:profile-created', user.id);
+      playerName = fallbackName;
+    }
+  }
+
+  if (!playerName && user.email) {
+    playerName = user.email.split('@')[0];
+    authLog('resolveAuthUser:fallback-email-name', playerName);
+  }
+
+  const resolvedUser = {
+    id: user.id,
+    email: user.email || '',
+    playerName,
+  };
+
+  authLog('resolveAuthUser:return', resolvedUser);
+  cachePlayerIdentity(playerName, user.email || '', user.id);
+  return resolvedUser;
 }
 
 /**
@@ -245,67 +311,28 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       return null;
     }
 
-    const user = sessionData.session.user;
-    authLog('getCurrentUser:session-user', {
-      id: user.id,
-      email: user.email,
-      metadataName: user.user_metadata?.player_name,
-    });
-
-    // Get player profile
-    const { data: playerData, error: playerError } = await supabase
-      .from('game_players')
-      .select('*')
-      .eq('auth_user_id', user.id)
-      .maybeSingle();
-
-    if (playerError) {
-      console.error('Error fetching player profile:', playerError);
-    } else {
-      authLog('getCurrentUser:profile-result', playerData);
-    }
-
-    // If no profile, create one on the fly
-    let playerName = playerData?.player_name || user.user_metadata?.player_name || '';
-    if (!playerData) {
-      const fallbackName = playerName || (user.email ? user.email.split('@')[0] : 'Player');
-      authLog('getCurrentUser:creating-profile', {
-        userId: user.id,
-        fallbackName,
-      });
-      const { error: upsertError } = await supabase.from('game_players').upsert({
-        player_id: user.id,
-        auth_user_id: user.id,
-        email: user.email?.toLowerCase() || null,
-        player_name: fallbackName,
-      });
-      if (upsertError) {
-        console.error('Error creating player profile:', upsertError);
-      } else {
-        authLog('getCurrentUser:profile-created', user.id);
-        playerName = fallbackName;
-      }
-    }
-
-    if (!playerName && user.email) {
-      playerName = user.email.split('@')[0];
-      authLog('getCurrentUser:fallback-email-name', playerName);
-    }
-
-    authLog('getCurrentUser:return', {
-      id: user.id,
-      email: user.email || '',
-      playerName,
-    });
-    cachePlayerIdentity(playerName, user.email || '', user.id);
-    return {
-      id: user.id,
-      email: user.email || '',
-      playerName,
-    };
+    return await getCurrentUserFromSession(sessionData.session.user);
   } catch (error) {
     console.error('Error getting current user:', error);
     return null;
+  }
+}
+
+export async function getCurrentUserFromSession(user: SessionAuthUser | null | undefined): Promise<AuthUser | null> {
+  if (!user) {
+    authLog('getCurrentUserFromSession:no-user');
+    return null;
+  }
+
+  try {
+    return await resolveAuthUser(user);
+  } catch (error) {
+    console.error('Error resolving current user from session:', error);
+    return {
+      id: user.id,
+      email: user.email || '',
+      playerName: buildFallbackPlayerName(user),
+    };
   }
 }
 
