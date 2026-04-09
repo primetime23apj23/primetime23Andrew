@@ -1012,10 +1012,16 @@ export function PrimeFactorGame() {
       targetScore?: number;
       botDifficulty?: string;
     }) => {
+      // Verify user is authenticated before creating online game
+      if (!authUser?.id) {
+        setShowAuth(true);
+        return;
+      }
+
       setLobbyLoading(true);
       try {
-        // Use the authenticated user ID if available, otherwise let createGameLobby generate one
-        const playerIdToUse = authUser?.id || userId;
+        // Use the authenticated user ID
+        const playerIdToUse = authUser.id;
         
         const session = await createGameLobby(
           selectedGameType,
@@ -1582,6 +1588,11 @@ export function PrimeFactorGame() {
                       handleSelectLobby(lobbyId);
                     }}
                     onCreateNew={() => {
+                      // Check auth before allowing game creation
+                      if (!authUser?.id) {
+                        setShowAuth(true);
+                        return;
+                      }
                       setShowGameSetup(true);
                       setShowLobby(false);
                     }}
