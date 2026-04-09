@@ -62,7 +62,7 @@ export async function getAuthPlayerId(): Promise<string | null> {
 
 export interface GameSession {
   id: string;
-  game_type: 'multiplication' | 'give-or-take';
+  game_type: 'multiplication';
   session_code: string;
   player_1_id: string;
   player_2_id: string | null;
@@ -112,7 +112,6 @@ export interface GameState {
 }
 
 export async function createGameSession(
-  gameType: 'multiplication' | 'give-or-take',
   playerName: string
 ): Promise<GameSession | null> {
   const playerId = generatePlayerId();
@@ -128,7 +127,7 @@ export async function createGameSession(
     const { data, error } = await supabase
       .from('game_sessions')
       .insert({
-        game_type: gameType,
+        game_type: 'multiplication',
         session_code: sessionCode,
         player_1_id: playerId,
         player_2_id: null,
@@ -330,11 +329,9 @@ export async function cancelGameLobby(sessionCode: string): Promise<boolean> {
   }
 }
 
-export async function getAvailableLobbies(
-  gameType: 'multiplication' | 'give-or-take'
-): Promise<GameLobby[]> {
+export async function getAvailableLobbies(): Promise<GameLobby[]> {
   try {
-    const response = await fetch(`/api/lobbies?gameType=${gameType}`);
+    const response = await fetch(`/api/lobbies?gameType=multiplication`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -347,7 +344,6 @@ export async function getAvailableLobbies(
 }
 
 export async function createGameLobby(
-  gameType: 'multiplication' | 'give-or-take',
   playerName: string,
   settings: {
     targetScore?: number;
@@ -363,7 +359,7 @@ export async function createGameLobby(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        gameType,
+        gameType: 'multiplication',
         sessionCode,
         playerId,
         playerName,
@@ -415,9 +411,9 @@ export async function joinGameLobby(
 }
 
 export function subscribeToLobbies(
-  gameType: 'multiplication' | 'give-or-take',
   callback: (lobbies: GameLobby[]) => void
 ) {
+  const gameType = 'multiplication';
   const channel = supabase.channel(`lobbies:${gameType}`);
   
   channel
@@ -430,7 +426,7 @@ export function subscribeToLobbies(
         filter: `game_type=eq.${gameType}`,
       },
       () => {
-        getAvailableLobbies(gameType).then(callback);
+        getAvailableLobbies().then(callback);
       }
     )
     .subscribe();

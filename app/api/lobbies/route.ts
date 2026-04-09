@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(data);
     }
 
-    if (!gameType || !['multiplication', 'give-or-take'].includes(gameType)) {
+    if (!gameType || !['multiplication'].includes(gameType)) {
       return NextResponse.json(
         { error: 'Invalid game type' },
         { status: 400 }

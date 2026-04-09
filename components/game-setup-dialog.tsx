@@ -31,23 +31,19 @@ const MULTIPLICATION_TARGET_SCORE_OPTIONS = [
 interface GameSetupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  gameType: "multiplication" | "give-or-take";
   defaultPlayerName?: string;
   onCreateLobby: (settings: {
     playerName: string;
     targetScore?: number;
-    botDifficulty?: "easy" | "medium" | "hard";
   }) => void;
   isLoading?: boolean;
 }
 
 interface GameSetupFormProps {
-  gameType: "multiplication" | "give-or-take";
   defaultPlayerName?: string;
   onCreateLobby: (settings: {
     playerName: string;
     targetScore?: number;
-    botDifficulty?: "easy" | "medium" | "hard";
   }) => void;
   onCancel?: () => void;
   isLoading?: boolean;
@@ -55,7 +51,6 @@ interface GameSetupFormProps {
 }
 
 export function GameSetupForm({
-  gameType,
   defaultPlayerName = "",
   onCreateLobby,
   onCancel,
@@ -65,18 +60,13 @@ export function GameSetupForm({
   const [playerName, setPlayerName] = useState("");
   const [targetScore, setTargetScore] = useState("37");
   const [customTargetScore, setCustomTargetScore] = useState("");
-  const [botDifficulty, setBotDifficulty] = useState<"easy" | "medium" | "hard">(
-    "medium"
-  );
 
   useEffect(() => {
     setPlayerName(defaultPlayerName);
   }, [defaultPlayerName]);
 
   const resolvedTargetScore =
-    gameType !== "multiplication"
-      ? undefined
-      : targetScore === CUSTOM_TARGET_SCORE
+    targetScore === CUSTOM_TARGET_SCORE
       ? Number.parseInt(customTargetScore, 10)
       : Number.parseInt(targetScore, 10);
 
@@ -88,20 +78,12 @@ export function GameSetupForm({
 
   const handleCreate = () => {
     if (!playerName.trim()) return;
-    if (gameType === "multiplication" && !isCustomTargetScoreValid) return;
+    if (!isCustomTargetScoreValid) return;
 
-    const settings =
-      gameType === "multiplication"
-        ? {
-            playerName,
-            targetScore: resolvedTargetScore,
-          }
-        : {
-            playerName,
-            botDifficulty,
-          };
-
-    onCreateLobby(settings);
+    onCreateLobby({
+      playerName,
+      targetScore: resolvedTargetScore,
+    });
   };
 
   return (
@@ -131,81 +113,56 @@ export function GameSetupForm({
           />
         </div>
 
-        {gameType === "multiplication" && (
-          <div>
-            <Label htmlFor="target-score" className="text-sm font-medium">
-              Target Score
-            </Label>
-            <Select value={targetScore} onValueChange={setTargetScore}>
-              <SelectTrigger id="target-score" className="mt-2">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MULTIPLICATION_TARGET_SCORE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-                <SelectItem value={CUSTOM_TARGET_SCORE}>Custom Score</SelectItem>
-              </SelectContent>
-            </Select>
+        <div>
+          <Label htmlFor="target-score" className="text-sm font-medium">
+            Target Score
+          </Label>
+          <Select value={targetScore} onValueChange={setTargetScore}>
+            <SelectTrigger id="target-score" className="mt-2">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MULTIPLICATION_TARGET_SCORE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+              <SelectItem value={CUSTOM_TARGET_SCORE}>Custom Score</SelectItem>
+            </SelectContent>
+          </Select>
 
-            {targetScore === CUSTOM_TARGET_SCORE && (
-              <div className="mt-3 space-y-2">
-                <Label htmlFor="custom-target-score" className="text-sm font-medium">
-                  Custom Score
-                </Label>
-                <Input
-                  id="custom-target-score"
-                  type="number"
-                  min={1}
-                  max={999}
-                  inputMode="numeric"
-                  placeholder="Enter a score from 1 to 999"
-                  value={customTargetScore}
-                  onChange={(e) => setCustomTargetScore(e.target.value)}
-                  disabled={isLoading}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && playerName.trim() && isCustomTargetScoreValid) {
-                      handleCreate();
-                    }
-                  }}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Pick any whole-number score between 1 and 999.
+          {targetScore === CUSTOM_TARGET_SCORE && (
+            <div className="mt-3 space-y-2">
+              <Label htmlFor="custom-target-score" className="text-sm font-medium">
+                Custom Score
+              </Label>
+              <Input
+                id="custom-target-score"
+                type="number"
+                min={1}
+                max={999}
+                inputMode="numeric"
+                placeholder="Enter a score from 1 to 999"
+                value={customTargetScore}
+                onChange={(e) => setCustomTargetScore(e.target.value)}
+                disabled={isLoading}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && playerName.trim() && isCustomTargetScoreValid) {
+                    handleCreate();
+                  }
+                }}
+              />
+              <p className="text-sm text-muted-foreground">
+                Pick any whole-number score between 1 and 999.
+              </p>
+              {!isCustomTargetScoreValid && customTargetScore.trim() && (
+                <p className="text-sm text-destructive">
+                  Enter a valid whole number between 1 and 999.
                 </p>
-                {!isCustomTargetScoreValid && customTargetScore.trim() && (
-                  <p className="text-sm text-destructive">
-                    Enter a valid whole number between 1 and 999.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {gameType === "give-or-take" && !isMultiplayer && (
-          <div>
-            <Label htmlFor="difficulty" className="text-sm font-medium">
-              Difficulty
-            </Label>
-            <Select
-              value={botDifficulty}
-              onValueChange={(value) =>
-                setBotDifficulty(value as "easy" | "medium" | "hard")
-              }
-            >
-              <SelectTrigger id="difficulty" className="mt-2">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="easy">Easy</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="hard">Hard</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="flex gap-2 pt-4">
           <Button
@@ -236,7 +193,6 @@ export function GameSetupForm({
 export function GameSetupDialog({
   open,
   onOpenChange,
-  gameType,
   defaultPlayerName = "",
   onCreateLobby,
   isLoading = false,
@@ -251,7 +207,6 @@ export function GameSetupDialog({
           </DialogDescription>
         </DialogHeader>
         <GameSetupForm
-          gameType={gameType}
           defaultPlayerName={defaultPlayerName}
           onCreateLobby={onCreateLobby}
           onCancel={() => onOpenChange(false)}
