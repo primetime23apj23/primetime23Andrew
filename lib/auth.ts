@@ -301,17 +301,18 @@ export async function signOut(): Promise<AuthResponse> {
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
     authLog('getCurrentUser:start');
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    // Use getUser() instead of getSession() to fetch current user from server
+    const { data: userData, error: userError } = await supabase.auth.getUser();
 
-    if (sessionError || !sessionData.session) {
-      authLog('getCurrentUser:no-session', {
-        hasError: !!sessionError,
-        error: sessionError?.message,
+    if (userError || !userData.user) {
+      authLog('getCurrentUser:no-user', {
+        hasError: !!userError,
+        error: userError?.message,
       });
       return null;
     }
 
-    return await getCurrentUserFromSession(sessionData.session.user);
+    return await getCurrentUserFromSession(userData.user);
   } catch (error) {
     console.error('Error getting current user:', error);
     return null;
