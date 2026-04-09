@@ -19,9 +19,9 @@ export function RulesDialog({ open, onOpenChange }: RulesDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle className="text-2xl">How to Play Prime Factor</DialogTitle>
+          <DialogTitle className="text-2xl">How to Play Multiplication Game</DialogTitle>
           <DialogDescription>
-            Learn the rules, scoring, and turn flow for the Prime Factorization game.
+            Learn the rules, scoring, and turn flow for the Multiplication game.
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[60vh] pr-4">
