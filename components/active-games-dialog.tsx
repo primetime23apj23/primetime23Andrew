@@ -14,7 +14,6 @@ import { AlertCircle, Play } from "lucide-react";
 
 interface ActiveGame {
   id: string;
-  game_type: 'multiplication' | 'give-or-take';
   session_code: string;
   player_1_name: string;
   player_2_name?: string;
@@ -27,7 +26,6 @@ interface ActiveGamesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userId: string | null;
-  gameType?: 'multiplication' | 'give-or-take';
   onResumeGame: (sessionId: string) => void;
 }
 
@@ -35,7 +33,6 @@ export function ActiveGamesDialog({
   open,
   onOpenChange,
   userId,
-  gameType,
   onResumeGame,
 }: ActiveGamesDialogProps) {
   const [games, setGames] = useState<ActiveGame[]>([]);
@@ -46,7 +43,7 @@ export function ActiveGamesDialog({
     if (open && userId) {
       fetchActiveGames();
     }
-  }, [gameType, open, userId]);
+  }, [open, userId]);
 
   const fetchActiveGames = async () => {
     setLoading(true);
@@ -54,9 +51,6 @@ export function ActiveGamesDialog({
 
     try {
       const params = new URLSearchParams({ userId });
-      if (gameType) {
-        params.set("gameType", gameType);
-      }
 
       const response = await fetch(`/api/active-games?${params.toString()}`);
       const data = await response.json();

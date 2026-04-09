@@ -12,7 +12,6 @@ interface WaitingRoomProps {
   isOpen?: boolean;
   onCancel: () => void;
   onOpponentJoined?: () => void;
-  gameType?: "multiplication" | "give-or-take";
   onJoinLobby?: (lobbyId: string) => void;
   onCreateNew?: () => void;
   opponentHasJoined?: boolean;
@@ -24,7 +23,6 @@ export function WaitingRoomDialog({
   isOpen = true,
   onCancel,
   onOpponentJoined,
-  gameType,
   onJoinLobby,
   onCreateNew,
   opponentHasJoined = false,
@@ -55,11 +53,11 @@ export function WaitingRoomDialog({
   }, [opponentHasJoined, onOpponentJoined]);
 
   useEffect(() => {
-    if (!gameType || !isOpen) return;
+    if (!isOpen) return;
     let mounted = true;
     const load = async () => {
       setLoadingLobbies(true);
-      const data = await getAvailableLobbies(gameType);
+      const data = await getAvailableLobbies("multiplication");
       if (mounted) setLobbies(data);
       setLoadingLobbies(false);
     };
@@ -69,7 +67,7 @@ export function WaitingRoomDialog({
       mounted = false;
       clearInterval(interval);
     };
-  }, [gameType, isOpen]);
+  }, [isOpen]);
 
   const copyGameLink = () => {
     navigator.clipboard.writeText(gameLink);
@@ -136,7 +134,7 @@ export function WaitingRoomDialog({
         <p className="text-sm text-muted-foreground">{opponentHasJoined ? 'Opponent joined! Ready to start.' : 'Waiting for opponent to join...'}</p>
       </div>
 
-      {gameType && onJoinLobby && (
+      {onJoinLobby && (
         <div className="space-y-3 border-t pt-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">Other open games</p>

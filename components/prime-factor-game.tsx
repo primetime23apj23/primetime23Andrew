@@ -867,11 +867,6 @@ export function PrimeFactorGame() {
     try {
       const session = await getGameSessionById(resumeSessionId);
       if (session) {
-        if (session.game_type !== selectedGameType) {
-          window.location.href = "/give-or-take";
-          return;
-        }
-
         gameStateVersionRef.current = -1;
         const activePlayerId = userId || playerId;
         const isCurrentUserPlayerOne = activePlayerId === session.player_1_id;
@@ -1583,7 +1578,6 @@ export function PrimeFactorGame() {
                     ← Back to modes
                   </button>
                   <GameLobby
-                    gameType={selectedGameType}
                     onSelectLobby={(lobbyId) => {
                       handleSelectLobby(lobbyId);
                     }}
@@ -1592,11 +1586,6 @@ export function PrimeFactorGame() {
                       setShowLobby(false);
                     }}
                     isOpen={showLobby}
-                    onChangeGameType={(gameType) => {
-                      if (gameType === "give-or-take") {
-                        window.location.href = "/give-or-take";
-                      }
-                    }}
                   />
                 </div>
               )}
@@ -1613,7 +1602,6 @@ export function PrimeFactorGame() {
                     ← Back to lobby
                   </button>
                   <GameSetupForm
-                    gameType={selectedGameType}
                     defaultPlayerName={playerNames[0] || ""}
                     onCreateLobby={handleGameSetupSubmit}
                     onCancel={() => {
@@ -1657,13 +1645,7 @@ export function PrimeFactorGame() {
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <header className="flex items-center justify-between gap-4">
-          <button
-            type="button"
-            onClick={() => handleSwitchGame("/give-or-take")}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-          >
-            Try Give or Take Game
-          </button>
+          <div></div>
           <div className="text-right shrink-0">
             <p className="text-xs sm:text-sm text-muted-foreground">
               Patented by

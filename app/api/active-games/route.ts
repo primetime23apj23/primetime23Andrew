@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (gameType && !['multiplication', 'give-or-take'].includes(gameType)) {
+    if (gameType && !['multiplication'].includes(gameType)) {
       return NextResponse.json(
         { success: false, error: 'Invalid gameType parameter' },
         { status: 400 }
@@ -41,11 +41,8 @@ export async function GET(request: NextRequest) {
       .from('game_sessions_with_names')
       .select('*')
       .or(`player_1_id.eq.${userId},player_2_id.eq.${userId}`)
-      .in('status', ['waiting', 'active']);
-
-    if (gameType) {
-      query = query.eq('game_type', gameType);
-    }
+      .in('status', ['waiting', 'active'])
+      .eq('game_type', 'multiplication');
 
     const { data: games, error } = await query.order('updated_at', { ascending: false });
 
