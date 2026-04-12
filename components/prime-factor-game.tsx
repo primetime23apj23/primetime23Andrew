@@ -1028,6 +1028,8 @@ export function PrimeFactorGame() {
           {
             targetScore: settings.targetScore,
             botDifficulty: settings.botDifficulty,
+            diceSkin: settings.diceSkin,
+            timerMode: settings.timerMode,
           },
           playerIdToUse
         );
