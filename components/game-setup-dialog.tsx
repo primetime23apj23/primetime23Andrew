@@ -170,7 +170,7 @@ export function GameSetupForm({
             disabled={
               !playerName.trim() ||
               isLoading ||
-              (gameType === "multiplication" && !isCustomTargetScoreValid)
+              !isCustomTargetScoreValid
             }
             className="flex-1"
           >
