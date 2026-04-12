@@ -348,6 +348,8 @@ export async function createGameLobby(
   settings: {
     targetScore?: number;
     botDifficulty?: string;
+    diceSkin?: string;
+    timerMode?: string;
   },
   authUserId?: string
 ): Promise<GameSession | null> {
@@ -365,6 +367,8 @@ export async function createGameLobby(
         playerName,
         targetScore: settings.targetScore,
         botDifficulty: settings.botDifficulty,
+        diceSkin: settings.diceSkin,
+        timerMode: settings.timerMode,
       }),
     });
 
