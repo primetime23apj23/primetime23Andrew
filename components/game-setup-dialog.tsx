@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { DiceSkinPicker } from "./dice-skin-picker";
 
 const CUSTOM_TARGET_SCORE = "custom";
 const MULTIPLICATION_TARGET_SCORE_OPTIONS = [
@@ -26,13 +27,6 @@ const MULTIPLICATION_TARGET_SCORE_OPTIONS = [
   { value: "37", label: "37 Points (Standard)" },
   { value: "43", label: "43 Points" },
   { value: "50", label: "50 Points" },
-] as const;
-
-const DICE_SKIN_OPTIONS = [
-  { value: "standard", label: "Standard" },
-  { value: "crystal", label: "Crystal" },
-  { value: "gold", label: "Gold" },
-  { value: "neon", label: "Neon" },
 ] as const;
 
 const TIMER_MODE_OPTIONS = [
@@ -187,21 +181,7 @@ export function GameSetupForm({
         </div>
 
         <div>
-          <Label htmlFor="dice-skin" className="text-sm font-medium">
-            Dice Skin
-          </Label>
-          <Select value={diceSkin} onValueChange={setDiceSkin}>
-            <SelectTrigger id="dice-skin" className="mt-2">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DICE_SKIN_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <DiceSkinPicker value={diceSkin} onChange={setDiceSkin} />
         </div>
 
         <div>
