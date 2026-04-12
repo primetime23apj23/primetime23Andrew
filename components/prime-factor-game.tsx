@@ -1024,7 +1024,6 @@ export function PrimeFactorGame() {
         const playerIdToUse = authUser.id;
         
         const session = await createGameLobby(
-          selectedGameType,
           settings.playerName,
           {
             targetScore: settings.targetScore,
