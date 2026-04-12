@@ -96,6 +96,8 @@ export function PrimeFactorGame() {
   const [playerNames, setPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
   const [showAuth, setShowAuth] = useState(false);
   const [showLobby, setShowLobby] = useState(false);
+  const [timerMode, setTimerMode] = useState<string>("1_minute");
+  const [gameDiceSkin, setGameDiceSkin] = useState<string>("standard");
   const selectedGameType: "multiplication" = "multiplication";
   const [showGameSetup, setShowGameSetup] = useState(false);
   const [lobbyLoading, setLobbyLoading] = useState(false);
@@ -751,8 +753,19 @@ export function PrimeFactorGame() {
     }
   }, [gameState.currentPlayer, gameState.phase, isMultiplayer, sessionId, sessionPlayer1Id, sessionPlayer2Id]);
 
-  // Sort dice by value
-  const sortDice = (dice: Die[]): Die[] => {
+  const getTimerSeconds = (mode: string): number => {
+    switch (mode) {
+      case "3_minutes":
+        return 180;
+      case "5_minutes":
+        return 300;
+      case "unlimited":
+        return 0; // 0 means no timer
+      case "1_minute":
+      default:
+        return 60;
+    }
+  };
     return [...dice].sort((a, b) => {
       if (a.value === "W" && b.value !== "W") return 1;
       if (a.value !== "W" && b.value === "W") return -1;
@@ -981,16 +994,18 @@ export function PrimeFactorGame() {
     const pollInterval = setInterval(checkForOpponent, 1500);
 
     // Also set up real-time subscription
-    const channel = subscribeToSession(sessionCode, (session) => {
-      if (cancelled || !session) return;
-      setSessionId(session.id);
-      setSessionPlayer1Id(session.player_1_id);
-      setSessionPlayer2Id(session.player_2_id);
-      setMultiplayerTargetScore(session.target_score || 37);
-      setPlayerNames([
-        session.player_1_name || "Player 1",
-        session.player_2_name || "Player 2",
-      ]);
+const channel = subscribeToSession(sessionCode, (session) => {
+  if (cancelled || !session) return;
+  setSessionId(session.id);
+  setSessionPlayer1Id(session.player_1_id);
+  setSessionPlayer2Id(session.player_2_id);
+  setMultiplayerTargetScore(session.target_score || 37);
+  setTimerMode(session.timer_mode || "1_minute");
+  setGameDiceSkin(session.dice_skin || "standard");
+  setPlayerNames([
+    session.player_1_name || "Player 1",
+    session.player_2_name || "Player 2",
+  ]);
       if (session.player_2_id) {
         setOpponentHasJoined(true);
         setOpponentName(session.player_2_name || "Opponent");
@@ -1750,13 +1765,13 @@ export function PrimeFactorGame() {
               targetScore={gameState.targetScore}
             />
             
-            <GameTimer
-              initialSeconds={60}
-              onTimeUp={handleTimeUp}
-              isActive={gameState.phase === "playing"}
-              currentPlayer={gameState.currentPlayer}
-              playerColors={PLAYER_COLORS}
-            />
+        <GameTimer
+          initialSeconds={getTimerSeconds(timerMode)}
+          onTimeUp={handleTimeUp}
+          isActive={gameState.phase === "playing"}
+          currentPlayer={gameState.currentPlayer}
+          playerColors={PLAYER_COLORS}
+        />
             
             <GameControls
               phase={gameState.phase}
