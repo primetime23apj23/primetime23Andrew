@@ -104,26 +104,7 @@ export async function signUp(
       };
     }
 
-    // Check if user already exists
-    const { data: existingUser, error: checkError } = await supabase
-      .from('game_players')
-      .select('*')
-      .eq('email', email.toLowerCase())
-      .maybeSingle();
-
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('Error checking existing user:', checkError);
-    }
-
-    if (existingUser) {
-      authLog('signUp:existing-user', existingUser.email);
-      return {
-        success: false,
-        error: 'Email already registered',
-      };
-    }
-
-    // Sign up with Supabase Auth
+    // Sign up with Supabase Auth first
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: email.toLowerCase(),
       password,
@@ -156,7 +137,7 @@ export async function signUp(
       metadataName: authData.user.user_metadata?.player_name,
     });
 
-    // Create player profile
+    // Create or update player profile
     const { error: profileError } = await supabase
       .from('game_players')
       .upsert({
