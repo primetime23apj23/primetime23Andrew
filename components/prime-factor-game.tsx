@@ -767,6 +767,8 @@ export function PrimeFactorGame() {
         return 60;
     }
   };
+
+  const sortDice = (dice: Die[]): Die[] => {
     return [...dice].sort((a, b) => {
       if (a.value === "W" && b.value !== "W") return 1;
       if (a.value !== "W" && b.value === "W") return -1;
