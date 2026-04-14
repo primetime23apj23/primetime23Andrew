@@ -39,7 +39,7 @@ export function GameBoard({
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-px sm:gap-2">
+    <div className="w-full max-w-[92vw] sm:max-w-3xl mx-auto flex flex-col gap-px sm:gap-2">
       <div className="flex gap-px sm:gap-2">
         {/* Left vertical axis - Website credit */}
         <div className="flex items-center justify-center shrink-0">
@@ -53,7 +53,7 @@ export function GameBoard({
         
         {/* Main board */}
         <div className="flex-1 relative">
-          <div ref={gridRef} className="grid grid-cols-10 gap-px bg-gray-400 dark:bg-gray-500 p-px rounded-lg">
+          <div ref={gridRef} className="grid grid-cols-10 grid-rows-10 aspect-square w-full gap-px bg-gray-400 dark:bg-gray-500 p-px rounded-lg">
             {rows.map((row, rowIndex) =>
               row.map((space, colIndex) => (
                 <BoardSpaceCell
@@ -90,13 +90,13 @@ function BoardSpaceCell({
   isValidMove,
 }: BoardSpaceCellProps) {
   if (!space) {
-    return <div className="aspect-square bg-white dark:bg-zinc-900" />;
+    return <div className="w-full h-full bg-white dark:bg-zinc-900" />;
   }
 
   // Bottom left cell (0) - Times of Primes logo
   if (space.number === 0) {
     return (
-      <div data-space={space.number} className="aspect-square bg-white dark:bg-zinc-900 flex items-center justify-center p-0.5">
+      <div data-space={space.number} className="w-full h-full bg-white dark:bg-zinc-900 flex items-center justify-center p-0.5 overflow-hidden">
         <span 
           className="text-[8px] sm:text-[11px] font-black text-center leading-none"
           style={{
@@ -122,7 +122,7 @@ function BoardSpaceCell({
     return (
       <div 
         data-space={space.number}
-        className="aspect-square bg-muted/50 border border-dashed border-muted-foreground/30 flex items-center justify-center relative"
+        className="w-full h-full bg-muted/50 border border-dashed border-muted-foreground/30 flex items-center justify-center relative overflow-hidden"
       >
         {ownerColor && (
           <div
@@ -144,7 +144,7 @@ function BoardSpaceCell({
       onClick={onClick}
       disabled={space.isPrime || space.owner !== null}
       className={cn(
-        "aspect-square transition-all duration-200 relative",
+        "w-full h-full transition-all duration-200 relative overflow-hidden",
         "flex flex-col items-center justify-center p-0.5",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
         "bg-white dark:bg-zinc-900",
