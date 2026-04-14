@@ -176,6 +176,8 @@ function BoardSpaceCell({
             "leading-none",
             space.isPrime
               ? "text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400"
+              : space.factorization && space.factorization.split(' × ').length > 3
+              ? "text-[7px] sm:text-xs font-bold text-foreground"
               : "text-[10px] sm:text-sm font-bold text-foreground"
           )}
         >
