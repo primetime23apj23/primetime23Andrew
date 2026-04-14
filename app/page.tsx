@@ -1,5 +1,3 @@
-'use client';
-
 import { PrimeFactorGame } from "@/components/prime-factor-game";
 import { AppHeader } from "@/components/app-header";
 
