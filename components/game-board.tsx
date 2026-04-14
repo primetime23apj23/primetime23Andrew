@@ -39,7 +39,7 @@ export function GameBoard({
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col gap-px sm:gap-2">
+    <div className="w-full max-w-[92vw] sm:max-w-3xl mx-auto flex flex-col gap-px sm:gap-2">
       <div className="flex gap-px sm:gap-2">
         {/* Left vertical axis - Website credit */}
         <div className="flex items-center justify-center shrink-0">
@@ -53,7 +53,7 @@ export function GameBoard({
         
         {/* Main board */}
         <div className="flex-1 relative">
-          <div ref={gridRef} className="grid grid-cols-10 gap-px bg-gray-400 dark:bg-gray-500 p-px rounded-lg">
+          <div ref={gridRef} className="grid grid-cols-10 grid-rows-10 aspect-square w-full gap-px bg-gray-400 dark:bg-gray-500 p-px rounded-lg">
             {rows.map((row, rowIndex) =>
               row.map((space, colIndex) => (
                 <BoardSpaceCell
@@ -90,13 +90,13 @@ function BoardSpaceCell({
   isValidMove,
 }: BoardSpaceCellProps) {
   if (!space) {
-    return <div className="aspect-square bg-white dark:bg-zinc-900" />;
+    return <div className="w-full h-full bg-white dark:bg-zinc-900" />;
   }
 
   // Bottom left cell (0) - Times of Primes logo
   if (space.number === 0) {
     return (
-      <div data-space={space.number} className="aspect-square bg-white dark:bg-zinc-900 flex items-center justify-center p-0.5">
+      <div data-space={space.number} className="w-full h-full bg-white dark:bg-zinc-900 flex items-center justify-center p-0.5 overflow-hidden">
         <span 
           className="text-[8px] sm:text-[11px] font-black text-center leading-none"
           style={{
@@ -122,7 +122,7 @@ function BoardSpaceCell({
     return (
       <div 
         data-space={space.number}
-        className="aspect-square bg-muted/50 border border-dashed border-muted-foreground/30 flex items-center justify-center relative"
+        className="w-full h-full bg-muted/50 border border-dashed border-muted-foreground/30 flex items-center justify-center relative overflow-hidden"
       >
         {ownerColor && (
           <div
@@ -136,6 +136,7 @@ function BoardSpaceCell({
   }
 
   const ownerColor = space.owner !== null ? PLAYER_COLORS[space.owner] : null;
+  const factorCount = space.factorization ? space.factorization.split(" × ").length : 0;
 
   return (
     <button
@@ -144,8 +145,8 @@ function BoardSpaceCell({
       onClick={onClick}
       disabled={space.isPrime || space.owner !== null}
       className={cn(
-        "aspect-square transition-all duration-200 relative",
-        "flex flex-col items-center justify-center p-0.5",
+        "w-full h-full transition-all duration-200 relative overflow-hidden",
+        "flex flex-col items-center justify-center p-[1px] sm:p-0.5",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
         "bg-white dark:bg-zinc-900",
         !space.isPrime && !space.owner && "hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer",
@@ -168,17 +169,17 @@ function BoardSpaceCell({
       <div
         className={cn(
           "flex items-center justify-center shrink-0",
-          space.isPrime && "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-500 dark:border-red-400"
+          space.isPrime && "w-5 h-5 sm:w-8 sm:h-8 rounded-full border-2 border-red-500 dark:border-red-400"
         )}
       >
         <span
           className={cn(
             "leading-none",
             space.isPrime
-              ? "text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400"
-              : space.factorization && space.factorization.split(' × ').length > 3
-              ? "text-[7px] sm:text-xs font-bold text-foreground"
-              : "text-[10px] sm:text-sm font-bold text-foreground"
+              ? "text-xs sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400"
+              : factorCount > 3
+              ? "text-[8px] sm:text-xs font-bold text-foreground"
+              : "text-[9px] sm:text-sm font-bold text-foreground"
           )}
         >
           {space.number}
@@ -187,11 +188,11 @@ function BoardSpaceCell({
 
       {/* Factorization - individual numbers in rounded boxes */}
       {!space.isPrime && space.factorization && (
-        <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+        <div className="flex gap-px mt-px sm:mt-0.5 flex-wrap justify-center">
           {space.factorization.split(' × ').map((factor, idx) => (
             <span 
               key={idx}
-              className="w-4 h-4 sm:w-5 sm:h-5 bg-white dark:bg-zinc-800 text-[6px] sm:text-[8px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
+              className="w-3.5 h-3.5 sm:w-5 sm:h-5 bg-white dark:bg-zinc-800 text-[6px] sm:text-[8px] font-bold text-foreground rounded-[6px] sm:rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
             >
               {factor}
             </span>
