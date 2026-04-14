@@ -53,7 +53,7 @@ export function GameBoard({
         
         {/* Main board */}
         <div className="flex-1 relative">
-          <div ref={gridRef} className="grid grid-cols-10 gap-px bg-gray-300 dark:bg-gray-600 p-px rounded-lg">
+          <div ref={gridRef} className="grid grid-cols-10 gap-px bg-white dark:bg-zinc-900 p-px rounded-lg">
             {rows.map((row, rowIndex) =>
               row.map((space, colIndex) => (
                 <BoardSpaceCell
