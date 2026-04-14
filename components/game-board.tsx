@@ -183,13 +183,18 @@ function BoardSpaceCell({
         </span>
       </div>
 
-      {/* Factorization - inline width */}
+      {/* Factorization - individual numbers in rounded boxes */}
       {!space.isPrime && space.factorization && (
-        <span 
-          className="text-[7px] sm:text-[9px] font-black text-foreground leading-none text-center inline rounded-sm px-0.5 mt-0.5"
-        >
-          {space.factorization}
-        </span>
+        <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+          {space.factorization.split(' × ').map((factor, idx) => (
+            <span 
+              key={idx}
+              className="w-4 h-4 sm:w-5 sm:h-5 bg-white dark:bg-zinc-800 text-[6px] sm:text-[8px] font-bold text-foreground rounded-md flex items-center justify-center border border-border"
+            >
+              {factor}
+            </span>
+          ))}
+        </div>
       )}
     </button>
   );
