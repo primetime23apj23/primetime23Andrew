@@ -1573,6 +1573,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   const showPreGameSetupPage = showModeSelect || showGameSetup || showLobby;
 
+  // Render pre-game setup page if any setup state is active
   if (showPreGameSetupPage) {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.16),_transparent_35%),linear-gradient(180deg,#f8fbff_0%,#eef5ff_48%,#ffffff_100%)] dark:bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.2),_transparent_30%),linear-gradient(180deg,#0f172a_0%,#111827_45%,#030712_100%)]">
