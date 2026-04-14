@@ -123,3 +123,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+.game-setup-bg {
+  background: radial-gradient(circle at top, rgba(59, 130, 246, 0.16), transparent 35%), linear-gradient(180deg, #f8fbff 0%, #eef5ff 48%, #ffffff 100%);
+}
+
+.dark .game-setup-bg {
+  background: radial-gradient(circle at top, rgba(59, 130, 246, 0.2), transparent 30%), linear-gradient(180deg, #0f172a 0%, #111827 45%, #030712 100%);
+}
