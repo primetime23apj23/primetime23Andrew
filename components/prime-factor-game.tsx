@@ -1643,25 +1643,25 @@ const channel = subscribeToSession(sessionCode, (session) => {
             </div>
           </div>
 
-        <AuthDialog
-          open={showAuth}
-          onOpenChange={setShowAuth}
-          onAuthed={(name, _email, userId) => {
-            if (userId) {
-              setUserId(userId);
-              setPlayerId(userId);
-            }
-            setPlayerNames([name || "Player 1", playerNames[1]]);
-          }}
-        />
+          <AuthDialog
+            open={showAuth}
+            onOpenChange={setShowAuth}
+            onAuthed={(name, _email, userId) => {
+              if (userId) {
+                setUserId(userId);
+                setPlayerId(userId);
+              }
+              setPlayerNames([name || "Player 1", playerNames[1]]);
+            }}
+          />
 
-        <ActiveGamesDialog
-          open={showActiveGames}
-          onOpenChange={setShowActiveGames}
-          userId={userId}
-          gameType={selectedGameType}
-          onResumeGame={handleResumeGame}
-        />
+          <ActiveGamesDialog
+            open={showActiveGames}
+            onOpenChange={setShowActiveGames}
+            userId={userId}
+            gameType={selectedGameType}
+            onResumeGame={handleResumeGame}
+          />
         </div>
       </div>
     );
