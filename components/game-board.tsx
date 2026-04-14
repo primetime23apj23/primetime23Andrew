@@ -146,7 +146,7 @@ function BoardSpaceCell({
       disabled={space.isPrime || space.owner !== null}
       className={cn(
         "w-full h-full transition-all duration-200 relative overflow-hidden",
-        "flex flex-col items-center justify-center p-[1px] sm:p-0.5",
+        "flex flex-col items-center justify-center p-0.5",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
         "bg-white dark:bg-zinc-900",
         !space.isPrime && !space.owner && "hover:bg-gray-100 dark:hover:bg-zinc-800 cursor-pointer",
