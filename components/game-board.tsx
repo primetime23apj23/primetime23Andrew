@@ -183,10 +183,10 @@ function BoardSpaceCell({
         </span>
       </div>
 
-      {/* Factorization - yellow background with black text, inline width */}
+      {/* Factorization - inline width */}
       {!space.isPrime && space.factorization && (
         <span 
-          className="text-[7px] sm:text-[9px] font-black text-black leading-none text-center inline bg-yellow-300 rounded-sm px-0.5 mt-0.5"
+          className="text-[7px] sm:text-[9px] font-black text-foreground leading-none text-center inline rounded-sm px-0.5 mt-0.5"
         >
           {space.factorization}
         </span>
