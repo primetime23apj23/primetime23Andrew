@@ -1703,9 +1703,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
         </div>
 
         {/* Main Game Area */}
-        <div className="grid lg:grid-cols-[1fr_320px] gap-4">
+        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-4">
           {/* Board + Both Dice Trays */}
-          <div className="space-y-4">
+          <div className="space-y-4 order-first lg:order-none">
             {/* Both Players' Dice Side by Side (above board) */}
             {diceRolled && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1761,7 +1761,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-4">
+          <div className="space-y-4 order-last lg:order-none">
             <Scoreboard
               players={gameState.players}
               currentPlayer={gameState.currentPlayer}
