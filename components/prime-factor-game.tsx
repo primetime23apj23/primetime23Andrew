@@ -1,4 +1,5 @@
 "use client";
+// Prime Factor Game Component - Main game logic and UI
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { GameBoard } from "./game-board";
