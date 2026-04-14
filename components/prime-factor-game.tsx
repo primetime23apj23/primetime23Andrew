@@ -1,5 +1,5 @@
-"use client";
-// Prime Factor Game Component - Main game logic and UI
+'use client';
+
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { GameBoard } from "./game-board";
@@ -1574,7 +1574,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   const showPreGameSetupPage = showModeSelect || showGameSetup || showLobby;
 
-  // Render pre-game setup page if any setup state is active
   if (showPreGameSetupPage) {
     return (
       <div className="min-h-screen game-setup-bg">
