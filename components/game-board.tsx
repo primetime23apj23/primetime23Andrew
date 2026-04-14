@@ -136,6 +136,7 @@ function BoardSpaceCell({
   }
 
   const ownerColor = space.owner !== null ? PLAYER_COLORS[space.owner] : null;
+  const factorCount = space.factorization ? space.factorization.split(" × ").length : 0;
 
   return (
     <button
@@ -168,17 +169,17 @@ function BoardSpaceCell({
       <div
         className={cn(
           "flex items-center justify-center shrink-0",
-          space.isPrime && "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-500 dark:border-red-400"
+          space.isPrime && "w-5 h-5 sm:w-8 sm:h-8 rounded-full border-2 border-red-500 dark:border-red-400"
         )}
       >
         <span
           className={cn(
             "leading-none",
             space.isPrime
-              ? "text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400"
-              : space.factorization && space.factorization.split(' × ').length > 3
-              ? "text-[7px] sm:text-xs font-bold text-foreground"
-              : "text-[10px] sm:text-sm font-bold text-foreground"
+              ? "text-xs sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400"
+              : factorCount > 3
+              ? "text-[8px] sm:text-xs font-bold text-foreground"
+              : "text-[9px] sm:text-sm font-bold text-foreground"
           )}
         >
           {space.number}
@@ -187,11 +188,11 @@ function BoardSpaceCell({
 
       {/* Factorization - individual numbers in rounded boxes */}
       {!space.isPrime && space.factorization && (
-        <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
+        <div className="flex gap-px mt-px sm:mt-0.5 flex-wrap justify-center">
           {space.factorization.split(' × ').map((factor, idx) => (
             <span 
               key={idx}
-              className="w-4 h-4 sm:w-5 sm:h-5 bg-white dark:bg-zinc-800 text-[6px] sm:text-[8px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
+              className="w-3.5 h-3.5 sm:w-5 sm:h-5 bg-white dark:bg-zinc-800 text-[6px] sm:text-[8px] font-bold text-foreground rounded-[6px] sm:rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
             >
               {factor}
             </span>
