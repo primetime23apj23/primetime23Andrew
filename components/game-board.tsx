@@ -207,6 +207,8 @@ function BoardSpaceCell({
                   ? "bg-teal-100 dark:bg-teal-900"
                   : factor === "19"
                   ? "bg-indigo-100 dark:bg-indigo-900"
+                  : factor === "23"
+                  ? "bg-yellow-100 dark:bg-yellow-900"
                   : "bg-pink-100 dark:bg-pink-900"
               )}
             >
