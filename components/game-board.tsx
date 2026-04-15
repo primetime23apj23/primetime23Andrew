@@ -195,6 +195,8 @@ function BoardSpaceCell({
                 "w-4 h-4 sm:w-5 sm:h-5 text-[6px] sm:text-[8px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
                 factor === "3"
                   ? "bg-green-100 dark:bg-green-900"
+                  : factor === "5"
+                  ? "bg-sky-100 dark:bg-sky-900"
                   : "bg-pink-100 dark:bg-pink-900"
               )}
             >
