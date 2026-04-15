@@ -191,7 +191,7 @@ function BoardSpaceCell({
           {space.factorization.split(' × ').map((factor, idx) => (
             <span 
               key={idx}
-              className="w-4 h-4 sm:w-5 sm:h-5 bg-white dark:bg-zinc-800 text-[6px] sm:text-[8px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
+              className="w-4 h-4 sm:w-5 sm:h-5 bg-pink-100 dark:bg-pink-900 text-[6px] sm:text-[8px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
             >
               {factor}
             </span>
