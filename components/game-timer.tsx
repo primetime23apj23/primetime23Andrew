@@ -17,8 +17,8 @@ export function GameTimer({
   initialSeconds = 60,
   onTimeUp,
   isActive,
-  currentPlayer,
-  playerColors,
+  currentPlayer: _currentPlayer,
+  playerColors: _playerColors,
 }: GameTimerProps) {
   const timerConfigured = initialSeconds > 0;
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
@@ -118,7 +118,7 @@ export function GameTimer({
               <div
                 className={cn(
                   "h-full transition-all duration-1000 ease-linear rounded-full",
-                  isCritical
+                  isDangerTime
                     ? "bg-destructive animate-pulse"
                     : "bg-orange-500"
                 )}
