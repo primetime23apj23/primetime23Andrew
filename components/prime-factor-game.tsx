@@ -1029,6 +1029,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       playerName: string;
       targetScore?: number;
       botDifficulty?: string;
+      timerMode?: string;
     }) => {
       // Verify user is authenticated before creating online game
       if (!authUser?.id) {
@@ -1046,7 +1047,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
           {
             targetScore: settings.targetScore,
             botDifficulty: settings.botDifficulty,
-            diceSkin: settings.diceSkin,
             timerMode: settings.timerMode,
           },
           playerIdToUse
