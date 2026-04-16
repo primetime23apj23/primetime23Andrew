@@ -47,6 +47,10 @@ export function generatePlayerId(): string {
   return playerId;
 }
 
+function isUuid(value: string | undefined | null): value is string {
+  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 // Prefer authenticated user id when available
 export async function getAuthPlayerId(): Promise<string | null> {
   try {
@@ -352,7 +356,7 @@ export async function createGameLobby(
   },
   authUserId?: string
 ): Promise<GameSession | null> {
-  const playerId = authUserId || generatePlayerId();
+  const playerId = isUuid(authUserId) ? authUserId : generatePlayerId();
   const sessionCode = await generateSessionCode();
 
   try {
@@ -393,7 +397,7 @@ export async function joinGameLobby(
   playerName: string,
   authUserId?: string
 ): Promise<GameSession | null> {
-  const playerId = authUserId || generatePlayerId();
+  const playerId = isUuid(authUserId) ? authUserId : generatePlayerId();
 
   try {
     const response = await fetch('/api/lobbies', {
