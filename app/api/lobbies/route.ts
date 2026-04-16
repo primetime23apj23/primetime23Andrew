@@ -89,7 +89,6 @@ export async function POST(request: NextRequest) {
       playerName,
       targetScore,
       botDifficulty,
-      diceSkin,
       timerMode,
       joinSessionId,
     } = body;
@@ -142,7 +141,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(viewSession);
     }
 
-    console.log('[v0] Creating lobby with:', { gameType, sessionCode, playerId, playerName, diceSkin, timerMode });
+    console.log('[v0] Creating lobby with:', { gameType, sessionCode, playerId, playerName, timerMode });
 
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(playerId)) {
@@ -172,7 +171,6 @@ export async function POST(request: NextRequest) {
     // Add optional fields if provided
     if (targetScore) insertData.target_score = targetScore;
     if (botDifficulty) insertData.bot_difficulty = botDifficulty;
-    if (diceSkin) insertData.dice_skin = diceSkin;
     if (timerMode) insertData.timer_mode = timerMode;
 
     // Create game session
