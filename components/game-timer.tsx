@@ -42,7 +42,7 @@ export function GameTimer({
       setTimeLeft(initialSeconds);
       setIsPaused(false);
     }
-  }, [currentPlayer, timerEnabled, initialSeconds, isActive]);
+  }, [_currentPlayer, timerEnabled, initialSeconds, isActive]);
 
   // Timer countdown
   useEffect(() => {
@@ -89,6 +89,7 @@ export function GameTimer({
   };
 
   const percentage = initialSeconds > 0 ? (timeLeft / initialSeconds) * 100 : 0;
+  const isDangerTime = timeLeft < 20;
   const isCritical = timeLeft < 20;
   const isLow = timeLeft <= 10;
   const isCritical = timeLeft <= 5;
@@ -133,6 +134,8 @@ export function GameTimer({
             <div
               className={cn(
                 "text-3xl font-mono font-bold tabular-nums",
+                isDangerTime && "text-destructive animate-pulse",
+                !isDangerTime && "text-orange-500"
                 isCritical && "text-destructive animate-pulse",
                 !isCritical && "text-orange-500"
               )}
