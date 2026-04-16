@@ -1,6 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object') {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (typeof maybeMessage === 'string' && maybeMessage.trim().length > 0) {
+      return maybeMessage;
+    }
+  }
+  return 'Unknown error';
+}
+
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -53,7 +65,8 @@ export async function GET(request: NextRequest) {
       .from('game_sessions_with_names')
       .select('*')
       .eq('game_type', gameType)
-      .eq('status', 'waiting');
+      .in('status', ['waiting', 'active'])
+      .is('player_2_id', null);
 
     if (error) {
       console.error('[v0] Supabase error:', error);
@@ -70,7 +83,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(lobbies);
   } catch (error) {
     console.error('[v0] Error fetching lobbies:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = getErrorMessage(error);
     return NextResponse.json(
       { error: 'Failed to fetch lobbies', details: errorMessage },
       { status: 500 }
@@ -111,6 +124,20 @@ export async function POST(request: NextRequest) {
     // Join existing lobby
     console.log('[v0] Step 7: Checking if joinSessionId exists (for joining game)');
     if (joinSessionId) {
+      if (!playerId || !playerName) {
+        return NextResponse.json(
+          { error: 'playerId and playerName are required to join a lobby' },
+          { status: 400 }
+        );
+      }
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(playerId)) {
+        return NextResponse.json(
+          { error: 'invalid player id format' },
+          { status: 400 }
+        );
+      }
+
       console.log('[v0] Step 8a: Joining existing session:', joinSessionId);
       console.log('[v0] Joining lobby via service role:', joinSessionId, playerName);
 
@@ -159,6 +186,13 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[v0] Step 9: Creating new lobby');
+    if (!gameType || !sessionCode || !playerId || !playerName) {
+      return NextResponse.json(
+        { error: 'gameType, sessionCode, playerId, and playerName are required' },
+        { status: 400 }
+      );
+    }
+
     console.log('[v0] Step 10: Validating player ID format');
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRegex.test(playerId)) {
@@ -262,7 +296,7 @@ export async function POST(request: NextRequest) {
     console.error('[v0] Full error stringified:', String(error));
     console.error('[v0] ========== END ERROR ==========');
     
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = getErrorMessage(error);
     return NextResponse.json(
       { error: 'Failed to create lobby', details: errorMessage },
       { status: 500 }
@@ -293,7 +327,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[v0] Error deleting lobby:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = getErrorMessage(error);
     return NextResponse.json(
       { error: 'Failed to delete lobby', details: errorMessage },
       { status: 500 }
