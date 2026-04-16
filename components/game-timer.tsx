@@ -90,6 +90,8 @@ export function GameTimer({
 
   const percentage = initialSeconds > 0 ? (timeLeft / initialSeconds) * 100 : 0;
   const isCritical = timeLeft < 20;
+  const isLow = timeLeft <= 10;
+  const isCritical = timeLeft <= 5;
 
   return (
     <div className="bg-card border rounded-lg p-4 space-y-3">
