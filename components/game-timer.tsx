@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GameTimerProps {
@@ -22,31 +22,27 @@ export function GameTimer({
 }: GameTimerProps) {
   const timerConfigured = initialSeconds > 0;
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
-  const [isPaused, setIsPaused] = useState(!timerConfigured);
   const [timerEnabled, setTimerEnabled] = useState(timerConfigured);
 
   useEffect(() => {
     setTimeLeft(initialSeconds);
     if (!timerConfigured) {
       setTimerEnabled(false);
-      setIsPaused(true);
       return;
     }
     setTimerEnabled(true);
-    setIsPaused(false);
   }, [initialSeconds, timerConfigured]);
 
   // Reset timer when player changes
   useEffect(() => {
     if (timerEnabled && isActive) {
       setTimeLeft(initialSeconds);
-      setIsPaused(false);
     }
   }, [_currentPlayer, timerEnabled, initialSeconds, isActive]);
 
   // Timer countdown
   useEffect(() => {
-    if (!timerEnabled || isPaused || timeLeft <= 0 || !isActive) return;
+    if (!timerEnabled || timeLeft <= 0 || !isActive) return;
 
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
@@ -59,21 +55,12 @@ export function GameTimer({
     }, 100);
 
     return () => clearInterval(interval);
-  }, [timerEnabled, isPaused, timeLeft, onTimeUp, initialSeconds, isActive]);
-
-  const togglePause = useCallback(() => {
-    setIsPaused((prev) => !prev);
-  }, []);
-
-  const resetTimer = useCallback(() => {
-    setTimeLeft(initialSeconds);
-  }, [initialSeconds]);
+  }, [timerEnabled, timeLeft, onTimeUp, initialSeconds, isActive]);
 
   const toggleTimer = useCallback(() => {
     setTimerEnabled((prev) => {
       if (!prev) {
         setTimeLeft(initialSeconds);
-        setIsPaused(false);
       }
       return !prev;
     });
@@ -90,9 +77,6 @@ export function GameTimer({
 
   const percentage = initialSeconds > 0 ? (timeLeft / initialSeconds) * 100 : 0;
   const isDangerTime = timeLeft < 20;
-  const isCritical = timeLeft < 20;
-  const isLow = timeLeft <= 10;
-  const isCritical = timeLeft <= 5;
 
   return (
     <div className="bg-card border rounded-lg p-4 space-y-3">
@@ -136,49 +120,11 @@ export function GameTimer({
                 "text-3xl font-mono font-bold tabular-nums",
                 isDangerTime && "text-destructive animate-pulse",
                 !isDangerTime && "text-orange-500"
-                isCritical && "text-destructive animate-pulse",
-                !isCritical && "text-orange-500"
               )}
             >
               {formatTime(timeLeft)}
             </div>
           </div>
-
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 gap-1"
-              onClick={togglePause}
-            >
-              {isPaused ? (
-                <>
-                  <Play className="h-4 w-4" />
-                  Resume
-                </>
-              ) : (
-                <>
-                  <Pause className="h-4 w-4" />
-                  Pause
-                </>
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 gap-1"
-              onClick={resetTimer}
-            >
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </Button>
-          </div>
-
-          {isPaused && (
-            <p className="text-xs text-muted-foreground text-center">
-              Timer paused
-            </p>
-          )}
         </>
       )}
 
