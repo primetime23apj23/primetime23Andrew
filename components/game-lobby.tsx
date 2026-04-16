@@ -42,7 +42,9 @@ export function GameLobby({
     };
   }, [isOpen]);
 
-  const waitingLobbies = lobbies.filter(lobby => lobby.status === 'waiting');
+  const joinableLobbies = lobbies.filter(
+    (lobby) => lobby.player_2_id === null && lobby.status !== "finished"
+  );
 
   return (
     <div className="flex flex-col gap-6 py-4">
@@ -62,14 +64,14 @@ export function GameLobby({
       </div>
 
       {/* Active Games Section */}
-      {waitingLobbies.length > 0 && (
+      {joinableLobbies.length > 0 && (
         <div className="space-y-3 border-t pt-6">
           <h3 className="font-semibold text-sm">Active Games</h3>
           <p className="text-xs text-muted-foreground">
             Join an existing game
           </p>
           <div className="space-y-2">
-            {waitingLobbies.map((lobby) => (
+            {joinableLobbies.map((lobby) => (
               <button
                 key={lobby.id}
                 onClick={() => onSelectLobby(lobby.id)}
@@ -84,8 +86,8 @@ export function GameLobby({
                       Target: {lobby.target_score || 37} points
                     </p>
                   </div>
-                  <span className="ml-2 text-xs px-2 py-1 rounded bg-muted text-muted-foreground">
-                    Waiting
+                  <span className="ml-2 text-xs px-3 py-1 rounded bg-primary text-primary-foreground">
+                    Join
                   </span>
                 </div>
               </button>
@@ -94,7 +96,7 @@ export function GameLobby({
         </div>
       )}
 
-      {!loading && waitingLobbies.length === 0 && (
+      {!loading && joinableLobbies.length === 0 && (
         <div className="text-center py-8 border-t">
           <p className="text-sm text-muted-foreground">
             No active games available
@@ -112,4 +114,3 @@ export function GameLobby({
     </div>
   );
 }
-

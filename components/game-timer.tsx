@@ -20,9 +20,21 @@ export function GameTimer({
   currentPlayer,
   playerColors,
 }: GameTimerProps) {
+  const timerConfigured = initialSeconds > 0;
   const [timeLeft, setTimeLeft] = useState(initialSeconds);
-  const [isPaused, setIsPaused] = useState(true);
-  const [timerEnabled, setTimerEnabled] = useState(false);
+  const [isPaused, setIsPaused] = useState(!timerConfigured);
+  const [timerEnabled, setTimerEnabled] = useState(timerConfigured);
+
+  useEffect(() => {
+    setTimeLeft(initialSeconds);
+    if (!timerConfigured) {
+      setTimerEnabled(false);
+      setIsPaused(true);
+      return;
+    }
+    setTimerEnabled(true);
+    setIsPaused(false);
+  }, [initialSeconds, timerConfigured]);
 
   // Reset timer when player changes
   useEffect(() => {
@@ -73,7 +85,7 @@ export function GameTimer({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const percentage = (timeLeft / initialSeconds) * 100;
+  const percentage = initialSeconds > 0 ? (timeLeft / initialSeconds) * 100 : 0;
   const isLow = timeLeft <= 10;
   const isCritical = timeLeft <= 5;
 
@@ -164,7 +176,9 @@ export function GameTimer({
 
       {!timerEnabled && (
         <p className="text-xs text-muted-foreground text-center">
-          Enable timer to add time pressure to turns
+          {timerConfigured
+            ? "Enable timer to add time pressure to turns"
+            : "Timer is disabled for unlimited mode"}
         </p>
       )}
     </div>
