@@ -65,7 +65,8 @@ export async function GET(request: NextRequest) {
       .from('game_sessions_with_names')
       .select('*')
       .eq('game_type', gameType)
-      .eq('status', 'waiting');
+      .in('status', ['waiting', 'active'])
+      .is('player_2_id', null);
 
     if (error) {
       console.error('[v0] Supabase error:', error);
