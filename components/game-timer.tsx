@@ -90,6 +90,9 @@ export function GameTimer({
 
   const percentage = initialSeconds > 0 ? (timeLeft / initialSeconds) * 100 : 0;
   const isDangerTime = timeLeft < 20;
+  const isCritical = timeLeft < 20;
+  const isLow = timeLeft <= 10;
+  const isCritical = timeLeft <= 5;
 
   return (
     <div className="bg-card border rounded-lg p-4 space-y-3">
@@ -133,6 +136,8 @@ export function GameTimer({
                 "text-3xl font-mono font-bold tabular-nums",
                 isDangerTime && "text-destructive animate-pulse",
                 !isDangerTime && "text-orange-500"
+                isCritical && "text-destructive animate-pulse",
+                !isCritical && "text-orange-500"
               )}
             >
               {formatTime(timeLeft)}
