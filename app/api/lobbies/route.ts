@@ -80,8 +80,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[v0] POST /api/lobbies - request received');
     const supabaseAdmin = getSupabaseAdmin();
     const body = await request.json();
+    console.log('[v0] Request body parsed:', JSON.stringify(body));
     const {
       gameType,
       sessionCode,
@@ -92,6 +94,7 @@ export async function POST(request: NextRequest) {
       timerMode,
       joinSessionId,
     } = body;
+    console.log('[v0] Destructured values:', { gameType, sessionCode, playerId, playerName, targetScore, botDifficulty, timerMode, joinSessionId });
 
     // Join existing lobby
     if (joinSessionId) {
@@ -150,15 +153,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Ensure player exists before referencing as FK
+    console.log('[v0] Attempting to upsert player:', { playerId, playerName });
     const { error: playerError } = await supabaseAdmin.from('game_players').upsert({
       player_id: playerId,
       player_name: playerName,
     });
 
     if (playerError) {
-      console.error('[v0] Player error:', playerError);
+      console.error('[v0] Player upsert error:', playerError);
+      console.error('[v0] Player error message:', playerError.message);
+      console.error('[v0] Player error code:', playerError.code);
       throw playerError;
     }
+    console.log('[v0] Player upsert successful');
 
     // Build insert object with only the columns that exist
     const insertData: any = {
@@ -206,8 +213,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(viewData);
   } catch (error) {
     console.error('[v0] Error creating lobby:', error);
+    if (error instanceof Error) {
+      console.error('[v0] Error message:', error.message);
+      console.error('[v0] Error stack:', error.stack);
+      console.error('[v0] Error name:', error.name);
+    }
     console.error('[v0] Full error object:', JSON.stringify(error, null, 2));
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
       { error: 'Failed to create lobby', details: errorMessage },
       { status: 500 }
