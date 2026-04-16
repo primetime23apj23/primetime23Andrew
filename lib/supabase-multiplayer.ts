@@ -356,18 +356,22 @@ export async function createGameLobby(
   const sessionCode = await generateSessionCode();
 
   try {
+    const payload: any = {
+      gameType: 'multiplication',
+      sessionCode,
+      playerId,
+      playerName,
+    };
+
+    // Only include optional fields if they have values
+    if (settings.targetScore) payload.targetScore = settings.targetScore;
+    if (settings.botDifficulty) payload.botDifficulty = settings.botDifficulty;
+    if (settings.timerMode) payload.timerMode = settings.timerMode;
+
     const response = await fetch('/api/lobbies', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        gameType: 'multiplication',
-        sessionCode,
-        playerId,
-        playerName,
-        targetScore: settings.targetScore,
-        botDifficulty: settings.botDifficulty,
-        timerMode: settings.timerMode,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {

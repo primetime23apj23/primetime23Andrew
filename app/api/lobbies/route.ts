@@ -173,6 +173,8 @@ export async function POST(request: NextRequest) {
     if (botDifficulty) insertData.bot_difficulty = botDifficulty;
     if (timerMode) insertData.timer_mode = timerMode;
 
+    console.log('[v0] Inserting game session with data:', insertData);
+
     // Create game session
     const { data: sessionData, error: sessionError } = await supabaseAdmin
       .from('game_sessions')
@@ -182,6 +184,8 @@ export async function POST(request: NextRequest) {
 
     if (sessionError) {
       console.error('[v0] Session error:', sessionError);
+      console.error('[v0] Session error code:', sessionError.code);
+      console.error('[v0] Session error message:', sessionError.message);
       throw sessionError;
     }
 
@@ -202,6 +206,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(viewData);
   } catch (error) {
     console.error('[v0] Error creating lobby:', error);
+    console.error('[v0] Full error object:', JSON.stringify(error, null, 2));
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
       { error: 'Failed to create lobby', details: errorMessage },
