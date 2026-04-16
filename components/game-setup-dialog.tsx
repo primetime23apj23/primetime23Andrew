@@ -18,7 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { DiceSkinPicker } from "./dice-skin-picker";
 
 const CUSTOM_TARGET_SCORE = "custom";
 const MULTIPLICATION_TARGET_SCORE_OPTIONS = [
@@ -43,7 +42,6 @@ interface GameSetupDialogProps {
   onCreateLobby: (settings: {
     playerName: string;
     targetScore?: number;
-    diceSkin?: string;
     timerMode?: string;
   }) => void;
   isLoading?: boolean;
@@ -54,7 +52,6 @@ interface GameSetupFormProps {
   onCreateLobby: (settings: {
     playerName: string;
     targetScore?: number;
-    diceSkin?: string;
     timerMode?: string;
   }) => void;
   onCancel?: () => void;
@@ -72,7 +69,6 @@ export function GameSetupForm({
   const [playerName, setPlayerName] = useState("");
   const [targetScore, setTargetScore] = useState("37");
   const [customTargetScore, setCustomTargetScore] = useState("");
-  const [diceSkin, setDiceSkin] = useState("standard");
   const [timerMode, setTimerMode] = useState("1_minute");
 
   useEffect(() => {
@@ -97,7 +93,6 @@ export function GameSetupForm({
     onCreateLobby({
       playerName,
       targetScore: resolvedTargetScore,
-      diceSkin,
       timerMode,
     });
   };
@@ -178,10 +173,6 @@ export function GameSetupForm({
               )}
             </div>
           )}
-        </div>
-
-        <div>
-          <DiceSkinPicker value={diceSkin} onChange={setDiceSkin} />
         </div>
 
         <div>
