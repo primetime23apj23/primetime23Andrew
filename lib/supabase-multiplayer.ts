@@ -78,6 +78,8 @@ export interface GameSession {
   player_2_name?: string;
   target_score?: number;
   bot_difficulty?: string;
+  timer_mode?: string;
+  dice_skin?: string;
 }
 
 async function fetchSessionById(id: string): Promise<GameSession | null> {
