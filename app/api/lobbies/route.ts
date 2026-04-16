@@ -130,6 +130,13 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(playerId)) {
+        return NextResponse.json(
+          { error: 'invalid player id format' },
+          { status: 400 }
+        );
+      }
 
       console.log('[v0] Step 8a: Joining existing session:', joinSessionId);
       console.log('[v0] Joining lobby via service role:', joinSessionId, playerName);
