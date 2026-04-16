@@ -852,6 +852,7 @@ export function PrimeFactorGame() {
           setSessionPlayer2Id(session.player_2_id);
           setSessionLocalPlayerId(session.player_2_id || null);
           setMultiplayerTargetScore(session.target_score || 37);
+          setTimerMode(session.timer_mode || "1_minute");
           setIsMultiplayer(true);
           setMultiplayerMode("join");
           setWaitingForOpponent(false);
@@ -904,6 +905,7 @@ export function PrimeFactorGame() {
         setSessionPlayer2Id(session.player_2_id);
         setSessionLocalPlayerId(resolvedLocalPlayerId);
         setMultiplayerTargetScore(session.target_score || 37);
+        setTimerMode(session.timer_mode || "1_minute");
         setIsMultiplayer(true);
         setMultiplayerMode("join");
         setWaitingForOpponent(false);
@@ -984,6 +986,7 @@ export function PrimeFactorGame() {
           setSessionPlayer1Id(session.player_1_id);
           setSessionPlayer2Id(session.player_2_id);
           setMultiplayerTargetScore(session.target_score || 37);
+          setTimerMode(session.timer_mode || "1_minute");
           setOpponentHasJoined(true);
           setOpponentName(session.player_2_name || "Opponent");
         }
@@ -1059,6 +1062,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           setSessionPlayer2Id(session.player_2_id);
           setSessionLocalPlayerId(session.player_1_id);
           setMultiplayerTargetScore(settings.targetScore || session.target_score || 37);
+          setTimerMode(settings.timerMode || session.timer_mode || "1_minute");
           setIsMultiplayer(true);
           setMultiplayerMode("create");
           setWaitingForOpponent(true);
