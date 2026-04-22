@@ -5,7 +5,7 @@ import type { User } from '@supabase/supabase-js';
 import { getCurrentUser, getCurrentUserFromSession, AuthUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase-multiplayer';
 
-type GuestUser = { id: string; email: string; playerName: string };
+type AuthUser = { id: string; email: string; playerName: string };
 
 const log = (...args: any[]) => console.debug('[usePlayerProfile]', ...args);
 let hookInstanceCounter = 0;
@@ -30,10 +30,10 @@ export function usePlayerProfile() {
 
   const instanceId = instanceIdRef.current;
   const debug = useCallback((...args: any[]) => log(`#${instanceId}`, ...args), [instanceId]);
-  const [user, setUser] = useState<AuthUser | GuestUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const latestUserRef = useRef<AuthUser | GuestUser | null>(null);
+  const latestUserRef = useRef<AuthUser | null>(null);
   const authChangeSequenceRef = useRef(0);
   const authSyncTimeoutRef = useRef<number | null>(null);
 
@@ -41,7 +41,7 @@ export function usePlayerProfile() {
     latestUserRef.current = user;
   }, [user]);
 
-  const readGuestFromStorage = useCallback((reason: string): GuestUser | null => {
+  const readGuestFromStorage = useCallback((reason: string): AuthUser | null => {
     if (typeof window === 'undefined') {
       debug(reason, 'localStorage unavailable during SSR');
       return null;
@@ -98,14 +98,8 @@ export function usePlayerProfile() {
           });
           setUser(currentUser);
         } else {
-          const guest = readGuestFromStorage('init:fallback-to-guest');
-          if (guest) {
-            debug('init: setting guest user', guest);
-            setUser(guest);
-          } else {
-            debug('init: clearing user');
-            setUser(null);
-          }
+          debug('init: clearing user');
+          setUser(null);
         }
       } catch (err) {
         console.error('Error fetching user:', err);
@@ -152,9 +146,8 @@ export function usePlayerProfile() {
       if (!session?.user) {
         clearPendingSync();
         debug('auth state change:no session');
-        const guest = readGuestFromStorage(`auth state change:${event}:no-session`);
-        debug('auth state change:setting fallback user', guest);
-        setUser(guest);
+        debug('auth state change:setting user to null');
+        setUser(null);
         setLoading(false);
         return;
       }

@@ -21,7 +21,7 @@ interface AuthDialogProps {
 }
 
 export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
-  const [mode, setMode] = useState<"signup" | "signin" | "guest">("signup");
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -152,17 +152,6 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
     setLoading(false);
   };
 
-  const handleGuestMode = async () => {
-    if (!name.trim()) {
-      setError("Please enter a display name");
-      return;
-    }
-
-    localStorage.setItem("pf_player_name", name.trim());
-    log('guest:start', { name: name.trim() });
-    finishAuth(name.trim(), "", null, 'guest');
-  };
-
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => {
       log('dialog:onOpenChange', nextOpen);
@@ -172,15 +161,14 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
         <DialogHeader>
           <DialogTitle>Join the Game</DialogTitle>
           <DialogDescription>
-            Create an account, sign in, or play as a guest
+            Create an account or sign in
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
-          <TabsList className="w-full grid w-full grid-cols-3">
+          <TabsList className="w-full grid w-full grid-cols-2">
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
             <TabsTrigger value="signin">Sign In</TabsTrigger>
-            <TabsTrigger value="guest">Guest</TabsTrigger>
           </TabsList>
 
           <TabsContent value="signup" className="space-y-3">
@@ -251,29 +239,6 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
               disabled={loading || !email.trim() || !password.trim()}
             >
               {loading ? "Signing in..." : "Sign In"}
-            </Button>
-          </TabsContent>
-
-          <TabsContent value="guest" className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Play as a guest without creating an account. You won&apos;t be able to resume games later.
-            </p>
-            <div className="space-y-1">
-              <label className="text-xs font-medium">Display Name</label>
-              <Input
-                value={name}
-                placeholder="Your player name"
-                onChange={(e) => setName(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button
-              className="w-full"
-              onClick={handleGuestMode}
-              disabled={loading || !name.trim()}
-            >
-              Play as Guest
             </Button>
           </TabsContent>
         </Tabs>
