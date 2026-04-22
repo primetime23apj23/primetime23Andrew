@@ -66,6 +66,8 @@ export function GameTimer({
     });
   }, [initialSeconds]);
 
+  const isToggleDisabled = isActive;
+
   const formatTime = (seconds: number) => {
     if (seconds < 20) {
       return seconds.toFixed(1);
@@ -89,6 +91,7 @@ export function GameTimer({
           variant={timerEnabled ? "default" : "outline"}
           size="sm"
           onClick={toggleTimer}
+          disabled={isToggleDisabled}
           className="text-xs h-7"
         >
           {timerEnabled ? "Enabled" : "Disabled"}
