@@ -30,7 +30,7 @@ export function MultiplayerModeSelector({
       <div className="space-y-3">
         <h2 className="text-2xl font-semibold tracking-tight">How do you want to play?</h2>
         <p className="text-sm text-muted-foreground">
-          Choose your mode for {gameName}. You&apos;ll configure details after picking a mode.
+          Choose a game
         </p>
       </div>
 
