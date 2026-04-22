@@ -42,7 +42,13 @@ export function AppHeader({ title = "Multiplication Game" }: AppHeaderProps) {
       userId,
       playerName,
     });
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+      headerLog("logout:signOut-complete");
+    } catch (error) {
+      headerLog("logout:signOut-error", error);
+    }
+    
     localStorage.removeItem("pf_player_name");
     localStorage.removeItem("pf_player_email");
     localStorage.removeItem("pf_player_id");
@@ -57,12 +63,12 @@ export function AppHeader({ title = "Multiplication Game" }: AppHeaderProps) {
           <div className="font-bold text-lg">{title}</div>
 
           <div className="flex items-center gap-3">
-            {isAuthenticated && user ? (
+            {(isAuthenticated && user) || (userId && playerName) ? (
               <>
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10">
                   <User className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium text-primary">
-                    {user.playerName}
+                    {user?.playerName || playerName}
                   </span>
                 </div>
                 <Button
