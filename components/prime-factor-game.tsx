@@ -96,6 +96,7 @@ export function PrimeFactorGame() {
   const [opponentName, setOpponentName] = useState<string | null>(null);
   const [playerNames, setPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
   const [showAuth, setShowAuth] = useState(false);
+  const [pendingModeAfterAuth, setPendingModeAfterAuth] = useState<ModeOption | null>(null);
   const [showLobby, setShowLobby] = useState(false);
   const [timerMode, setTimerMode] = useState<string>("1_minute");
   const [gameDiceSkin, setGameDiceSkin] = useState<string>("standard");
@@ -800,6 +801,7 @@ export function PrimeFactorGame() {
   const handleModeSelect = useCallback((mode: ModeOption) => {
     // Force auth for multiplayer flows
     if ((mode === "create" || mode === "join") && !authUser?.id) {
+      setPendingModeAfterAuth(mode);
       setShowAuth(true);
       return;
     }
@@ -825,7 +827,7 @@ export function PrimeFactorGame() {
       return;
     }
 
-    // Show lobby to find/create multiplayer game
+    // Show lobby to find/create multiplayer game (user is authenticated at this point)
     if (mode === "create" || mode === "join") {
       setShowLobby(true);
       setMultiplayerMode("lobby");
@@ -1659,6 +1661,16 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 setPlayerId(userId);
               }
               setPlayerNames([name || "Player 1", playerNames[1]]);
+              
+              // If there's a pending mode after auth, continue with it
+              if (pendingModeAfterAuth) {
+                setShowAuth(false);
+                // Use a small delay to ensure state updates have propagated
+                setTimeout(() => {
+                  handleModeSelect(pendingModeAfterAuth);
+                  setPendingModeAfterAuth(null);
+                }, 0);
+              }
             }}
           />
 
