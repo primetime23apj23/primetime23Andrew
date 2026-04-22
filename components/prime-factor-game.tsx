@@ -76,7 +76,7 @@ export function PrimeFactorGame() {
   const [diceSkins, setDiceSkins] = useState<DiceSkin[]>(DEFAULT_SKINS);
   
   // Authentication and session recovery
-  const { user: authUser, isAuthenticated } = usePlayerProfile();
+  const { user: authUser, isAuthenticated, loading: authLoading } = usePlayerProfile();
   const [userId, setUserId] = useState<string | null>(null);
   const [showActiveGames, setShowActiveGames] = useState(false);
   const [hasResumableGames, setHasResumableGames] = useState(false);
@@ -798,9 +798,17 @@ export function PrimeFactorGame() {
     }
   }, [showGameSetup, showLobby, showModeSelect, showSetup, gameState.phase]);
 
+  // Sync authenticated user to userId state
+  useEffect(() => {
+    if (authUser?.id) {
+      setUserId(authUser.id);
+      setPlayerId(authUser.id);
+    }
+  }, [authUser?.id]);
+
   const handleModeSelect = useCallback((mode: ModeOption) => {
     // Force auth for multiplayer flows
-    if ((mode === "create" || mode === "join") && !authUser?.id) {
+    if ((mode === "create" || mode === "join") && !isAuthenticated) {
       setPendingModeAfterAuth(mode);
       setShowAuth(true);
       return;
@@ -833,7 +841,7 @@ export function PrimeFactorGame() {
       setMultiplayerMode("lobby");
       setShowModeSelect(false);
     }
-  }, [authUser?.id]);
+  }, [isAuthenticated]);
 
   // Handle lobby selection
   const handleSelectLobby = useCallback(
