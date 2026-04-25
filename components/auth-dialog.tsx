@@ -88,12 +88,16 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
   };
 
   const handleSignUp = async () => {
-    if (!email.trim() || !password.trim() || !name.trim()) {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword || !trimmedName) {
       setError("Please fill in all fields");
       return;
     }
 
-    if (password.length < 6) {
+    if (trimmedPassword.length < 6) {
       setError("Password must be at least 6 characters");
       return;
     }
@@ -101,8 +105,8 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
     setLoading(true);
     setError("");
 
-    log('signUp:start', { email, name });
-    const result = await signUp(email, password, name);
+    log('signUp:start', { email: trimmedEmail, name: trimmedName });
+    const result = await signUp(trimmedEmail, trimmedPassword, trimmedName);
     log('signUp:result', result);
 
     if (result.success && result.user) {
@@ -123,7 +127,10 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
   };
 
   const handleSignIn = async () => {
-    if (!email.trim() || !password.trim()) {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
       setError("Please enter email and password");
       return;
     }
@@ -131,8 +138,8 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
     setLoading(true);
     setError("");
 
-    log('signIn:start', { email });
-    const result = await signIn(email, password);
+    log('signIn:start', { email: trimmedEmail });
+    const result = await signIn(trimmedEmail, trimmedPassword);
     log('signIn:result', result);
 
     if (result.success && result.user) {
