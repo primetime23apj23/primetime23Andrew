@@ -78,6 +78,7 @@ export interface GameSession {
   player_2_name?: string;
   target_score?: number;
   bot_difficulty?: string;
+  timer_mode?: string;
   dice_skin?: string;
 }
 
@@ -353,6 +354,7 @@ export async function createGameLobby(
   settings: {
     targetScore?: number;
     botDifficulty?: string;
+    timerMode?: string;
   },
   authUserId?: string
 ): Promise<GameSession | null> {
@@ -370,6 +372,7 @@ export async function createGameLobby(
     // Only include optional fields if they have values
     if (settings.targetScore) payload.targetScore = settings.targetScore;
     if (settings.botDifficulty) payload.botDifficulty = settings.botDifficulty;
+    if (settings.timerMode) payload.timerMode = settings.timerMode;
 
     const response = await fetch('/api/lobbies', {
       method: 'POST',
