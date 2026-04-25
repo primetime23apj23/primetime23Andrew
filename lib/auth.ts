@@ -96,30 +96,47 @@ export async function signUp(
   playerName: string
 ): Promise<AuthResponse> {
   try {
-    authLog('signUp:start', { email: email?.toLowerCase(), playerName });
-    if (!email || !password || !playerName) {
+    const trimmedEmail = email?.toLowerCase()?.trim();
+    const trimmedPassword = password?.trim();
+    const trimmedPlayerName = playerName?.trim();
+    
+    authLog('signUp:start', { email: trimmedEmail, playerName: trimmedPlayerName });
+    
+    if (!trimmedEmail || !trimmedPassword || !trimmedPlayerName) {
       return {
         success: false,
         error: 'Email, password, and player name are required',
       };
     }
 
+    if (trimmedPassword.length < 6) {
+      return {
+        success: false,
+        error: 'Password must be at least 6 characters',
+      };
+    }
+
     // Sign up with Supabase Auth first
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email.toLowerCase(),
-      password,
+      email: trimmedEmail,
+      password: trimmedPassword,
       options: {
         data: {
-          player_name: playerName,
+          player_name: trimmedPlayerName,
         },
       },
     });
 
     if (authError) {
+      authLog('signUp:auth-error', {
+        code: authError.code,
+        message: authError.message,
+        status: authError.status,
+      });
       console.error('Auth sign up error:', authError);
       return {
         success: false,
-        error: authError.message,
+        error: `Sign up failed: ${authError.message}`,
       };
     }
 
@@ -127,7 +144,7 @@ export async function signUp(
       authLog('signUp:no-user-returned');
       return {
         success: false,
-        error: 'Failed to create user',
+        error: 'Failed to create user account',
       };
     }
 
@@ -142,33 +159,45 @@ export async function signUp(
       .from('game_players')
       .upsert({
         player_id: authData.user.id,
-        player_name: playerName,
-        email: email.toLowerCase(),
+        player_name: trimmedPlayerName,
+        email: trimmedEmail,
         auth_user_id: authData.user.id,
       });
 
     if (profileError) {
+      authLog('signUp:profile-error', {
+        code: profileError.code,
+        message: profileError.message,
+        details: profileError.details,
+      });
       console.error('Error creating player profile:', profileError);
-      // Auth user was created, but profile failed. This is okay.
-    } else {
-      authLog('signUp:profile-upserted', authData.user.id);
+      return {
+        success: false,
+        error: `Profile creation failed: ${profileError.message}`,
+      };
     }
 
-    cachePlayerIdentity(playerName, authData.user.email || '', authData.user.id);
+    authLog('signUp:profile-upserted', authData.user.id);
+    cachePlayerIdentity(trimmedPlayerName, authData.user.email || '', authData.user.id);
 
     return {
       success: true,
       user: {
         id: authData.user.id,
         email: authData.user.email || '',
-        playerName,
+        playerName: trimmedPlayerName,
       },
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    authLog('signUp:unexpected-error', {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     console.error('Unexpected sign up error:', error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
+      error: `Unexpected error: ${errorMessage}`,
     };
   }
 }
@@ -181,8 +210,11 @@ export async function signIn(
   password: string
 ): Promise<AuthResponse> {
   try {
-    authLog('signIn:start', { email: email?.toLowerCase() });
-    if (!email || !password) {
+    const trimmedEmail = email?.toLowerCase()?.trim();
+    const trimmedPassword = password?.trim();
+    
+    authLog('signIn:start', { email: trimmedEmail });
+    if (!trimmedEmail || !trimmedPassword) {
       return {
         success: false,
         error: 'Email and password are required',
@@ -190,15 +222,20 @@ export async function signIn(
     }
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: email.toLowerCase(),
-      password,
+      email: trimmedEmail,
+      password: trimmedPassword,
     });
 
     if (authError) {
+      authLog('signIn:auth-error', {
+        code: authError.code,
+        message: authError.message,
+        status: authError.status,
+      });
       console.error('Auth sign in error:', authError);
       return {
         success: false,
-        error: authError.message,
+        error: `Sign in failed: ${authError.message}`,
       };
     }
 
@@ -224,6 +261,10 @@ export async function signIn(
       .maybeSingle();
 
     if (playerError) {
+      authLog('signIn:profile-error', {
+        code: playerError.code,
+        message: playerError.message,
+      });
       console.error('Error fetching player profile:', playerError);
     } else {
       authLog('signIn:profile-result', playerData);
@@ -241,10 +282,15 @@ export async function signIn(
       },
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    authLog('signIn:unexpected-error', {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     console.error('Unexpected sign in error:', error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
+      error: `Unexpected error: ${errorMessage}`,
     };
   }
 }

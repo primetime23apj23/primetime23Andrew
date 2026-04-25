@@ -8,6 +8,7 @@ import { Scoreboard } from "./scoreboard";
 import { GameControls } from "./game-controls";
 import { RulesDialog } from "./rules-dialog";
 import { SpaceDetail } from "./space-detail";
+import { GameTimer } from "./game-timer";
 import { DiceSkinSettings, DEFAULT_SKINS, type DiceSkin } from "./dice-skin-settings";
 import { TargetScoreSelector } from "./target-score-selector";
 import {
@@ -752,6 +753,16 @@ export function PrimeFactorGame() {
       }
     }
   }, [gameState.currentPlayer, gameState.phase, isMultiplayer, sessionId, sessionPlayer1Id, sessionPlayer2Id]);
+
+  // Fixed 1-minute timer
+  const getTimerSeconds = (): number => {
+    return 60; // 1 minute timer
+  };
+
+  // Timer expired
+  const handleTimeUp = useCallback(() => {
+    handleEndTurn();
+  }, []);
 
   const sortDice = (dice: Die[]): Die[] => {
     return [...dice].sort((a, b) => {
@@ -1762,6 +1773,14 @@ const channel = subscribeToSession(sessionCode, (session) => {
               players={gameState.players}
               currentPlayer={gameState.currentPlayer}
               targetScore={gameState.targetScore}
+            />
+            
+            <GameTimer
+              initialSeconds={getTimerSeconds()}
+              onTimeUp={handleTimeUp}
+              isActive={gameState.phase === "playing"}
+              currentPlayer={gameState.currentPlayer}
+              playerColors={PLAYER_COLORS}
             />
             
             <GameControls
