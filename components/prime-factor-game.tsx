@@ -99,6 +99,7 @@ export function PrimeFactorGame() {
   const [pendingModeAfterAuth, setPendingModeAfterAuth] = useState<ModeOption | null>(null);
   const [showLobby, setShowLobby] = useState(false);
   const [gameDiceSkin, setGameDiceSkin] = useState<string>("standard");
+  const [timerMode, setTimerMode] = useState<string>("disabled");
   const selectedGameType: "multiplication" = "multiplication";
   const [showGameSetup, setShowGameSetup] = useState(false);
   const [lobbyLoading, setLobbyLoading] = useState(false);
@@ -754,12 +755,15 @@ export function PrimeFactorGame() {
     }
   }, [gameState.currentPlayer, gameState.phase, isMultiplayer, sessionId, sessionPlayer1Id, sessionPlayer2Id]);
 
-  // Fixed 1-minute timer
+  // Get timer seconds based on timer mode
   const getTimerSeconds = (): number => {
-    return 60; // 1 minute timer
+    if (timerMode === "disabled") return 0;
+    if (timerMode === "3_minutes") return 180;
+    if (timerMode === "5_minutes") return 300;
+    return 60; // 1 minute default
   };
 
-  // Timer expired
+  // Timer expired - skip turn
   const handleTimeUp = useCallback(() => {
     handleEndTurn();
   }, []);
@@ -1033,6 +1037,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       playerName: string;
       targetScore?: number;
       botDifficulty?: string;
+      timerMode?: string;
     }) => {
       // Verify user is authenticated before creating online game
       if (!authUser?.id) {
@@ -1050,6 +1055,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           {
             targetScore: settings.targetScore,
             botDifficulty: settings.botDifficulty,
+            timerMode: settings.timerMode,
           },
           playerIdToUse
         );
@@ -1061,6 +1067,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           setSessionPlayer2Id(session.player_2_id);
           setSessionLocalPlayerId(session.player_1_id);
           setMultiplayerTargetScore(settings.targetScore || session.target_score || 37);
+          setTimerMode(session.timer_mode || "disabled");
           setIsMultiplayer(true);
           setMultiplayerMode("create");
           setWaitingForOpponent(true);
@@ -1775,13 +1782,15 @@ const channel = subscribeToSession(sessionCode, (session) => {
               targetScore={gameState.targetScore}
             />
             
-            <GameTimer
-              initialSeconds={getTimerSeconds()}
-              onTimeUp={handleTimeUp}
-              isActive={gameState.phase === "playing"}
-              currentPlayer={gameState.currentPlayer}
-              playerColors={PLAYER_COLORS}
-            />
+            {timerMode !== "disabled" && (
+              <GameTimer
+                initialSeconds={getTimerSeconds()}
+                onTimeUp={handleTimeUp}
+                isActive={gameState.phase === "playing"}
+                currentPlayer={gameState.currentPlayer}
+                playerColors={PLAYER_COLORS}
+              />
+            )}
             
             <GameControls
               phase={gameState.phase}
