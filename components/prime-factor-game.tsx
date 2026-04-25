@@ -861,6 +861,7 @@ export function PrimeFactorGame() {
           setSessionPlayer2Id(session.player_2_id);
           setSessionLocalPlayerId(session.player_2_id || null);
           setMultiplayerTargetScore(session.target_score || 37);
+          setTimerMode(session.timer_mode || "disabled");
           setIsMultiplayer(true);
           setMultiplayerMode("join");
           setWaitingForOpponent(false);
@@ -913,6 +914,7 @@ export function PrimeFactorGame() {
         setSessionPlayer2Id(session.player_2_id);
         setSessionLocalPlayerId(resolvedLocalPlayerId);
         setMultiplayerTargetScore(session.target_score || 37);
+        setTimerMode(session.timer_mode || "disabled");
         setIsMultiplayer(true);
         setMultiplayerMode("join");
         setWaitingForOpponent(false);
