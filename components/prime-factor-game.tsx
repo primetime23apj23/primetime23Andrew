@@ -8,7 +8,6 @@ import { Scoreboard } from "./scoreboard";
 import { GameControls } from "./game-controls";
 import { RulesDialog } from "./rules-dialog";
 import { SpaceDetail } from "./space-detail";
-import { GameTimer } from "./game-timer";
 import { DiceSkinSettings, DEFAULT_SKINS, type DiceSkin } from "./dice-skin-settings";
 import { TargetScoreSelector } from "./target-score-selector";
 import {
@@ -98,7 +97,6 @@ export function PrimeFactorGame() {
   const [showAuth, setShowAuth] = useState(false);
   const [pendingModeAfterAuth, setPendingModeAfterAuth] = useState<ModeOption | null>(null);
   const [showLobby, setShowLobby] = useState(false);
-  const [timerMode, setTimerMode] = useState<string>("1_minute");
   const [gameDiceSkin, setGameDiceSkin] = useState<string>("standard");
   const selectedGameType: "multiplication" = "multiplication";
   const [showGameSetup, setShowGameSetup] = useState(false);
@@ -755,20 +753,6 @@ export function PrimeFactorGame() {
     }
   }, [gameState.currentPlayer, gameState.phase, isMultiplayer, sessionId, sessionPlayer1Id, sessionPlayer2Id]);
 
-  const getTimerSeconds = (mode: string): number => {
-    switch (mode) {
-      case "3_minutes":
-        return 180;
-      case "5_minutes":
-        return 300;
-      case "unlimited":
-        return 0; // 0 means no timer
-      case "1_minute":
-      default:
-        return 60;
-    }
-  };
-
   const sortDice = (dice: Die[]): Die[] => {
     return [...dice].sort((a, b) => {
       if (a.value === "W" && b.value !== "W") return 1;
@@ -862,7 +846,6 @@ export function PrimeFactorGame() {
           setSessionPlayer2Id(session.player_2_id);
           setSessionLocalPlayerId(session.player_2_id || null);
           setMultiplayerTargetScore(session.target_score || 37);
-          setTimerMode(session.timer_mode || "1_minute");
           setIsMultiplayer(true);
           setMultiplayerMode("join");
           setWaitingForOpponent(false);
@@ -915,7 +898,6 @@ export function PrimeFactorGame() {
         setSessionPlayer2Id(session.player_2_id);
         setSessionLocalPlayerId(resolvedLocalPlayerId);
         setMultiplayerTargetScore(session.target_score || 37);
-        setTimerMode(session.timer_mode || "1_minute");
         setIsMultiplayer(true);
         setMultiplayerMode("join");
         setWaitingForOpponent(false);
@@ -996,7 +978,6 @@ export function PrimeFactorGame() {
           setSessionPlayer1Id(session.player_1_id);
           setSessionPlayer2Id(session.player_2_id);
           setMultiplayerTargetScore(session.target_score || 37);
-          setTimerMode(session.timer_mode || "1_minute");
           setOpponentHasJoined(true);
           setOpponentName(session.player_2_name || "Opponent");
         }
@@ -1016,7 +997,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
   setSessionPlayer1Id(session.player_1_id);
   setSessionPlayer2Id(session.player_2_id);
   setMultiplayerTargetScore(session.target_score || 37);
-  setTimerMode(session.timer_mode || "1_minute");
   setGameDiceSkin(session.dice_skin || "standard");
   setPlayerNames([
     session.player_1_name || "Player 1",
@@ -1042,7 +1022,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
       playerName: string;
       targetScore?: number;
       botDifficulty?: string;
-      timerMode?: string;
     }) => {
       // Verify user is authenticated before creating online game
       if (!authUser?.id) {
@@ -1060,7 +1039,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
           {
             targetScore: settings.targetScore,
             botDifficulty: settings.botDifficulty,
-            timerMode: settings.timerMode,
           },
           playerIdToUse
         );
@@ -1072,7 +1050,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
           setSessionPlayer2Id(session.player_2_id);
           setSessionLocalPlayerId(session.player_1_id);
           setMultiplayerTargetScore(settings.targetScore || session.target_score || 37);
-          setTimerMode(settings.timerMode || session.timer_mode || "1_minute");
           setIsMultiplayer(true);
           setMultiplayerMode("create");
           setWaitingForOpponent(true);
@@ -1366,11 +1343,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
       diceRolled,
     });
   }, [checkPlayerHasMoves, diceRolled, gameState, hasAnyValidMove, isMultiplayer, sessionId, sessionLocalPlayerId, persistGameState]);
-
-  // Timer expired
-  const handleTimeUp = useCallback(() => {
-    handleEndTurn();
-  }, [handleEndTurn]);
 
   // Bot auto-play effect
   useEffect(() => {
@@ -1791,14 +1763,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
               currentPlayer={gameState.currentPlayer}
               targetScore={gameState.targetScore}
             />
-            
-        <GameTimer
-          initialSeconds={getTimerSeconds(timerMode)}
-          onTimeUp={handleTimeUp}
-          isActive={gameState.phase === "playing"}
-          currentPlayer={gameState.currentPlayer}
-          playerColors={PLAYER_COLORS}
-        />
             
             <GameControls
               phase={gameState.phase}

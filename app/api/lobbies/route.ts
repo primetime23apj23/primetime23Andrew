@@ -116,10 +116,9 @@ export async function POST(request: NextRequest) {
       playerName,
       targetScore,
       botDifficulty,
-      timerMode,
       joinSessionId,
     } = body;
-    console.log('[v0] Step 6: Values destructured:', { gameType, sessionCode, playerId, playerName, targetScore, botDifficulty, timerMode, joinSessionId });
+    console.log('[v0] Step 6: Values destructured:', { gameType, sessionCode, playerId, playerName, targetScore, botDifficulty, joinSessionId });
 
     // Join existing lobby
     console.log('[v0] Step 7: Checking if joinSessionId exists (for joining game)');
@@ -231,7 +230,6 @@ export async function POST(request: NextRequest) {
     // Add optional fields if provided
     if (targetScore) insertData.target_score = targetScore;
     if (botDifficulty) insertData.bot_difficulty = botDifficulty;
-    if (timerMode) insertData.timer_mode = timerMode;
 
     console.log('[v0] Step 15: Insert data prepared:', JSON.stringify(insertData));
 

@@ -28,12 +28,7 @@ const MULTIPLICATION_TARGET_SCORE_OPTIONS = [
   { value: "50", label: "50 Points" },
 ] as const;
 
-const TIMER_MODE_OPTIONS = [
-  { value: "1_minute", label: "1 Minute (Default)" },
-  { value: "3_minutes", label: "3 Minutes" },
-  { value: "5_minutes", label: "5 Minutes" },
-  { value: "unlimited", label: "Unlimited" },
-] as const;
+
 
 interface GameSetupDialogProps {
   open: boolean;
@@ -42,7 +37,6 @@ interface GameSetupDialogProps {
   onCreateLobby: (settings: {
     playerName: string;
     targetScore?: number;
-    timerMode?: string;
   }) => void;
   isLoading?: boolean;
 }
@@ -52,7 +46,6 @@ interface GameSetupFormProps {
   onCreateLobby: (settings: {
     playerName: string;
     targetScore?: number;
-    timerMode?: string;
   }) => void;
   onCancel?: () => void;
   isLoading?: boolean;
@@ -69,7 +62,6 @@ export function GameSetupForm({
   const [playerName, setPlayerName] = useState("");
   const [targetScore, setTargetScore] = useState("37");
   const [customTargetScore, setCustomTargetScore] = useState("");
-  const [timerMode, setTimerMode] = useState("1_minute");
 
   useEffect(() => {
     setPlayerName(defaultPlayerName);
@@ -93,7 +85,6 @@ export function GameSetupForm({
     onCreateLobby({
       playerName,
       targetScore: resolvedTargetScore,
-      timerMode,
     });
   };
 
@@ -173,24 +164,6 @@ export function GameSetupForm({
               )}
             </div>
           )}
-        </div>
-
-        <div>
-          <Label htmlFor="timer-mode" className="text-sm font-medium">
-            Timer Mode
-          </Label>
-          <Select value={timerMode} onValueChange={setTimerMode}>
-            <SelectTrigger id="timer-mode" className="mt-2">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIMER_MODE_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         <div className="flex gap-2 pt-4">
