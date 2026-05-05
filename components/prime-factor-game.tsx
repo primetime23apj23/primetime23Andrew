@@ -33,6 +33,7 @@ import { BonusBreakdownPanel } from "./bonus-breakdown";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
 import { playCapturSound, playBonusSound, playVictorySound } from "@/lib/sound-effects";
+import { TrainCelebration } from "./train-celebration";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
@@ -116,6 +117,8 @@ export function PrimeFactorGame() {
   // Animation states
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
   const [fireworks, setFireworks] = useState<FireworkParticle[]>([]);
+  const [isTrainCelebrating, setIsTrainCelebrating] = useState(false);
+  const [celebrationNumbers, setCelebrationNumbers] = useState<number[]>([]);
   const boardRef = useRef<HTMLDivElement>(null);
   
   // Bonus history tracking
@@ -1296,13 +1299,16 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     if (totalScore >= gameState.targetScore && pos) {
       playVictorySound();
-      for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-          const offsetX = (Math.random() - 0.5) * 200;
-          const offsetY = (Math.random() - 0.5) * 200;
-          spawnFireworks(pos.x + offsetX, pos.y + offsetY);
-        }, i * 200);
-      }
+      
+      // Get all numbers owned by the winning player
+      const ownedNumbers = gameState.board
+        .filter((space) => space.owner === gameState.currentPlayer)
+        .map((space) => space.number)
+        .sort((a, b) => a - b);
+      
+      // Start train celebration with owned numbers
+      setCelebrationNumbers(ownedNumbers);
+      setIsTrainCelebrating(true);
     }
 
     setGameState(nextGameState);
@@ -1998,6 +2004,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
         animations={floatingEmojis}
         fireworks={fireworks}
         onAnimationComplete={handleAnimationComplete}
+      />
+      <TrainCelebration
+        isActive={isTrainCelebrating}
+        numbers={celebrationNumbers}
+        onComplete={() => setIsTrainCelebrating(false)}
       />
     </div>
   );
