@@ -430,4 +430,4 @@ export interface GameState {
   targetScore: number;
 }
 
-export const PLAYER_COLORS = ['#E63946', '#2A9D8F', '#E9C46A', '#457B9D'];
+export const PLAYER_COLORS = ['#F8A5A5', '#A8D5CC', '#F5E6B3', '#A8C5E0'];
