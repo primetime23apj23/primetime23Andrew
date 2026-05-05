@@ -1806,7 +1806,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   />
                 </div>
                 
-                {/* Player 2 Dice - Right, hidden until after first move */}
+                {/* Player 2 Dice - Right, always visible to player */}
                 <div className={gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
                   {player2Dice.length > 0 && (
                     <DiceTray
@@ -1821,7 +1821,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                       }
                       skins={diceSkins}
                       playerName={gameState.players[1].name}
-                      hideValues={gameState.currentPlayer === 0 && gameState.roundNumber === 1 && player1Dice.length === 12}
+                      hideValues={false}
                     />
                   )}
                 </div>
