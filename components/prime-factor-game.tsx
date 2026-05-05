@@ -18,6 +18,7 @@ import {
   type FloatingEmoji,
   type FireworkParticle,
 } from "./point-animations";
+import { TrainCelebration, createTrainCelebration, type TrainCelebration as TrainCelebType } from "./train-celebration";
 import {
   generateBoard,
   rollDice,
@@ -76,46 +77,9 @@ export function PrimeFactorGame() {
   const [showSetup, setShowSetup] = useState(false);
   const [showModeSelect, setShowModeSelect] = useState(true);
   const [diceSkins, setDiceSkins] = useState<DiceSkin[]>(DEFAULT_SKINS);
-  
-  // Authentication and session recovery
-  const { user: authUser, isAuthenticated, loading: authLoading } = usePlayerProfile();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [showActiveGames, setShowActiveGames] = useState(false);
-  const [hasResumableGames, setHasResumableGames] = useState(false);
-  
-  // Multiplayer state
-  const [isMultiplayer, setIsMultiplayer] = useState(false);
-  const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | "lobby" | null>(null);
-  const [sessionCode, setSessionCode] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [sessionPlayer1Id, setSessionPlayer1Id] = useState<string | null>(null);
-  const [sessionPlayer2Id, setSessionPlayer2Id] = useState<string | null>(null);
-  const [sessionLocalPlayerId, setSessionLocalPlayerId] = useState<string | null>(null);
-  const [playerId, setPlayerId] = useState<string | null>(null);
-  const [opponentPlayerId, setOpponentPlayerId] = useState<string | null>(null);
-  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
-  const [opponentHasJoined, setOpponentHasJoined] = useState(false);
-  const [opponentName, setOpponentName] = useState<string | null>(null);
-  const [playerNames, setPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
-  const [showAuth, setShowAuth] = useState(false);
-  const [pendingModeAfterAuth, setPendingModeAfterAuth] = useState<ModeOption | null>(null);
-  const [showLobby, setShowLobby] = useState(false);
-  const [gameDiceSkin, setGameDiceSkin] = useState<string>("standard");
-  const [timerMode, setTimerMode] = useState<string>("disabled");
-  const selectedGameType: "multiplication" = "multiplication";
-  const [showGameSetup, setShowGameSetup] = useState(false);
-  const [lobbyLoading, setLobbyLoading] = useState(false);
-  const [heartbeatInterval, setHeartbeatInterval] = useState<NodeJS.Timeout | null>(null);
-  const [multiplayerTargetScore, setMultiplayerTargetScore] = useState(37);
-  
-  // Track each player's dice separately
-  const [player1Dice, setPlayer1Dice] = useState<Die[]>([]);
-  const [player2Dice, setPlayer2Dice] = useState<Die[]>([]);
-  const [diceRolled, setDiceRolled] = useState(false);
-  
-  // Animation states
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
   const [fireworks, setFireworks] = useState<FireworkParticle[]>([]);
+  const [trainCelebrations, setTrainCelebrations] = useState<TrainCelebType[]>([]);
   const boardRef = useRef<HTMLDivElement>(null);
   
   // Bonus history tracking
@@ -1296,12 +1260,14 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     if (totalScore >= gameState.targetScore && pos) {
       playVictorySound();
-      for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-          const offsetX = (Math.random() - 0.5) * 200;
-          const offsetY = (Math.random() - 0.5) * 200;
-          spawnFireworks(pos.x + offsetX, pos.y + offsetY);
-        }, i * 200);
+      // Create train celebration with player's owned numbers
+      const ownedNumbers = gameState.board
+        .filter(space => space.owner === gameState.currentPlayer)
+        .map(space => space.number);
+      
+      if (ownedNumbers.length > 0) {
+        const trainCelebration = createTrainCelebration(ownedNumbers);
+        setTrainCelebrations([trainCelebration]);
       }
     }
 
@@ -1999,6 +1965,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
         fireworks={fireworks}
         onAnimationComplete={handleAnimationComplete}
       />
+      <TrainCelebration celebrations={trainCelebrations} />
     </div>
   );
 }
