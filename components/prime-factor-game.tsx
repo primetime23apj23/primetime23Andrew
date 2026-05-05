@@ -133,6 +133,17 @@ export function PrimeFactorGame() {
   // Player profile
   const { user: authUser } = usePlayerProfile();
 
+  // Exit confirmation dialog
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
+  const [pendingExitUrl, setPendingExitUrl] = useState<string | null>(null);
+  const [heartbeatInterval, setHeartbeatInterval] = useState<NodeJS.Timeout | null>(null);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [diceRolled, setDiceRolled] = useState(false);
+
+  // Multiplayer derived state
+  const isMultiplayer = Boolean(sessionId);
+
   // Local player id
   useEffect(() => {
     const id = generatePlayerId();
@@ -140,6 +151,7 @@ export function PrimeFactorGame() {
   }, []);
 
   // Set userId from auth user
+
   useEffect(() => {
     if (authUser?.id) {
       setUserId(authUser.id);
@@ -263,16 +275,9 @@ export function PrimeFactorGame() {
   const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
   const [pendingExitUrl, setPendingExitUrl] = useState<string | null>(null);
 
-  // Multiplayer derived state
-  const isMultiplayer = Boolean(sessionId);
-  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
-  const [diceRolled, setDiceRolled] = useState(false);
-
-  // Dice state
+  // Get current player's dice and opponent's dice
   const player1Dice = gameState.players[0].dice;
   const player2Dice = gameState.players[1].dice;
-
-  // Get current player's dice and opponent's dice
   const currentPlayerDice = gameState.currentPlayer === 0 ? player1Dice : player2Dice;
   const localPlayerIndex = useMemo(() => {
     if (!isMultiplayer) return gameState.currentPlayer;
