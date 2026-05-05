@@ -32,7 +32,7 @@ import {
 import { BonusBreakdownPanel } from "./bonus-breakdown";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
-import { playCapturSound, playBonusSound, playVictorySound } from "@/lib/sound-effects";
+import { playCapturSound, playVictorySound } from "@/lib/sound-effects";
 import { TrainCelebration } from "./train-celebration";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
@@ -1251,7 +1251,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     if (bonusGained > 0) {
       setTimeout(() => {
-        playBonusSound(breakdown.reduce((sum, b) => sum + b.spaces.length, 0));
         spawnFireworks(pos.x, pos.y);
         spawnPointAnimation(pos.x - 30, pos.y - 30, bonusGained, true);
       }, 300);
