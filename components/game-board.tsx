@@ -116,6 +116,22 @@ function BoardSpaceCell({
     );
   }
 
+  // Prime numbers - never claimed, just display
+  if (space.isPrime) {
+    return (
+      <div
+        data-space={space.number}
+        className="w-full h-full flex flex-col items-center justify-center p-0.5 bg-white dark:bg-zinc-900 cursor-default"
+      >
+        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 dark:border-gray-600">
+          <span className="leading-none text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">
+            {space.number}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   // Claimed space - fill entire cell with owner color
   if (space.claimed) {
     const ownerColor = space.owner !== null ? PLAYER_COLORS[space.owner] : null;
