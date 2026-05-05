@@ -1697,7 +1697,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
               Patented by
             </p>
             <p className="text-sm sm:text-base font-semibold">
-              Andrew P. Jaffe
+              Andrew Paul Jaffe
             </p>
           </div>
         </header>
