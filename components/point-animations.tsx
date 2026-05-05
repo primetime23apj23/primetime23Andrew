@@ -40,11 +40,6 @@ export function PointAnimations({
           onComplete={() => onAnimationComplete(anim.id)}
         />
       ))}
-      
-      {/* Firework particles */}
-      {fireworks.map((particle) => (
-        <FireworkDot key={particle.id} {...particle} />
-      ))}
     </div>
   );
 }
