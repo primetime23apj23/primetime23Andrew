@@ -125,7 +125,7 @@ function BoardSpaceCell({
         className="w-full h-full flex items-center justify-center relative overflow-hidden"
         style={{ backgroundColor: ownerColor ? ownerColor + "CC" : "#E5E7EB" }}
       >
-        <span className="text-xs text-muted-foreground/30 line-through">{space.number}</span>
+        <span className="text-xs font-bold text-foreground">{space.number}</span>
       </div>
     );
   }
@@ -151,11 +151,11 @@ function BoardSpaceCell({
       )}
       style={ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
     >
-      {/* Number with lighter red circle for primes */}
+      {/* Number with circle for primes */}
       <div
         className={cn(
           "flex items-center justify-center shrink-0",
-          space.isPrime && "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-300 dark:border-red-300"
+          space.isPrime && "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 dark:border-gray-600"
         )}
       >
         <span

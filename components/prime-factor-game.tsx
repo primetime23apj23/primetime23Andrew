@@ -1258,15 +1258,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       return player;
     });
 
-    spawnPointAnimation(pos.x, pos.y, 1, false);
     playCapturSound();
-
-    if (bonusGained > 0) {
-      setTimeout(() => {
-        spawnFireworks(pos.x, pos.y);
-        spawnPointAnimation(pos.x - 30, pos.y - 30, bonusGained, true);
-      }, 300);
-    }
 
     const totalScore =
       newPlayers[currentPlayerIndex].score +
