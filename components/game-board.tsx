@@ -167,26 +167,21 @@ function BoardSpaceCell({
       )}
       style={!space.isPrime && ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
     >
-      {/* Number with circle for primes */}
-      <div
-        className={cn(
-          "flex items-center justify-center shrink-0",
-          space.isPrime && "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 dark:border-gray-600"
-        )}
-      >
-        <span
-          className={cn(
-            "leading-none",
-            space.isPrime
-              ? "text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400"
-              : space.factorization && space.factorization.split(' × ').length > 3
+      {/* Number with circle - composite numbers only */}
+      {!space.isPrime && (
+        <div className="flex items-center justify-center shrink-0">
+          <span
+            className={cn(
+              "leading-none",
+              space.factorization && space.factorization.split(' × ').length > 3
               ? "text-[7px] sm:text-xs font-bold text-foreground"
               : "text-[10px] sm:text-sm font-bold text-foreground"
-          )}
-        >
-          {space.number}
-        </span>
-      </div>
+            )}
+          >
+            {space.number}
+          </span>
+        </div>
+      )}
 
       {/* Factorization - individual numbers in rounded boxes */}
       {!space.isPrime && space.factorization && (
