@@ -187,16 +187,39 @@ function BoardSpaceCell({
       {!space.isPrime && space.factorization && (
         <div className="flex gap-0.5 mt-0.5 flex-wrap justify-center">
           {space.factorization.split(' × ').map((factor, idx) => (
-            <span
-              key={factor}
+            <span 
+              key={idx}
               className={cn(
-                "px-1.5 sm:px-2 py-0.5 sm:py-1 rounded border-2 text-[10px] sm:text-sm font-semibold",
-                "bg-transparent border-gray-400 dark:border-gray-500 text-foreground"
+                "w-4 h-4 sm:w-5 sm:h-5 text-[6px] sm:text-[8px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
+                factor === "3"
+                  ? "bg-green-100 dark:bg-green-900"
+                  : factor === "5"
+                  ? "bg-sky-100 dark:bg-sky-900"
+                  : factor === "7"
+                  ? "bg-amber-100 dark:bg-amber-900"
+                  : factor === "11"
+                  ? "bg-orange-100 dark:bg-orange-900"
+                  : factor === "13"
+                  ? "bg-red-100 dark:bg-red-900"
+                  : factor === "17"
+                  ? "bg-teal-100 dark:bg-teal-900"
+                  : factor === "19"
+                  ? "bg-indigo-100 dark:bg-indigo-900"
+                  : factor === "23"
+                  ? "bg-yellow-100 dark:bg-yellow-900"
+                  : factor === "29"
+                  ? "bg-violet-200 dark:bg-violet-800"
+                  : factor === "37"
+                  ? "bg-purple-100 dark:bg-purple-900"
+                  : factor === "41"
+                  ? "bg-stone-200 dark:bg-stone-800"
+                  : factor === "47"
+                  ? "bg-amber-200 dark:bg-amber-800"
+                  : "bg-pink-100 dark:bg-pink-900"
               )}
             >
               {factor}
             </span>
-
           ))}
         </div>
       )}
