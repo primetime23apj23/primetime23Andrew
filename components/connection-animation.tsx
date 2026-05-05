@@ -379,14 +379,6 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
               opacity="0.15"
             />
             
-            {/* Station markers at primes - use raw centers to position at actual prime cells */}
-            {progress >= 1 && (
-              <>
-                <circle cx={rawCenters[0].x} cy={rawCenters[0].y} r="6" fill={track.playerColor} opacity="0.8" stroke="white" strokeWidth="1.5" />
-                <circle cx={rawCenters[rawCenters.length - 1].x} cy={rawCenters[rawCenters.length - 1].y} r="6" fill={track.playerColor} opacity="0.8" stroke="white" strokeWidth="1.5" />
-              </>
-            )}
-            
             {/* Choo choo train */}
             {showTrain && <ChooChooTrain x={trainX} y={trainY} angle={trainAngle} progress={progress} />}
           </g>

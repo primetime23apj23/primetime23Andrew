@@ -32,7 +32,7 @@ export function PointAnimations({
 }: PointAnimationsProps) {
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {/* No animations - keeping clean board */}
+      {/* All animations disabled for clean gameplay */}
     </div>
   );
 }
