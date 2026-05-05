@@ -1776,8 +1776,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
             {/* Both Players' Dice Side by Side (below board) */}
             {diceRolled && (
-              <div className="space-y-4">
-                {/* Player 1 Dice */}
+              <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+                {/* Player 1 Dice - Left */}
                 <div className={gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
                   <DiceTray
                     dice={player1Dice}
@@ -1794,17 +1794,19 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   />
                 </div>
 
-                {/* Space Detail (Claim Button) - Between Player 1 and Player 2 */}
-                <SpaceDetail
-                  space={selectedSpace}
-                  selectedDice={selectedDiceObjects}
-                  canClaim={canClaimSpace}
-                  onClaim={handleClaim}
-                  onCancel={handleCancel}
-                  isAutoSelected={diceAutoSelected}
-                />
+                {/* Space Detail (Claim Button) - Center */}
+                <div className="flex-shrink-0">
+                  <SpaceDetail
+                    space={selectedSpace}
+                    selectedDice={selectedDiceObjects}
+                    canClaim={canClaimSpace}
+                    onClaim={handleClaim}
+                    onCancel={handleCancel}
+                    isAutoSelected={diceAutoSelected}
+                  />
+                </div>
                 
-                {/* Player 2 Dice - hidden until after first move */}
+                {/* Player 2 Dice - Right, always visible to player */}
                 <div className={gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
                   {player2Dice.length > 0 && (
                     <DiceTray
@@ -1819,7 +1821,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                       }
                       skins={diceSkins}
                       playerName={gameState.players[1].name}
-                      hideValues={gameState.currentPlayer === 0 && gameState.roundNumber === 1 && player1Dice.length === 12}
+                      hideValues={false}
                     />
                   )}
                 </div>
