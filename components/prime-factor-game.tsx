@@ -32,6 +32,7 @@ import {
 import { BonusBreakdownPanel } from "./bonus-breakdown";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
+import { playCapturSound, playBonusSound, playVictorySound } from "@/lib/sound-effects";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
@@ -1214,9 +1215,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
     });
 
     spawnPointAnimation(pos.x, pos.y, 1, false);
+    playCapturSound();
 
     if (bonusGained > 0) {
       setTimeout(() => {
+        playBonusSound(breakdown.reduce((sum, b) => sum + b.spaces.length, 0));
         spawnFireworks(pos.x, pos.y);
         spawnPointAnimation(pos.x - 30, pos.y - 30, bonusGained, true);
       }, 300);
@@ -1266,6 +1269,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
     }
 
     if (totalScore >= gameState.targetScore && pos) {
+      playVictorySound();
       for (let i = 0; i < 5; i++) {
         setTimeout(() => {
           const offsetX = (Math.random() - 0.5) * 200;
