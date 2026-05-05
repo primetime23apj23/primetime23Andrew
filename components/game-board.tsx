@@ -123,7 +123,7 @@ function BoardSpaceCell({
         data-space={space.number}
         className="w-full h-full flex flex-col items-center justify-center p-0.5 bg-white dark:bg-zinc-900 cursor-default"
       >
-        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8">
+        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 dark:border-gray-600">
           <span className="leading-none text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">
             {space.number}
           </span>
@@ -190,32 +190,7 @@ function BoardSpaceCell({
             <span 
               key={idx}
               className={cn(
-                "w-4 h-4 sm:w-5 sm:h-5 text-[6px] sm:text-[8px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
-                factor === "3"
-                  ? "bg-green-100 dark:bg-green-900"
-                  : factor === "5"
-                  ? "bg-sky-100 dark:bg-sky-900"
-                  : factor === "7"
-                  ? "bg-amber-100 dark:bg-amber-900"
-                  : factor === "11"
-                  ? "bg-orange-100 dark:bg-orange-900"
-                  : factor === "13"
-                  ? "bg-red-100 dark:bg-red-900"
-                  : factor === "17"
-                  ? "bg-teal-100 dark:bg-teal-900"
-                  : factor === "19"
-                  ? "bg-indigo-100 dark:bg-indigo-900"
-                  : factor === "23"
-                  ? "bg-yellow-100 dark:bg-yellow-900"
-                  : factor === "29"
-                  ? "bg-violet-200 dark:bg-violet-800"
-                  : factor === "37"
-                  ? "bg-purple-100 dark:bg-purple-900"
-                  : factor === "41"
-                  ? "bg-stone-200 dark:bg-stone-800"
-                  : factor === "47"
-                  ? "bg-amber-200 dark:bg-amber-800"
-                  : "bg-pink-100 dark:bg-pink-900"
+                "w-4 h-4 sm:w-5 sm:h-5 text-[6px] sm:text-[8px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400 bg-transparent"
               )}
             >
               {factor}
