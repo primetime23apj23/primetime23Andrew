@@ -18,7 +18,6 @@ import {
   type FloatingEmoji,
   type FireworkParticle,
 } from "./point-animations";
-import { TrainCelebration, createTrainCelebration, type TrainCelebration as TrainCelebType } from "./train-celebration";
 import {
   generateBoard,
   rollDice,
@@ -34,31 +33,12 @@ import { BonusBreakdownPanel } from "./bonus-breakdown";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
 import { playCapturSound, playBonusSound, playVictorySound } from "@/lib/sound-effects";
+import { TrainCelebration } from "./train-celebration";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
 import { GameLobby } from "./game-lobby";
 import { GameSetupForm } from "./game-setup-dialog";
-import {
-  generateSessionCode,
-  generatePlayerId,
-  sendHeartbeat,
-  persistGameState,
-  getLatestGameStateRecord,
-  applySavedGameState,
-  createGameLobby,
-  joinGameLobby,
-  cancelGameLobby,
-  getGameSession,
-  getGameSessionById,
-  getGameStates,
-  subscribeToSession,
-  subscribeToGameState,
-  updateGameState,
-  validateTurn,
-  updateCurrentTurn,
-} from "@/lib/supabase-multiplayer";
-import { usePlayerProfile } from "@/hooks/use-player-profile";
 import {
   Dialog,
   DialogContent,
@@ -68,8 +48,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles } from "lucide-react";
+import { createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGameSessionById, getGameStates, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId, sendHeartbeat, validateTurn, updateCurrentTurn } from "@/lib/supabase-multiplayer";
 import { AuthDialog } from "./auth-dialog";
 import { ActiveGamesDialog } from "./active-games-dialog";
+import { usePlayerProfile } from "@/hooks/use-player-profile";
 
 const createInitialState = (targetScore: number): GameState => ({
   board: generateBoard(),
@@ -95,9 +77,48 @@ export function PrimeFactorGame() {
   const [showSetup, setShowSetup] = useState(false);
   const [showModeSelect, setShowModeSelect] = useState(true);
   const [diceSkins, setDiceSkins] = useState<DiceSkin[]>(DEFAULT_SKINS);
+  
+  // Authentication and session recovery
+  const { user: authUser, isAuthenticated, loading: authLoading } = usePlayerProfile();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showActiveGames, setShowActiveGames] = useState(false);
+  const [hasResumableGames, setHasResumableGames] = useState(false);
+  
+  // Multiplayer state
+  const [isMultiplayer, setIsMultiplayer] = useState(false);
+  const [multiplayerMode, setMultiplayerMode] = useState<"create" | "join" | "lobby" | null>(null);
+  const [sessionCode, setSessionCode] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionPlayer1Id, setSessionPlayer1Id] = useState<string | null>(null);
+  const [sessionPlayer2Id, setSessionPlayer2Id] = useState<string | null>(null);
+  const [sessionLocalPlayerId, setSessionLocalPlayerId] = useState<string | null>(null);
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [opponentPlayerId, setOpponentPlayerId] = useState<string | null>(null);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [opponentHasJoined, setOpponentHasJoined] = useState(false);
+  const [opponentName, setOpponentName] = useState<string | null>(null);
+  const [playerNames, setPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
+  const [showAuth, setShowAuth] = useState(false);
+  const [pendingModeAfterAuth, setPendingModeAfterAuth] = useState<ModeOption | null>(null);
+  const [showLobby, setShowLobby] = useState(false);
+  const [gameDiceSkin, setGameDiceSkin] = useState<string>("standard");
+  const [timerMode, setTimerMode] = useState<string>("disabled");
+  const selectedGameType: "multiplication" = "multiplication";
+  const [showGameSetup, setShowGameSetup] = useState(false);
+  const [lobbyLoading, setLobbyLoading] = useState(false);
+  const [heartbeatInterval, setHeartbeatInterval] = useState<NodeJS.Timeout | null>(null);
+  const [multiplayerTargetScore, setMultiplayerTargetScore] = useState(37);
+  
+  // Track each player's dice separately
+  const [player1Dice, setPlayer1Dice] = useState<Die[]>([]);
+  const [player2Dice, setPlayer2Dice] = useState<Die[]>([]);
+  const [diceRolled, setDiceRolled] = useState(false);
+  
+  // Animation states
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
   const [fireworks, setFireworks] = useState<FireworkParticle[]>([]);
-  const [trainCelebrations, setTrainCelebrations] = useState<TrainCelebType[]>([]);
+  const [isTrainCelebrating, setIsTrainCelebrating] = useState(false);
+  const [celebrationNumbers, setCelebrationNumbers] = useState<number[]>([]);
   const boardRef = useRef<HTMLDivElement>(null);
   
   // Bonus history tracking
@@ -115,34 +136,7 @@ export function PrimeFactorGame() {
   // Bot settings
   const [botEnabled, setBotEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
-  
-  // Multiplayer state
-  const [multiplayerMode, setMultiplayerMode] = useState<"lobby" | "create" | "join" | null>(null);
-  const [playerId, setPlayerId] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [sessionLocalPlayerId, setSessionLocalPlayerId] = useState<string | null>(null);
-  const [sessionPlayer1Id, setSessionPlayer1Id] = useState<string | null>(null);
-  const [sessionPlayer2Id, setSessionPlayer2Id] = useState<string | null>(null);
-  const [selectedGameType, setSelectedGameType] = useState("PrimeGame");
-  const [hasResumableGames, setHasResumableGames] = useState(false);
-  const [playerNames, setPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
-  
   const gameStateVersionRef = useRef<number>(-1);
-
-  // Player profile
-  const { user: authUser } = usePlayerProfile();
-
-  // Exit confirmation dialog
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
-  const [pendingExitUrl, setPendingExitUrl] = useState<string | null>(null);
-  const [heartbeatInterval, setHeartbeatInterval] = useState<NodeJS.Timeout | null>(null);
-  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
-  const [diceRolled, setDiceRolled] = useState(false);
-
-  // Multiplayer derived state
-  const isMultiplayer = Boolean(sessionId);
 
   // Local player id
   useEffect(() => {
@@ -151,7 +145,6 @@ export function PrimeFactorGame() {
   }, []);
 
   // Set userId from auth user
-
   useEffect(() => {
     if (authUser?.id) {
       setUserId(authUser.id);
@@ -270,9 +263,12 @@ export function PrimeFactorGame() {
     }
   }, [isMultiplayer, sessionId, sessionLocalPlayerId]);
 
+  // Exit confirmation dialog
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
+  const [pendingExitUrl, setPendingExitUrl] = useState<string | null>(null);
+
   // Get current player's dice and opponent's dice
-  const player1Dice = gameState?.players?.[0]?.dice || [];
-  const player2Dice = gameState?.players?.[1]?.dice || [];
   const currentPlayerDice = gameState.currentPlayer === 0 ? player1Dice : player2Dice;
   const localPlayerIndex = useMemo(() => {
     if (!isMultiplayer) return gameState.currentPlayer;
@@ -286,9 +282,9 @@ export function PrimeFactorGame() {
 
   // Calculate valid moves based on selected dice
   const validMoves = useMemo(() => {
-    if (!gameState?.selectedDice || gameState.selectedDice.length === 0) return [];
+    if (gameState.selectedDice.length === 0) return [];
     
-    const selectedDieValues = (currentPlayerDice || [])
+    const selectedDieValues = currentPlayerDice
       .filter((d) => gameState.selectedDice.includes(d.id))
       .map((d) => d.value);
     
@@ -301,11 +297,11 @@ export function PrimeFactorGame() {
     
     const product = numericValues.reduce((a, b) => a * b, 1);
     
-    return (gameState?.board || [])
+    return gameState.board
       .filter((space) => {
         if (space.isPrime || space.owner !== null || space.number === 0 || space.claimed) return false;
         
-        const factors = space.factors || [];
+        const factors = space.factors;
         if (factors.length !== selectedDieValues.length) return false;
         
         if (wildCount === 0) {
@@ -316,7 +312,7 @@ export function PrimeFactorGame() {
         return false;
       })
       .map((s) => s.number);
-  }, [gameState?.selectedDice, currentPlayerDice, gameState?.board]);
+  }, [gameState.selectedDice, currentPlayerDice, gameState.board]);
 
   // Highlight possible board spaces where selected dice are a valid subset of the space's factors
   const possibleMoveHighlights = useMemo(() => {
@@ -1303,15 +1299,16 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     if (totalScore >= gameState.targetScore && pos) {
       playVictorySound();
-      // Create train celebration with player's owned numbers
-      const ownedNumbers = gameState.board
-        .filter(space => space.owner === gameState.currentPlayer)
-        .map(space => space.number);
       
-      if (ownedNumbers.length > 0) {
-        const trainCelebration = createTrainCelebration(ownedNumbers);
-        setTrainCelebrations([trainCelebration]);
-      }
+      // Get all numbers owned by the winning player
+      const ownedNumbers = gameState.board
+        .filter((space) => space.owner === gameState.currentPlayer)
+        .map((space) => space.number)
+        .sort((a, b) => a - b);
+      
+      // Start train celebration with owned numbers
+      setCelebrationNumbers(ownedNumbers);
+      setIsTrainCelebrating(true);
     }
 
     setGameState(nextGameState);
@@ -1760,9 +1757,21 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
         {/* Main Game Area */}
         <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-4">
-          {/* Board + Both Dice Trays */}
+          {/* Board + Dice Below + Space Detail */}
           <div className="space-y-4 order-first lg:order-none">
-            {/* Both Players' Dice Side by Side (above board) */}
+            {/* Game Board */}
+            <div>
+              <GameBoard
+                board={gameState.board}
+                tracks={completedTracks}
+                boardRef={trackBoardRef}
+                onSpaceClick={handleSpaceClick}
+                highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
+                validMoves={allHighlightedMoves}
+              />
+            </div>
+
+            {/* Both Players' Dice Side by Side (below board) */}
             {diceRolled && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Player 1 Dice */}
@@ -1804,16 +1813,15 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             )}
 
-            <div>
-              <GameBoard
-                board={gameState.board}
-                tracks={completedTracks}
-                boardRef={trackBoardRef}
-                onSpaceClick={handleSpaceClick}
-                highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
-                validMoves={allHighlightedMoves}
-              />
-            </div>
+            {/* Space Detail (below dice) */}
+            <SpaceDetail
+              space={selectedSpace}
+              selectedDice={selectedDiceObjects}
+              canClaim={canClaimSpace}
+              onClaim={handleClaim}
+              onCancel={handleCancel}
+              isAutoSelected={diceAutoSelected}
+            />
           </div>
 
           {/* Sidebar */}
@@ -1846,15 +1854,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
   onShowRules={() => setShowRules(true)}
   onShowTutorial={() => setShowTutorial(true)}
   message={gameState.message}
-            />
-            
-            <SpaceDetail
-              space={selectedSpace}
-              selectedDice={selectedDiceObjects}
-              canClaim={canClaimSpace}
-              onClaim={handleClaim}
-              onCancel={handleCancel}
-              isAutoSelected={diceAutoSelected}
             />
             
             <BonusBreakdownPanel history={bonusHistory} />
@@ -2008,7 +2007,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
         fireworks={fireworks}
         onAnimationComplete={handleAnimationComplete}
       />
-      <TrainCelebration celebrations={trainCelebrations} />
+      <TrainCelebration
+        isActive={isTrainCelebrating}
+        numbers={celebrationNumbers}
+        onComplete={() => setIsTrainCelebrating(false)}
+      />
     </div>
   );
 }

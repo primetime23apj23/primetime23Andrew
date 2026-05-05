@@ -2,177 +2,146 @@
 
 import { useEffect, useState } from "react";
 
-interface TrainCelebration {
+interface TrainNumber {
   id: string;
-  numbers: number[];
+  number: number;
+  progress: number;
 }
 
 interface TrainCelebrationProps {
-  celebrations: TrainCelebration[];
+  isActive: boolean;
+  numbers: number[];
+  onComplete?: () => void;
 }
 
-export function TrainCelebration({ celebrations }: TrainCelebrationProps) {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {celebrations.map((celebration) => (
-        <TrainAnimation key={celebration.id} numbers={celebration.numbers} />
-      ))}
-    </div>
-  );
-}
-
-function TrainAnimation({ numbers }: { numbers: number[] }) {
-  const [position, setPosition] = useState(-100);
-  const [smokeParticles, setSmokeParticles] = useState<Array<{
-    id: string;
-    x: number;
-    y: number;
-    number: number;
-    offsetX: number;
-    offsetY: number;
-  }>>([]);
+export function TrainCelebration({ isActive, numbers, onComplete }: TrainCelebrationProps) {
+  const [trainNumbers, setTrainNumbers] = useState<TrainNumber[]>([]);
+  const [trainProgress, setTrainProgress] = useState(0);
 
   useEffect(() => {
-    // Animate train moving across screen
-    const startTime = Date.now();
-    const duration = 4000; // 4 seconds for train to cross
-    
-    const animateTrainPosition = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const newPosition = -100 + progress * 200; // -100 to 100 (vw)
-      setPosition(newPosition);
+    if (!isActive) {
+      setTrainProgress(0);
+      setTrainNumbers([]);
+      return;
+    }
 
-      // Generate smoke particles periodically
-      if (progress > 0 && progress < 1) {
-        if (Math.random() < 0.15) { // 15% chance each frame
-          const newParticle = {
-            id: `smoke-${Date.now()}-${Math.random()}`,
-            x: newPosition,
-            y: 30,
-            number: numbers[Math.floor(Math.random() * numbers.length)],
-            offsetX: (Math.random() - 0.5) * 15,
-            offsetY: -50 - Math.random() * 30,
-          };
-          setSmokeParticles((prev) => [...prev, newParticle]);
+    const animationDuration = 4000; // 4 seconds for train to cross
+    const numberSpawnInterval = 200; // Spawn a number every 200ms
+    let animationId: number;
+    let spawnIntervalId: NodeJS.Timeout;
+    let numberCounter = 0;
+
+    const animate = () => {
+      setTrainProgress((prev) => {
+        const next = prev + 1 / (animationDuration / 16);
+        if (next >= 1) {
+          if (onComplete) {
+            setTimeout(onComplete, 500);
+          }
         }
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(animateTrainPosition);
+        return Math.min(next, 1);
+      });
+      if (trainProgress < 1) {
+        animationId = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animateTrainPosition);
-  }, [numbers]);
+    animationId = requestAnimationFrame(animate);
+
+    // Spawn numbers from the train
+    spawnIntervalId = setInterval(() => {
+      if (numberCounter < numbers.length && trainProgress < 0.8) {
+        const newNumber: TrainNumber = {
+          id: `${numberCounter}-${Date.now()}`,
+          number: numbers[numberCounter],
+          progress: 0,
+        };
+        setTrainNumbers((prev) => [...prev, newNumber]);
+        numberCounter++;
+      }
+    }, numberSpawnInterval);
+
+    // Update number positions
+    const numberUpdateId = setInterval(() => {
+      setTrainNumbers((prev) =>
+        prev
+          .map((num) => ({
+            ...num,
+            progress: Math.min(num.progress + 0.05, 1),
+          }))
+          .filter((num) => num.progress < 1)
+      );
+    }, 50);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      clearInterval(spawnIntervalId);
+      clearInterval(numberUpdateId);
+    };
+  }, [isActive, numbers, onComplete, trainProgress]);
+
+  if (!isActive) {
+    return null;
+  }
+
+  const trainX = trainProgress * 120 - 20; // Start off-screen left, end off-screen right
+  const trainY = 80; // Bottom of screen
 
   return (
-    <>
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
       {/* Train */}
       <div
-        className="fixed top-1/3 transition-none"
+        className="absolute transition-none"
         style={{
-          left: `${position}vw`,
-          width: "120px",
-          height: "80px",
+          left: `${trainX}%`,
+          top: `${trainY}%`,
+          transform: "translateY(-50%)",
         }}
       >
-        {/* Smoke stack */}
-        <div className="absolute top-0 left-8 w-4 h-6 bg-gradient-to-t from-gray-400 to-gray-300 rounded-t opacity-60" />
-        
         {/* Engine */}
-        <div className="absolute bottom-0 left-0 w-16 h-12 bg-gradient-to-b from-red-600 to-red-800 rounded-lg border-4 border-red-900 flex items-center justify-center">
-          <span className="text-2xl">🚂</span>
+        <div className="relative w-24 h-20">
+          {/* Smoke stack */}
+          <div className="absolute left-6 top-2 w-2 h-6 bg-gray-400 rounded-full" />
+          {/* Smoke puffs */}
+          {trainNumbers.map((num) => {
+            const offsetX = (Math.random() - 0.5) * 20;
+            const offsetY = -num.progress * 80;
+            return (
+              <div
+                key={num.id}
+                className="absolute text-3xl font-bold text-yellow-300 drop-shadow-lg"
+                style={{
+                  left: `24px`,
+                  top: `8px`,
+                  transform: `translate(${offsetX}px, ${offsetY}px)`,
+                  opacity: Math.max(0, 1 - num.progress),
+                }}
+              >
+                {num.number}
+              </div>
+            );
+          })}
+          
+          {/* Engine body */}
+          <div className="w-full h-full border-4 border-red-600 rounded bg-red-500 flex items-center justify-center">
+            <div className="text-white font-bold text-lg">🚂</div>
+          </div>
+          
+          {/* Wheels */}
+          <div className="absolute bottom-0 left-2 w-3 h-3 rounded-full border-2 border-black" />
+          <div className="absolute bottom-0 right-2 w-3 h-3 rounded-full border-2 border-black" />
         </div>
 
         {/* Cargo car */}
-        <div className="absolute bottom-0 left-14 w-20 h-10 bg-gradient-to-b from-blue-500 to-blue-700 rounded-lg border-2 border-blue-900 flex items-center justify-center">
-          <span className="text-lg font-bold text-white">★</span>
+        <div className="absolute left-24 top-0 w-20 h-20">
+          <div className="w-full h-full border-4 border-blue-600 rounded bg-blue-500 flex items-center justify-center">
+            <div className="text-white font-bold">📦</div>
+          </div>
+          {/* Wheels */}
+          <div className="absolute bottom-0 left-1 w-3 h-3 rounded-full border-2 border-black" />
+          <div className="absolute bottom-0 right-1 w-3 h-3 rounded-full border-2 border-black" />
         </div>
-
-        {/* Wheels */}
-        <div className="absolute bottom-0 left-2 w-2 h-2 bg-black rounded-full" />
-        <div className="absolute bottom-0 left-8 w-2 h-2 bg-black rounded-full" />
-        <div className="absolute bottom-0 left-16 w-2 h-2 bg-black rounded-full" />
-        <div className="absolute bottom-0 left-20 w-2 h-2 bg-black rounded-full" />
-      </div>
-
-      {/* Smoke particles with numbers */}
-      {smokeParticles.map((particle) => (
-        <SmokeParticle key={particle.id} {...particle} />
-      ))}
-    </>
-  );
-}
-
-function SmokeParticle({
-  id,
-  x,
-  y,
-  number,
-  offsetX,
-  offsetY,
-}: {
-  id: string;
-  x: number;
-  y: number;
-  number: number;
-  offsetX: number;
-  offsetY: number;
-}) {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [opacity, setOpacity] = useState(0.8);
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const startTime = Date.now();
-    const duration = 1200; // Particle lifetime
-
-    const animateParticle = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = elapsed / duration;
-
-      if (progress < 1) {
-        // Easing: ease-out
-        const easeProgress = 1 - Math.pow(1 - progress, 3);
-        
-        setPosition({
-          x: offsetX * easeProgress,
-          y: offsetY * easeProgress,
-        });
-        setOpacity(0.8 * (1 - progress));
-        setScale(1 + progress * 0.5);
-        
-        requestAnimationFrame(animateParticle);
-      }
-    };
-
-    requestAnimationFrame(animateParticle);
-  }, [offsetX, offsetY]);
-
-  return (
-    <div
-      className="fixed pointer-events-none font-bold text-lg drop-shadow-lg"
-      style={{
-        left: `${x}vw`,
-        top: `${y}vh`,
-        transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-        opacity,
-        transition: "none",
-      }}
-    >
-      <div className="text-2xl font-black text-yellow-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-        {number}
       </div>
     </div>
   );
 }
-
-export function createTrainCelebration(numbers: number[]): TrainCelebration {
-  return {
-    id: `train-${Date.now()}`,
-    numbers,
-  };
-}
-
-export type { TrainCelebration };

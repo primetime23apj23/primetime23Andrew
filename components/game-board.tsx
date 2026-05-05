@@ -41,6 +41,28 @@ export function GameBoard({
   return (
     <div className="w-full max-w-[92vw] sm:max-w-3xl mx-auto flex flex-col gap-px sm:gap-2">
       <div className="flex gap-px sm:gap-2">
+        {/* Left vertical axis - TOP branding */}
+        <div className="flex flex-col items-center justify-center shrink-0 gap-1">
+          <span 
+            className="text-lg sm:text-2xl font-black text-foreground"
+            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+          >
+            T
+          </span>
+          <span 
+            className="text-lg sm:text-2xl font-black text-foreground"
+            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+          >
+            O
+          </span>
+          <span 
+            className="text-lg sm:text-2xl font-black text-foreground"
+            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+          >
+            P
+          </span>
+        </div>
+        
         {/* Left vertical axis - Website credit */}
         <div className="flex items-center justify-center shrink-0">
           <span 
