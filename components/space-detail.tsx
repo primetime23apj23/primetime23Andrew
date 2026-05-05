@@ -11,6 +11,7 @@ interface SpaceDetailProps {
   canClaim: boolean;
   onClaim: () => void;
   onCancel: () => void;
+  isAutoSelected?: boolean;
 }
 
 export function SpaceDetail({
@@ -19,6 +20,7 @@ export function SpaceDetail({
   canClaim,
   onClaim,
   onCancel,
+  isAutoSelected,
 }: SpaceDetailProps) {
   if (!space) {
     return (
@@ -83,7 +85,14 @@ export function SpaceDetail({
 
       {selectedDice.length > 0 && !space.isPrime && space.owner === null && (
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">Selected Dice</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">Selected Dice</p>
+            {isAutoSelected && (
+              <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full font-medium">
+                Auto-selected
+              </span>
+            )}
+          </div>
           <div className="flex gap-1 flex-wrap">
             {selectedDice.map((die) => (
               <span

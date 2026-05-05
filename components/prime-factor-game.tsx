@@ -70,6 +70,7 @@ const createInitialState = (targetScore: number): GameState => ({
 export function PrimeFactorGame() {
   const [gameState, setGameState] = useState<GameState>(createInitialState(37));
   const [selectedSpace, setSelectedSpace] = useState<BoardSpace | null>(null);
+  const [diceAutoSelected, setDiceAutoSelected] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
@@ -464,6 +465,9 @@ export function PrimeFactorGame() {
     if (gameState.phase !== "playing" || !isLocalPlayersTurn) return;
     if (!currentPlayerDice.some((currentDie) => currentDie.id === die.id)) return;
     
+    // Reset auto-selected flag when user manually selects/deselects dice
+    setDiceAutoSelected(false);
+    
     setGameState((prev) => {
       const isSelected = prev.selectedDice.includes(die.id);
       return {
@@ -479,8 +483,30 @@ export function PrimeFactorGame() {
   const handleSpaceClick = useCallback((space: BoardSpace) => {
     if (isMultiplayer && !isLocalPlayersTurn) return;
     if (space.claimed) return;
+    
     setSelectedSpace(space);
-  }, [isLocalPlayersTurn, isMultiplayer]);
+    
+    // Auto-select dice that can match this space if no dice are currently selected
+    if (gameState.selectedDice.length === 0 && !space.isPrime && !space.owner) {
+      // Find a valid combination of dice that matches the space
+      const match = canMatchFactorization(
+        space.factors,
+        currentPlayerDice.map((d) => ({ ...d, used: false }))
+      );
+      
+      if (match) {
+        // Auto-select the matched dice
+        const matchedDiceIds = match.map((d) => d.id);
+        setGameState((prev) => ({
+          ...prev,
+          selectedDice: matchedDiceIds,
+        }));
+        setDiceAutoSelected(true);
+      }
+    } else {
+      setDiceAutoSelected(false);
+    }
+  }, [isLocalPlayersTurn, isMultiplayer, gameState.selectedDice.length, currentPlayerDice]);
 
   // Check if selected dice match the space
   const canClaimSpace = useMemo(() => {
@@ -1295,6 +1321,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
   const handleCancel = useCallback(() => {
     setGameState((prev) => ({ ...prev, selectedDice: [] }));
     setSelectedSpace(null);
+    setDiceAutoSelected(false);
   }, []);
 
   // Check if a specific player has any valid moves
@@ -1818,6 +1845,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
               canClaim={canClaimSpace}
               onClaim={handleClaim}
               onCancel={handleCancel}
+              isAutoSelected={diceAutoSelected}
             />
             
             <BonusBreakdownPanel history={bonusHistory} />
