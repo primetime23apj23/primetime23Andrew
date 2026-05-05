@@ -270,10 +270,6 @@ export function PrimeFactorGame() {
     }
   }, [isMultiplayer, sessionId, sessionLocalPlayerId]);
 
-  // Exit confirmation dialog
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
-  const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
-
   // Get current player's dice and opponent's dice
   const player1Dice = gameState.players[0].dice;
   const player2Dice = gameState.players[1].dice;
