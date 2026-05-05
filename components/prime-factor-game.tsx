@@ -1385,20 +1385,14 @@ const channel = subscribeToSession(sessionCode, (session) => {
             roundNumber: gameState.roundNumber + 1,
             message: `Round ${gameState.roundNumber} complete! Both players are out of moves. Click "New Round" to continue.`,
           }
-        : !nextPlayerHasMoves
-          ? {
-              ...gameState,
-              phase: "roundEnd" as const,
-              selectedDice: [],
-              roundNumber: gameState.roundNumber + 1,
-              message: `Round ${gameState.roundNumber} complete! Both players are out of moves. Click "New Round" to continue.`,
-            }
-          : {
-              ...gameState,
-              currentPlayer: nextPlayer,
-              selectedDice: [],
-              message: `${gameState.players[nextPlayer].name}'s turn! Select dice to claim a space.`,
-            };
+        : {
+            ...gameState,
+            currentPlayer: nextPlayer,
+            selectedDice: [],
+            message: !nextPlayerHasMoves 
+              ? `${gameState.players[nextPlayer].name} has no valid moves. Passing back to ${gameState.players[gameState.currentPlayer].name}.`
+              : `${gameState.players[nextPlayer].name}'s turn! Select dice to claim a space.`,
+          };
 
     // Play opponent move sound when transitioning to next player
     if (nextGameState.currentPlayer !== gameState.currentPlayer) {
