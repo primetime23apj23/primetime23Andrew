@@ -184,17 +184,48 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
       style={{ width: "100%", height: "100%", overflow: "visible" }}
     >
       {tracks.map((track) => {
-        // Only include intermediate spaces, not the prime endpoints
-        const allPoints = track.spaces;
-        
-        if (allPoints.length < 2) return null;
-        
+        // Include prime endpoints but inset them to avoid overlap
+        const allPoints = [track.primeStart, ...track.spaces, track.primeEnd];
         const rawCenters = allPoints.map((n) => getCellCenter(boardEl, n)).filter(Boolean) as { x: number; y: number }[];
 
         if (rawCenters.length < 2) return null;
 
-        // Use raw centers directly since we're only dealing with intermediate spaces
-        const centers = rawCenters;
+        // Inset the prime endpoints (first and last) significantly to avoid circles
+        const centers: { x: number; y: number }[] = [];
+        for (let i = 0; i < rawCenters.length; i++) {
+          if (i === 0) {
+            // First point (primeStart) - inset toward next point
+            const next = rawCenters[1];
+            const dx = next.x - rawCenters[i].x;
+            const dy = next.y - rawCenters[i].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+              centers.push({
+                x: rawCenters[i].x + (dx / dist) * trackInset,
+                y: rawCenters[i].y + (dy / dist) * trackInset,
+              });
+            } else {
+              centers.push(rawCenters[i]);
+            }
+          } else if (i === rawCenters.length - 1) {
+            // Last point (primeEnd) - inset toward previous point
+            const prev = rawCenters[i - 1];
+            const dx = prev.x - rawCenters[i].x;
+            const dy = prev.y - rawCenters[i].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+              centers.push({
+                x: rawCenters[i].x + (dx / dist) * trackInset,
+                y: rawCenters[i].y + (dy / dist) * trackInset,
+              });
+            } else {
+              centers.push(rawCenters[i]);
+            }
+          } else {
+            // Intermediate points - use as-is
+            centers.push(rawCenters[i]);
+          }
+        }
 
         const state = animationStates.get(track.id);
         const progress = state?.progress ?? (track.animating ? 0 : 1);
