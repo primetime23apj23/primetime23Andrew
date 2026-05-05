@@ -172,6 +172,11 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
   if (!boardRef.current || tracks.length === 0) return null;
 
   const boardEl = boardRef.current;
+  const boardRect = boardEl.getBoundingClientRect();
+  const cellWidth = boardRect.width / 10;
+  const cellHeight = boardRect.height / 10;
+  // Reduce track size to not overlap prime numbers - use about 70% of cell size
+  const trackInset = Math.min(cellWidth, cellHeight) * 0.15;
 
   return (
     <svg
@@ -180,9 +185,60 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
     >
       {tracks.map((track) => {
         const allPoints = [track.primeStart, ...track.spaces, track.primeEnd];
-        const centers = allPoints.map((n) => getCellCenter(boardEl, n)).filter(Boolean) as { x: number; y: number }[];
+        const rawCenters = allPoints.map((n) => getCellCenter(boardEl, n)).filter(Boolean) as { x: number; y: number }[];
 
-        if (centers.length < 2) return null;
+        if (rawCenters.length < 2) return null;
+
+        // Inset the track to not overlap prime numbers - move centers closer to line path
+        const centers: { x: number; y: number }[] = [];
+        for (let i = 0; i < rawCenters.length; i++) {
+          if (i === 0 || i === rawCenters.length - 1) {
+            // For start and end points (primes), inset toward the next/prev point
+            const neighbor = i === 0 ? rawCenters[1] : rawCenters[rawCenters.length - 2];
+            const dx = neighbor.x - rawCenters[i].x;
+            const dy = neighbor.y - rawCenters[i].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+              centers.push({
+                x: rawCenters[i].x + (dx / dist) * trackInset,
+                y: rawCenters[i].y + (dy / dist) * trackInset,
+              });
+            } else {
+              centers.push(rawCenters[i]);
+            }
+          } else {
+            // For intermediate points, move toward the line direction
+            const prev = rawCenters[i - 1];
+            const next = rawCenters[i + 1];
+            const dx1 = rawCenters[i].x - prev.x;
+            const dy1 = rawCenters[i].y - prev.y;
+            const dx2 = next.x - rawCenters[i].x;
+            const dy2 = next.y - rawCenters[i].y;
+            const dist1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+            const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+            
+            let moveX = 0, moveY = 0;
+            if (dist1 > 0) {
+              moveX -= (dx1 / dist1) * trackInset;
+              moveY -= (dy1 / dist1) * trackInset;
+            }
+            if (dist2 > 0) {
+              moveX += (dx2 / dist2) * trackInset;
+              moveY += (dy2 / dist2) * trackInset;
+            }
+            
+            const moveLen = Math.sqrt(moveX * moveX + moveY * moveY);
+            if (moveLen > 0) {
+              const clampedInset = Math.min(trackInset, moveLen);
+              centers.push({
+                x: rawCenters[i].x + (moveX / moveLen) * clampedInset,
+                y: rawCenters[i].y + (moveY / moveLen) * clampedInset,
+              });
+            } else {
+              centers.push(rawCenters[i]);
+            }
+          }
+        }
 
         const state = animationStates.get(track.id);
         const progress = state?.progress ?? (track.animating ? 0 : 1);
@@ -336,11 +392,11 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
               opacity="0.15"
             />
             
-            {/* Station markers at primes */}
+            {/* Station markers at primes - use raw centers to position at actual prime cells */}
             {progress >= 1 && (
               <>
-                <circle cx={centers[0].x} cy={centers[0].y} r="6" fill={track.playerColor} opacity="0.8" stroke="white" strokeWidth="1.5" />
-                <circle cx={centers[centers.length - 1].x} cy={centers[centers.length - 1].y} r="6" fill={track.playerColor} opacity="0.8" stroke="white" strokeWidth="1.5" />
+                <circle cx={rawCenters[0].x} cy={rawCenters[0].y} r="6" fill={track.playerColor} opacity="0.8" stroke="white" strokeWidth="1.5" />
+                <circle cx={rawCenters[rawCenters.length - 1].x} cy={rawCenters[rawCenters.length - 1].y} r="6" fill={track.playerColor} opacity="0.8" stroke="white" strokeWidth="1.5" />
               </>
             )}
             
