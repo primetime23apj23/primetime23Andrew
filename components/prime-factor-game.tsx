@@ -1519,7 +1519,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
               
               if (bonusGained > 0) {
                 setTimeout(() => {
-                  spawnFireworks(pos.x, pos.y);
                   spawnPointAnimation(pos.x - 30, pos.y - 30, bonusGained, true);
                 }, 300);
               }
@@ -1529,14 +1528,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 newPlayers[prev.currentPlayer].bonusPoints;
               
               if (totalScore >= prev.targetScore) {
-                for (let i = 0; i < 5; i++) {
-                  setTimeout(() => {
-                    const offsetX = (Math.random() - 0.5) * 200;
-                    const offsetY = (Math.random() - 0.5) * 200;
-                    spawnFireworks(pos.x + offsetX, pos.y + offsetY);
-                  }, i * 200);
-                }
-                
+                // Train celebration will handle the victory animation
+                setCelebrationNumbers(ownedNumbers);
+                setIsTrainCelebrating(true);
                 return {
                   ...prev,
                   board: newBoard,
