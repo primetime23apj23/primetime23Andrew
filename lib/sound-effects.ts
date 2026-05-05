@@ -16,31 +16,40 @@ function getAudioContext(): window.AudioContext {
 }
 
 /**
- * Play a capture sound effect - short beep-like sound
+ * Play a capture sound effect - train chugga chugga chugga chugga pattern
  */
 export function playCapturSound(): void {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
     
-    // Create a short beep - ascending tone
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    // Train chugging pattern: chugga chugga chugga chugga
+    const chugPattern = [0, 0.08, 0.16, 0.24]; // 4 chugs
+    const chugDuration = 0.06;
+    const chugFrequency = 200; // Low train-like frequency
     
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(400, now);
-    osc.frequency.linearRampToValueAtTime(600, now + 0.1);
-    
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-    
-    osc.start(now);
-    osc.stop(now + 0.15);
+    for (const chugTime of chugPattern) {
+      const start = now + chugTime;
+      
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(chugFrequency, start);
+      
+      // Sharp attack, quick decay for chug effect
+      gain.gain.setValueAtTime(0.4, start);
+      gain.gain.linearRampToValueAtTime(0.1, start + chugDuration * 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.01, start + chugDuration);
+      
+      osc.start(start);
+      osc.stop(start + chugDuration);
+    }
   } catch (error) {
-    console.log("[v0] Sound effect skipped:", error);
+    console.log("[v0] Train sound effect skipped:", error);
   }
 }
 
@@ -123,17 +132,21 @@ export function playBonusSound(bonusSpaces: number = 1): void {
 }
 
 /**
- * Play victory sound - ascending tone flourish
+ * Play victory sound - train whistle "choo choo" pattern
  */
 export function playVictorySound(): void {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
     
-    const frequencies = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    // Train whistle pattern: two high pitched "choo" sounds
+    // First choo - high and bright
+    const chooFrequencies = [900, 1100]; // Two choos
+    const chooDuration = 0.4;
+    const chooDelay = 0.5;
     
-    for (let i = 0; i < frequencies.length; i++) {
-      const noteStart = now + i * 0.15;
+    for (let i = 0; i < chooFrequencies.length; i++) {
+      const chooStart = now + i * chooDelay;
       
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -142,15 +155,21 @@ export function playVictorySound(): void {
       gain.connect(ctx.destination);
       
       osc.type = "sine";
-      osc.frequency.setValueAtTime(frequencies[i], noteStart);
       
-      gain.gain.setValueAtTime(0.3, noteStart);
-      gain.gain.exponentialRampToValueAtTime(0.01, noteStart + 0.2);
+      // Sliding frequency for train whistle effect
+      osc.frequency.setValueAtTime(chooFrequencies[i], chooStart);
+      osc.frequency.linearRampToValueAtTime(chooFrequencies[i] * 0.9, chooStart + chooDuration * 0.7);
+      osc.frequency.linearRampToValueAtTime(chooFrequencies[i], chooStart + chooDuration);
       
-      osc.start(noteStart);
-      osc.stop(noteStart + 0.2);
+      // Whistle-like envelope
+      gain.gain.setValueAtTime(0, chooStart);
+      gain.gain.linearRampToValueAtTime(0.5, chooStart + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, chooStart + chooDuration);
+      
+      osc.start(chooStart);
+      osc.stop(chooStart + chooDuration);
     }
   } catch (error) {
-    console.log("[v0] Victory sound effect skipped:", error);
+    console.log("[v0] Victory train whistle skipped:", error);
   }
 }
