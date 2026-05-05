@@ -185,7 +185,7 @@ function DieComponent({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       className={cn(
-        "w-12 h-12 sm:w-14 sm:h-14 rounded-lg font-bold text-lg sm:text-xl",
+        "w-14 h-14 sm:w-16 sm:h-16 rounded-lg font-black text-2xl sm:text-3xl",
         "flex items-center justify-center transition-all duration-200",
         "focus:outline-none focus:ring-2 focus:ring-ring",
         "shadow-md hover:shadow-lg overflow-hidden relative border",

@@ -1540,6 +1540,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
               
               const nextPlayer = (prev.currentPlayer + 1) % prev.players.length;
               
+              // Play capture sound (train horn) for claiming the space
+              playCapturSound();
+              
               // Play opponent move sound to indicate turn change
               playOpponentMoveSound();
               
@@ -1773,7 +1776,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
             {/* Both Players' Dice Side by Side (below board) */}
             {diceRolled && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-4">
                 {/* Player 1 Dice */}
                 <div className={gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
                   <DiceTray
@@ -1790,6 +1793,16 @@ const channel = subscribeToSession(sessionCode, (session) => {
                     playerName={gameState.players[0].name}
                   />
                 </div>
+
+                {/* Space Detail (Claim Button) - Between Player 1 and Player 2 */}
+                <SpaceDetail
+                  space={selectedSpace}
+                  selectedDice={selectedDiceObjects}
+                  canClaim={canClaimSpace}
+                  onClaim={handleClaim}
+                  onCancel={handleCancel}
+                  isAutoSelected={diceAutoSelected}
+                />
                 
                 {/* Player 2 Dice - hidden until after first move */}
                 <div className={gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
@@ -1812,16 +1825,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 </div>
               </div>
             )}
-
-            {/* Space Detail (below dice) */}
-            <SpaceDetail
-              space={selectedSpace}
-              selectedDice={selectedDiceObjects}
-              canClaim={canClaimSpace}
-              onClaim={handleClaim}
-              onCancel={handleCancel}
-              isAutoSelected={diceAutoSelected}
-            />
           </div>
 
           {/* Sidebar */}
