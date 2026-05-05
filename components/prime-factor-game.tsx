@@ -32,7 +32,7 @@ import {
 import { BonusBreakdownPanel } from "./bonus-breakdown";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
-import { playCapturSound, playBonusSound, playVictorySound } from "@/lib/sound-effects";
+import { playCapturSound, playVictorySound } from "@/lib/sound-effects";
 import { TrainCelebration } from "./train-celebration";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
@@ -395,7 +395,8 @@ export function PrimeFactorGame() {
     if (gameState.phase !== "playing" || !diceRolled) return;
     
     if (!hasAnyValidMove && currentPlayerDice.length >= 0) {
-      const opponentIndex = (gameState.currentPlayer + 1) % 2;
+      const currentPlayerIndex = gameState.currentPlayer;
+      const opponentIndex = (gameState.currentPlayer + 1) % gameState.players.length;
       const opponentDiceArr = opponentIndex === 0 ? player1Dice : player2Dice;
       
       const availableSpaces = gameState.board.filter(
@@ -426,8 +427,10 @@ export function PrimeFactorGame() {
           ...prev,
           currentPlayer: opponentIndex,
           selectedDice: [],
-          message: `${prev.players[prev.currentPlayer].name} has no valid moves. ${prev.players[opponentIndex].name}'s turn!`,
+          phase: "rolling",
+          message: `${prev.players[currentPlayerIndex].name} has no valid moves. ${prev.players[opponentIndex].name}'s turn! Roll your dice.`,
         }));
+        setDiceRolled(false);
       }
     }
   }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, player1Dice, player2Dice, gameState.board, gameState.players]);
@@ -489,8 +492,8 @@ export function PrimeFactorGame() {
     
     setSelectedSpace(space);
     
-    // Auto-select dice that can match this space if no dice are currently selected
-    if (gameState.selectedDice.length === 0 && !space.isPrime && !space.owner) {
+    // Auto-select dice that can match this space (always, even if dice were previously selected)
+    if (!space.isPrime && !space.owner && space.factors.length > 0) {
       // Find a valid combination of dice that matches the space
       const match = canMatchFactorization(
         space.factors,
@@ -505,11 +508,23 @@ export function PrimeFactorGame() {
           selectedDice: matchedDiceIds,
         }));
         setDiceAutoSelected(true);
+      } else {
+        // No match found, clear selection
+        setGameState((prev) => ({
+          ...prev,
+          selectedDice: [],
+        }));
+        setDiceAutoSelected(false);
       }
     } else {
+      // Prime or owned space, clear selection
+      setGameState((prev) => ({
+        ...prev,
+        selectedDice: [],
+      }));
       setDiceAutoSelected(false);
     }
-  }, [isLocalPlayersTurn, isMultiplayer, gameState.selectedDice.length, currentPlayerDice]);
+  }, [isLocalPlayersTurn, isMultiplayer, currentPlayerDice, canMatchFactorization, gameState]);
 
   // Check if selected dice match the space
   const canClaimSpace = useMemo(() => {
@@ -1248,7 +1263,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     if (bonusGained > 0) {
       setTimeout(() => {
-        playBonusSound(breakdown.reduce((sum, b) => sum + b.spaces.length, 0));
         spawnFireworks(pos.x, pos.y);
         spawnPointAnimation(pos.x - 30, pos.y - 30, bonusGained, true);
       }, 300);

@@ -16,31 +16,18 @@ function getAudioContext(): window.AudioContext {
 }
 
 /**
- * Play a capture sound effect - short beep-like sound
+ * Play a capture sound effect - train horn
  */
 export function playCapturSound(): void {
   try {
-    const ctx = getAudioContext();
-    const now = ctx.currentTime;
-    
-    // Create a short beep - ascending tone
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(400, now);
-    osc.frequency.linearRampToValueAtTime(600, now + 0.1);
-    
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-    
-    osc.start(now);
-    osc.stop(now + 0.15);
+    const audio = new Audio("/sounds/train-horn.mp3");
+    audio.volume = 0.3;
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Silently fail if audio can't play
+    });
   } catch (error) {
-    console.log("[v0] Sound effect skipped:", error);
+    console.log("[v0] Train sound effect skipped:", error);
   }
 }
 
@@ -123,34 +110,17 @@ export function playBonusSound(bonusSpaces: number = 1): void {
 }
 
 /**
- * Play victory sound - ascending tone flourish
+ * Play victory sound - train horn celebration
  */
 export function playVictorySound(): void {
   try {
-    const ctx = getAudioContext();
-    const now = ctx.currentTime;
-    
-    const frequencies = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
-    
-    for (let i = 0; i < frequencies.length; i++) {
-      const noteStart = now + i * 0.15;
-      
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(frequencies[i], noteStart);
-      
-      gain.gain.setValueAtTime(0.3, noteStart);
-      gain.gain.exponentialRampToValueAtTime(0.01, noteStart + 0.2);
-      
-      osc.start(noteStart);
-      osc.stop(noteStart + 0.2);
-    }
+    const audio = new Audio("/sounds/train-horn.mp3");
+    audio.volume = 0.4;
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Silently fail if audio can't play
+    });
   } catch (error) {
-    console.log("[v0] Victory sound effect skipped:", error);
+    console.log("[v0] Victory train horn skipped:", error);
   }
 }

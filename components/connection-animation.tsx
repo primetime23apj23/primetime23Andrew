@@ -175,8 +175,8 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
   const boardRect = boardEl.getBoundingClientRect();
   const cellWidth = boardRect.width / 10;
   const cellHeight = boardRect.height / 10;
-  // Reduce track size to not overlap prime numbers - use about 70% of cell size
-  const trackInset = Math.min(cellWidth, cellHeight) * 0.15;
+  // Large inset to avoid overlapping prime number circles
+  const trackInset = Math.min(cellWidth, cellHeight) * 0.35;
 
   return (
     <svg
@@ -184,19 +184,34 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
       style={{ width: "100%", height: "100%", overflow: "visible" }}
     >
       {tracks.map((track) => {
+        // Include prime endpoints but inset them to avoid overlap
         const allPoints = [track.primeStart, ...track.spaces, track.primeEnd];
         const rawCenters = allPoints.map((n) => getCellCenter(boardEl, n)).filter(Boolean) as { x: number; y: number }[];
 
         if (rawCenters.length < 2) return null;
 
-        // Inset the track to not overlap prime numbers - move centers closer to line path
+        // Inset the prime endpoints (first and last) significantly to avoid circles
         const centers: { x: number; y: number }[] = [];
         for (let i = 0; i < rawCenters.length; i++) {
-          if (i === 0 || i === rawCenters.length - 1) {
-            // For start and end points (primes), inset toward the next/prev point
-            const neighbor = i === 0 ? rawCenters[1] : rawCenters[rawCenters.length - 2];
-            const dx = neighbor.x - rawCenters[i].x;
-            const dy = neighbor.y - rawCenters[i].y;
+          if (i === 0) {
+            // First point (primeStart) - inset toward next point
+            const next = rawCenters[1];
+            const dx = next.x - rawCenters[i].x;
+            const dy = next.y - rawCenters[i].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+              centers.push({
+                x: rawCenters[i].x + (dx / dist) * trackInset,
+                y: rawCenters[i].y + (dy / dist) * trackInset,
+              });
+            } else {
+              centers.push(rawCenters[i]);
+            }
+          } else if (i === rawCenters.length - 1) {
+            // Last point (primeEnd) - inset toward previous point
+            const prev = rawCenters[i - 1];
+            const dx = prev.x - rawCenters[i].x;
+            const dy = prev.y - rawCenters[i].y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist > 0) {
               centers.push({
@@ -207,36 +222,8 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
               centers.push(rawCenters[i]);
             }
           } else {
-            // For intermediate points, move toward the line direction
-            const prev = rawCenters[i - 1];
-            const next = rawCenters[i + 1];
-            const dx1 = rawCenters[i].x - prev.x;
-            const dy1 = rawCenters[i].y - prev.y;
-            const dx2 = next.x - rawCenters[i].x;
-            const dy2 = next.y - rawCenters[i].y;
-            const dist1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
-            const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-            
-            let moveX = 0, moveY = 0;
-            if (dist1 > 0) {
-              moveX -= (dx1 / dist1) * trackInset;
-              moveY -= (dy1 / dist1) * trackInset;
-            }
-            if (dist2 > 0) {
-              moveX += (dx2 / dist2) * trackInset;
-              moveY += (dy2 / dist2) * trackInset;
-            }
-            
-            const moveLen = Math.sqrt(moveX * moveX + moveY * moveY);
-            if (moveLen > 0) {
-              const clampedInset = Math.min(trackInset, moveLen);
-              centers.push({
-                x: rawCenters[i].x + (moveX / moveLen) * clampedInset,
-                y: rawCenters[i].y + (moveY / moveLen) * clampedInset,
-              });
-            } else {
-              centers.push(rawCenters[i]);
-            }
+            // Intermediate points - use as-is
+            centers.push(rawCenters[i]);
           }
         }
 
