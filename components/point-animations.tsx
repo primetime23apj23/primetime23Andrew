@@ -32,14 +32,7 @@ export function PointAnimations({
 }: PointAnimationsProps) {
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {/* Floating emoji animations */}
-      {animations.map((anim) => (
-        <FloatingPoint
-          key={anim.id}
-          {...anim}
-          onComplete={() => onAnimationComplete(anim.id)}
-        />
-      ))}
+      {/* No animations - keeping clean board */}
     </div>
   );
 }
