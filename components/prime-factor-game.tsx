@@ -40,6 +40,26 @@ import { WaitingRoomDialog } from "./waiting-room-dialog";
 import { GameLobby } from "./game-lobby";
 import { GameSetupForm } from "./game-setup-dialog";
 import {
+  generateSessionCode,
+  generatePlayerId,
+  sendHeartbeat,
+  persistGameState,
+  getLatestGameStateRecord,
+  applySavedGameState,
+  createGameLobby,
+  joinGameLobby,
+  cancelGameLobby,
+  getGameSession,
+  getGameSessionById,
+  getGameStates,
+  subscribeToSession,
+  subscribeToGameState,
+  updateGameState,
+  validateTurn,
+  updateCurrentTurn,
+} from "@/lib/supabase-multiplayer";
+import { usePlayerProfile } from "@/hooks/use-player-profile";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -48,10 +68,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles } from "lucide-react";
-import { createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGameSessionById, getGameStates, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId, sendHeartbeat, validateTurn, updateCurrentTurn } from "@/lib/supabase-multiplayer";
 import { AuthDialog } from "./auth-dialog";
 import { ActiveGamesDialog } from "./active-games-dialog";
-import { usePlayerProfile } from "@/hooks/use-player-profile";
 
 const createInitialState = (targetScore: number): GameState => ({
   board: generateBoard(),
@@ -97,6 +115,19 @@ export function PrimeFactorGame() {
   // Bot settings
   const [botEnabled, setBotEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
+  
+  // Multiplayer state
+  const [multiplayerMode, setMultiplayerMode] = useState<"lobby" | "create" | "join" | null>(null);
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionLocalPlayerId, setSessionLocalPlayerId] = useState<string | null>(null);
+  const [sessionPlayer1Id, setSessionPlayer1Id] = useState<string | null>(null);
+  const [sessionPlayer2Id, setSessionPlayer2Id] = useState<string | null>(null);
+  const [selectedGameType, setSelectedGameType] = useState("PrimeGame");
+  const [hasResumableGames, setHasResumableGames] = useState(false);
+  const [playerNames, setPlayerNames] = useState<[string, string]>(["Player 1", "Player 2"]);
+  
   const gameStateVersionRef = useRef<number>(-1);
 
   // Player profile
@@ -231,6 +262,15 @@ export function PrimeFactorGame() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
   const [pendingExitUrl, setPendingExitUrl] = useState<string | null>(null);
+
+  // Multiplayer derived state
+  const isMultiplayer = Boolean(sessionId);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
+  const [diceRolled, setDiceRolled] = useState(false);
+
+  // Dice state
+  const player1Dice = gameState.players[0].dice;
+  const player2Dice = gameState.players[1].dice;
 
   // Get current player's dice and opponent's dice
   const currentPlayerDice = gameState.currentPlayer === 0 ? player1Dice : player2Dice;
