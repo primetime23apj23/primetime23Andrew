@@ -395,7 +395,8 @@ export function PrimeFactorGame() {
     if (gameState.phase !== "playing" || !diceRolled) return;
     
     if (!hasAnyValidMove && currentPlayerDice.length >= 0) {
-      const opponentIndex = (gameState.currentPlayer + 1) % 2;
+      const currentPlayerIndex = gameState.currentPlayer;
+      const opponentIndex = (gameState.currentPlayer + 1) % gameState.players.length;
       const opponentDiceArr = opponentIndex === 0 ? player1Dice : player2Dice;
       
       const availableSpaces = gameState.board.filter(
@@ -426,8 +427,10 @@ export function PrimeFactorGame() {
           ...prev,
           currentPlayer: opponentIndex,
           selectedDice: [],
-          message: `${prev.players[prev.currentPlayer].name} has no valid moves. ${prev.players[opponentIndex].name}'s turn!`,
+          phase: "rolling",
+          message: `${prev.players[currentPlayerIndex].name} has no valid moves. ${prev.players[opponentIndex].name}'s turn! Roll your dice.`,
         }));
+        setDiceRolled(false);
       }
     }
   }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, player1Dice, player2Dice, gameState.board, gameState.players]);
