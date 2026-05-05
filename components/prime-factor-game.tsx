@@ -1515,14 +1515,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 return player;
               });
               
-              spawnPointAnimation(pos.x, pos.y, 1, false);
-              
-              if (bonusGained > 0) {
-                setTimeout(() => {
-                  spawnPointAnimation(pos.x - 30, pos.y - 30, bonusGained, true);
-                }, 300);
-              }
-              
               const totalScore =
                 newPlayers[prev.currentPlayer].score +
                 newPlayers[prev.currentPlayer].bonusPoints;
