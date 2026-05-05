@@ -46,6 +46,17 @@ import {
   persistGameState,
   getLatestGameStateRecord,
   applySavedGameState,
+  createGameLobby,
+  joinGameLobby,
+  cancelGameLobby,
+  getGameSession,
+  getGameSessionById,
+  getGameStates,
+  subscribeToSession,
+  subscribeToGameState,
+  updateGameState,
+  validateTurn,
+  updateCurrentTurn,
 } from "@/lib/supabase-multiplayer";
 import { usePlayerProfile } from "@/hooks/use-player-profile";
 import {
@@ -57,10 +68,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles } from "lucide-react";
-import { createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGameSessionById, getGameStates, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId, sendHeartbeat, validateTurn, updateCurrentTurn } from "@/lib/supabase-multiplayer";
 import { AuthDialog } from "./auth-dialog";
 import { ActiveGamesDialog } from "./active-games-dialog";
-import { usePlayerProfile } from "@/hooks/use-player-profile";
 
 const createInitialState = (targetScore: number): GameState => ({
   board: generateBoard(),
