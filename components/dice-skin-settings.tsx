@@ -22,24 +22,24 @@ export interface DiceSkin {
   label: string;
 }
 
-// Default animal skins for dice values
+// Default skins for dice values - simple colored boxes matching factorization style
 export const DEFAULT_SKINS: DiceSkin[] = [
-  { value: 2, imageUrl: "/dice-skins/owl.jpg", label: "2 - Owl" },
-  { value: 3, imageUrl: "/dice-skins/fox.jpg", label: "3 - Fox" },
-  { value: 5, imageUrl: "/dice-skins/cat.jpg", label: "5 - Cat" },
-  { value: 7, imageUrl: "/dice-skins/rabbit.jpg", label: "7 - Rabbit" },
-  { value: 11, imageUrl: "/dice-skins/bear.jpg", label: "11 - Bear" },
-  { value: 13, imageUrl: "/dice-skins/penguin.jpg", label: "13 - Penguin" },
-  { value: 17, imageUrl: "/dice-skins/lion.jpg", label: "17 - Lion" },
-  { value: 19, imageUrl: "/dice-skins/elephant.jpg", label: "19 - Elephant" },
-  { value: 23, imageUrl: "/dice-skins/giraffe.jpg", label: "23 - Giraffe" },
-  { value: 29, imageUrl: "/dice-skins/dolphin.jpg", label: "29 - Dolphin" },
-  { value: 31, imageUrl: "/dice-skins/eagle.jpg", label: "31 - Eagle" },
-  { value: 37, imageUrl: "/dice-skins/tiger.jpg", label: "37 - Tiger" },
-  { value: 41, imageUrl: "/dice-skins/panda.jpg", label: "41 - Panda" },
-  { value: 43, imageUrl: "/dice-skins/peacock.jpg", label: "43 - Peacock" },
-  { value: 47, imageUrl: "/dice-skins/wolf.jpg", label: "47 - Wolf" },
-  { value: "W", imageUrl: "/dice-skins/wild.jpg", label: "Wild Card" },
+  { value: 2, imageUrl: null, label: "2" },
+  { value: 3, imageUrl: null, label: "3" },
+  { value: 5, imageUrl: null, label: "5" },
+  { value: 7, imageUrl: null, label: "7" },
+  { value: 11, imageUrl: null, label: "11" },
+  { value: 13, imageUrl: null, label: "13" },
+  { value: 17, imageUrl: null, label: "17" },
+  { value: 19, imageUrl: null, label: "19" },
+  { value: 23, imageUrl: null, label: "23" },
+  { value: 29, imageUrl: null, label: "29" },
+  { value: 31, imageUrl: null, label: "31" },
+  { value: 37, imageUrl: null, label: "37" },
+  { value: 41, imageUrl: null, label: "41" },
+  { value: 43, imageUrl: null, label: "43" },
+  { value: 47, imageUrl: null, label: "47" },
+  { value: "W", imageUrl: null, label: "Wild" },
 ];
 
 interface DiceSkinSettingsProps {
