@@ -1260,12 +1260,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     playCapturSound();
 
-    if (bonusGained > 0) {
-      setTimeout(() => {
-        spawnFireworks(pos.x, pos.y);
-      }, 300);
-    }
-
     const totalScore =
       newPlayers[currentPlayerIndex].score +
       newPlayers[currentPlayerIndex].bonusPoints;
