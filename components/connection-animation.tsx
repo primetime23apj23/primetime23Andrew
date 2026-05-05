@@ -175,8 +175,8 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
   const boardRect = boardEl.getBoundingClientRect();
   const cellWidth = boardRect.width / 10;
   const cellHeight = boardRect.height / 10;
-  // Reduce track size to not overlap prime numbers - use about 70% of cell size
-  const trackInset = Math.min(cellWidth, cellHeight) * 0.15;
+  // Reduce track size to not overlap prime numbers - use larger inset for primes
+  const trackInset = Math.min(cellWidth, cellHeight) * 0.25;
 
   return (
     <svg
