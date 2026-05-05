@@ -273,7 +273,6 @@ export function PrimeFactorGame() {
   // Exit confirmation dialog
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showExitConfirmDialog, setShowExitConfirmDialog] = useState(false);
-  const [pendingExitUrl, setPendingExitUrl] = useState<string | null>(null);
 
   // Get current player's dice and opponent's dice
   const player1Dice = gameState.players[0].dice;
