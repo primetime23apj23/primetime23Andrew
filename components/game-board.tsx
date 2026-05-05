@@ -116,21 +116,16 @@ function BoardSpaceCell({
     );
   }
 
-  // Claimed space - show as removed
+  // Claimed space - fill entire cell with owner color
   if (space.claimed) {
     const ownerColor = space.owner !== null ? PLAYER_COLORS[space.owner] : null;
     return (
       <div 
         data-space={space.number}
-        className="w-full h-full bg-muted/50 border border-dashed border-muted-foreground/30 flex items-center justify-center relative overflow-hidden"
+        className="w-full h-full flex items-center justify-center relative overflow-hidden"
+        style={{ backgroundColor: ownerColor ? ownerColor + "CC" : "#E5E7EB" }}
       >
-        {ownerColor && (
-          <div
-            className="absolute top-0.5 right-0.5 w-2 h-2 sm:w-3 sm:h-3 rounded-full"
-            style={{ backgroundColor: ownerColor }}
-          />
-        )}
-        <span className="text-xs text-muted-foreground/50 line-through">{space.number}</span>
+        <span className="text-xs text-muted-foreground/30 line-through">{space.number}</span>
       </div>
     );
   }
@@ -154,21 +149,13 @@ function BoardSpaceCell({
         isHighlighted && "ring-2 ring-chart-1",
         isValidMove && !space.owner && "ring-2 ring-green-500"
       )}
-      style={ownerColor ? { backgroundColor: ownerColor + "33" } : undefined}
+      style={ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
     >
-      {/* Ownership indicator */}
-      {space.owner !== null && (
-        <div
-          className="absolute top-0.5 right-0.5 w-2 h-2 sm:w-3 sm:h-3 rounded-full"
-          style={{ backgroundColor: ownerColor ?? undefined }}
-        />
-      )}
-
-      {/* Number with red circle for primes */}
+      {/* Number with lighter red circle for primes */}
       <div
         className={cn(
           "flex items-center justify-center shrink-0",
-          space.isPrime && "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-500 dark:border-red-400"
+          space.isPrime && "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-300 dark:border-red-300"
         )}
       >
         <span
