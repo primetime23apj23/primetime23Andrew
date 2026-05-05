@@ -1757,9 +1757,21 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
         {/* Main Game Area */}
         <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-4">
-          {/* Board + Both Dice Trays */}
+          {/* Board + Dice Below + Space Detail */}
           <div className="space-y-4 order-first lg:order-none">
-            {/* Both Players' Dice Side by Side (above board) */}
+            {/* Game Board */}
+            <div>
+              <GameBoard
+                board={gameState.board}
+                tracks={completedTracks}
+                boardRef={trackBoardRef}
+                onSpaceClick={handleSpaceClick}
+                highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
+                validMoves={allHighlightedMoves}
+              />
+            </div>
+
+            {/* Both Players' Dice Side by Side (below board) */}
             {diceRolled && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* Player 1 Dice */}
@@ -1801,16 +1813,15 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             )}
 
-            <div>
-              <GameBoard
-                board={gameState.board}
-                tracks={completedTracks}
-                boardRef={trackBoardRef}
-                onSpaceClick={handleSpaceClick}
-                highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
-                validMoves={allHighlightedMoves}
-              />
-            </div>
+            {/* Space Detail (below dice) */}
+            <SpaceDetail
+              space={selectedSpace}
+              selectedDice={selectedDiceObjects}
+              canClaim={canClaimSpace}
+              onClaim={handleClaim}
+              onCancel={handleCancel}
+              isAutoSelected={diceAutoSelected}
+            />
           </div>
 
           {/* Sidebar */}
@@ -1843,15 +1854,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
   onShowRules={() => setShowRules(true)}
   onShowTutorial={() => setShowTutorial(true)}
   message={gameState.message}
-            />
-            
-            <SpaceDetail
-              space={selectedSpace}
-              selectedDice={selectedDiceObjects}
-              canClaim={canClaimSpace}
-              onClaim={handleClaim}
-              onCancel={handleCancel}
-              isAutoSelected={diceAutoSelected}
             />
             
             <BonusBreakdownPanel history={bonusHistory} />
