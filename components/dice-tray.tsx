@@ -147,7 +147,31 @@ function DieComponent({
   onDragEnd,
 }: DieComponentProps) {
   const isWild = die.value === "W";
-  const hasImage = skin?.imageUrl;
+  
+  // Get color based on prime value - matching factorization colors
+  const getColorClasses = () => {
+    const value = die.value;
+    if (value === "W") return "bg-gradient-to-br from-amber-100 to-amber-200 border-amber-400";
+    
+    switch (value) {
+      case 2: return "bg-green-100 dark:bg-green-900 border-yellow-500 dark:border-yellow-400";
+      case 3: return "bg-green-100 dark:bg-green-900 border-yellow-500 dark:border-yellow-400";
+      case 5: return "bg-sky-100 dark:bg-sky-900 border-yellow-500 dark:border-yellow-400";
+      case 7: return "bg-amber-100 dark:bg-amber-900 border-yellow-500 dark:border-yellow-400";
+      case 11: return "bg-orange-100 dark:bg-orange-900 border-yellow-500 dark:border-yellow-400";
+      case 13: return "bg-red-100 dark:bg-red-900 border-yellow-500 dark:border-yellow-400";
+      case 17: return "bg-teal-100 dark:bg-teal-900 border-yellow-500 dark:border-yellow-400";
+      case 19: return "bg-indigo-100 dark:bg-indigo-900 border-yellow-500 dark:border-yellow-400";
+      case 23: return "bg-yellow-100 dark:bg-yellow-900 border-yellow-500 dark:border-yellow-400";
+      case 29: return "bg-violet-200 dark:bg-violet-800 border-yellow-500 dark:border-yellow-400";
+      case 31: return "bg-green-100 dark:bg-green-900 border-yellow-500 dark:border-yellow-400";
+      case 37: return "bg-purple-100 dark:bg-purple-900 border-yellow-500 dark:border-yellow-400";
+      case 41: return "bg-stone-200 dark:bg-stone-800 border-yellow-500 dark:border-yellow-400";
+      case 43: return "bg-pink-100 dark:bg-pink-900 border-yellow-500 dark:border-yellow-400";
+      case 47: return "bg-amber-200 dark:bg-amber-800 border-yellow-500 dark:border-yellow-400";
+      default: return "bg-white dark:bg-zinc-900 border-border";
+    }
+  };
 
   return (
     <button
@@ -164,45 +188,20 @@ function DieComponent({
         "w-12 h-12 sm:w-14 sm:h-14 rounded-lg font-bold text-lg sm:text-xl",
         "flex items-center justify-center transition-all duration-200",
         "focus:outline-none focus:ring-2 focus:ring-ring",
-        "shadow-md hover:shadow-lg overflow-hidden relative",
+        "shadow-md hover:shadow-lg overflow-hidden relative border",
         die.used && "opacity-30 cursor-not-allowed",
         !die.used && !disabled && "cursor-grab hover:-translate-y-0.5",
         isDragging && "opacity-50 scale-95 cursor-grabbing",
         isDragOver && "ring-2 ring-blue-500 scale-105",
         isSelected
           ? "ring-2 ring-chart-1 ring-offset-2 scale-110"
-          : "border-2 border-border",
-        !hasImage && isSelected && "bg-chart-1 text-white",
-        !hasImage && !isSelected && "bg-white text-foreground",
-        !hasImage && isWild && !isSelected && "bg-gradient-to-br from-amber-100 to-amber-200 border-amber-400"
+          : "",
+        getColorClasses()
       )}
     >
-      {hasImage ? (
-        <>
-          <img
-            src={skin.imageUrl || ""}
-            alt={`Dice ${die.value}`}
-            className={cn(
-              "w-full h-full object-cover",
-              isSelected && "brightness-110"
-            )}
-          />
-          <span
-            className={cn(
-              "absolute bottom-0 right-0 text-xs font-bold px-1 rounded-tl",
-              isSelected
-                ? "bg-chart-1 text-white"
-                : "bg-black/70 text-white"
-            )}
-          >
-            {die.value === "W" ? "W" : die.value}
-          </span>
-        </>
-      ) : die.value === "W" ? (
-        <span className="text-amber-600 text-base sm:text-lg">W</span>
-      ) : (
-        die.value
-      )}
+      <span className="text-foreground">
+        {die.value === "W" ? "W" : die.value}
+      </span>
     </button>
   );
 }
