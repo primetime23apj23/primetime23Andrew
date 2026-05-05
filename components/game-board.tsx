@@ -151,10 +151,11 @@ function BoardSpaceCell({
       )}
       style={ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
     >
-      {/* Number display for primes and composite numbers */}
+      {/* Number with circle for primes */}
       <div
         className={cn(
-          "flex items-center justify-center shrink-0"
+          "flex items-center justify-center shrink-0",
+          space.isPrime && "w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 dark:border-gray-600"
         )}
       >
         <span
