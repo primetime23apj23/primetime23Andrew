@@ -175,8 +175,8 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
   const boardRect = boardEl.getBoundingClientRect();
   const cellWidth = boardRect.width / 10;
   const cellHeight = boardRect.height / 10;
-  // Large inset to avoid overlapping prime number circles
-  const trackInset = Math.min(cellWidth, cellHeight) * 0.35;
+  // Moderate inset to have tracks touch close to the circle edge
+  const trackInset = Math.min(cellWidth, cellHeight) * 0.25;
 
   return (
     <svg

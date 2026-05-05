@@ -141,7 +141,7 @@ function BoardSpaceCell({
         className="w-full h-full flex items-center justify-center relative overflow-hidden"
         style={{ backgroundColor: ownerColor ? ownerColor + "CC" : "#E5E7EB" }}
       >
-        <span className="text-xs font-bold text-foreground">{space.number}</span>
+        <span className="text-lg font-bold text-foreground relative z-50">{space.number}</span>
       </div>
     );
   }
