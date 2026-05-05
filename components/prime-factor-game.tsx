@@ -271,8 +271,8 @@ export function PrimeFactorGame() {
   }, [isMultiplayer, sessionId, sessionLocalPlayerId]);
 
   // Get current player's dice and opponent's dice
-  const player1Dice = gameState.players[0].dice;
-  const player2Dice = gameState.players[1].dice;
+  const player1Dice = gameState?.players?.[0]?.dice || [];
+  const player2Dice = gameState?.players?.[1]?.dice || [];
   const currentPlayerDice = gameState.currentPlayer === 0 ? player1Dice : player2Dice;
   const localPlayerIndex = useMemo(() => {
     if (!isMultiplayer) return gameState.currentPlayer;
@@ -286,9 +286,9 @@ export function PrimeFactorGame() {
 
   // Calculate valid moves based on selected dice
   const validMoves = useMemo(() => {
-    if (gameState.selectedDice.length === 0) return [];
+    if (!gameState?.selectedDice || gameState.selectedDice.length === 0) return [];
     
-    const selectedDieValues = currentPlayerDice
+    const selectedDieValues = (currentPlayerDice || [])
       .filter((d) => gameState.selectedDice.includes(d.id))
       .map((d) => d.value);
     
@@ -301,11 +301,11 @@ export function PrimeFactorGame() {
     
     const product = numericValues.reduce((a, b) => a * b, 1);
     
-    return gameState.board
+    return (gameState?.board || [])
       .filter((space) => {
         if (space.isPrime || space.owner !== null || space.number === 0 || space.claimed) return false;
         
-        const factors = space.factors;
+        const factors = space.factors || [];
         if (factors.length !== selectedDieValues.length) return false;
         
         if (wildCount === 0) {
@@ -316,7 +316,7 @@ export function PrimeFactorGame() {
         return false;
       })
       .map((s) => s.number);
-  }, [gameState.selectedDice, currentPlayerDice, gameState.board]);
+  }, [gameState?.selectedDice, currentPlayerDice, gameState?.board]);
 
   // Highlight possible board spaces where selected dice are a valid subset of the space's factors
   const possibleMoveHighlights = useMemo(() => {
