@@ -110,6 +110,37 @@ export function playBonusSound(bonusSpaces: number = 1): void {
 }
 
 /**
+ * Play opponent/bot move sound - whistle or notification
+ */
+export function playOpponentMoveSound(): void {
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+    
+    // Create a pleasant whistle sound to indicate opponent's move
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    osc.type = "sine";
+    // Descending pitch pattern - opposite of ascending bonus sound
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.linearRampToValueAtTime(600, now + 0.15);
+    osc.frequency.linearRampToValueAtTime(500, now + 0.25);
+    
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+    
+    osc.start(now);
+    osc.stop(now + 0.25);
+  } catch (error) {
+    console.log("[v0] Opponent move sound skipped:", error);
+  }
+}
+
+/**
  * Play victory sound - train horn celebration
  */
 export function playVictorySound(): void {
