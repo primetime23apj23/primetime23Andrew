@@ -1540,6 +1540,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
               
               const nextPlayer = (prev.currentPlayer + 1) % prev.players.length;
               
+              // Play capture sound (train horn) for claiming the space
+              playCapturSound();
+              
               // Play opponent move sound to indicate turn change
               playOpponentMoveSound();
               
