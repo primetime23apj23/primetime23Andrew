@@ -149,7 +149,7 @@ function BoardSpaceCell({
         isHighlighted && "ring-2 ring-chart-1",
         isValidMove && !space.owner && "ring-2 ring-green-500"
       )}
-      style={ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
+      style={!space.isPrime && ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
     >
       {/* Number with circle for primes */}
       <div
