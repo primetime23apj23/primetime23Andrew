@@ -32,7 +32,7 @@ import {
 import { BonusBreakdownPanel } from "./bonus-breakdown";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
-import { playCapturSound, playVictorySound } from "@/lib/sound-effects";
+import { playCapturSound, playVictorySound, playOpponentMoveSound } from "@/lib/sound-effects";
 import { TrainCelebration } from "./train-celebration";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
@@ -1400,6 +1400,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
               message: `${gameState.players[nextPlayer].name}'s turn! Select dice to claim a space.`,
             };
 
+    // Play opponent move sound when transitioning to next player
+    if (nextGameState.currentPlayer !== gameState.currentPlayer) {
+      playOpponentMoveSound();
+    }
+
     setGameState(nextGameState);
     void persistGameState('end-turn', {
       gameState: nextGameState,
@@ -1534,6 +1539,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
               }
               
               const nextPlayer = (prev.currentPlayer + 1) % prev.players.length;
+              
+              // Play opponent move sound to indicate turn change
+              playOpponentMoveSound();
               
               return {
                 ...prev,
