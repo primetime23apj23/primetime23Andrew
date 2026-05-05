@@ -99,6 +99,9 @@ export function PrimeFactorGame() {
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
   const gameStateVersionRef = useRef<number>(-1);
 
+  // Player profile
+  const { user: authUser } = usePlayerProfile();
+
   // Local player id
   useEffect(() => {
     const id = generatePlayerId();
