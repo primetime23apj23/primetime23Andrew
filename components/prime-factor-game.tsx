@@ -492,8 +492,8 @@ export function PrimeFactorGame() {
     
     setSelectedSpace(space);
     
-    // Auto-select dice that can match this space if no dice are currently selected
-    if (gameState.selectedDice.length === 0 && !space.isPrime && !space.owner) {
+    // Auto-select dice that can match this space (always, even if dice were previously selected)
+    if (!space.isPrime && !space.owner && space.factors.length > 0) {
       // Find a valid combination of dice that matches the space
       const match = canMatchFactorization(
         space.factors,
@@ -508,11 +508,23 @@ export function PrimeFactorGame() {
           selectedDice: matchedDiceIds,
         }));
         setDiceAutoSelected(true);
+      } else {
+        // No match found, clear selection
+        setGameState((prev) => ({
+          ...prev,
+          selectedDice: [],
+        }));
+        setDiceAutoSelected(false);
       }
     } else {
+      // Prime or owned space, clear selection
+      setGameState((prev) => ({
+        ...prev,
+        selectedDice: [],
+      }));
       setDiceAutoSelected(false);
     }
-  }, [isLocalPlayersTurn, isMultiplayer, gameState.selectedDice.length, currentPlayerDice]);
+  }, [isLocalPlayersTurn, isMultiplayer, currentPlayerDice, canMatchFactorization, gameState]);
 
   // Check if selected dice match the space
   const canClaimSpace = useMemo(() => {
