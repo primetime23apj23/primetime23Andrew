@@ -190,7 +190,7 @@ function BoardSpaceCell({
             <span 
               key={idx}
               className={cn(
-                "w-5 h-5 sm:w-6 sm:h-6 text-[11px] sm:text-[13px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
+                "w-4 h-4 sm:w-5 sm:h-5 text-[8px] sm:text-[10px] font-bold text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
                 factor === "2" || factor === "3" || factor === "31"
                   ? "bg-green-100 dark:bg-green-900"
                   : factor === "5"
