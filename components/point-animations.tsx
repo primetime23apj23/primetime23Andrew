@@ -32,7 +32,10 @@ export function PointAnimations({
 }: PointAnimationsProps) {
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {/* All animations disabled for clean gameplay */}
+      {/* Firework particles for bonus points */}
+      {fireworks.map((particle) => (
+        <FireworkDot key={particle.id} {...particle} />
+      ))}
     </div>
   );
 }

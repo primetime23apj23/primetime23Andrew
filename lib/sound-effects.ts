@@ -102,8 +102,25 @@ export function playBonusSound(bonusSpaces: number = 1): void {
         
         noiseSource.start(burstStart);
         noiseSource.stop(burstStart + 0.05);
-      }
-    }
+  }
+}
+
+/**
+ * Play fireworks sound for bonus points
+ */
+export function playFireworksSound(): void {
+  try {
+    const audio = new Audio("/fireworks.mp3");
+    audio.volume = 0.4;
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      // Silently fail if audio can't play
+    });
+  } catch (error) {
+    console.log("[v0] Fireworks sound effect skipped:", error);
+  }
+}
+
   } catch (error) {
     console.log("[v0] Bonus sound effect skipped:", error);
   }
