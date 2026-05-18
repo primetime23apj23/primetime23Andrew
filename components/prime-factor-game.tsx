@@ -32,7 +32,7 @@ import {
 import { BonusBreakdownPanel } from "./bonus-breakdown";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
-import { playCapturSound, playVictorySound, playOpponentMoveSound } from "@/lib/sound-effects";
+import { playCapturSound, playVictorySound, playOpponentMoveSound, playFireworksSound } from "@/lib/sound-effects";
 import { TrainCelebration } from "./train-celebration";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
@@ -1260,6 +1260,12 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     playCapturSound();
 
+    // Play fireworks animation and sound for bonus points
+    if (bonusGained > 0 && pos) {
+      playFireworksSound();
+      spawnFireworks(pos.x, pos.y);
+    }
+
     const totalScore =
       newPlayers[currentPlayerIndex].score +
       newPlayers[currentPlayerIndex].bonusPoints;
@@ -1536,6 +1542,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
               
               // Play capture sound (train horn) for claiming the space
               playCapturSound();
+              
+              // Play fireworks animation and sound for bonus points
+              if (bonusGained > 0) {
+                playFireworksSound();
+                const botAnimPos = getAnimationPosition();
+                spawnFireworks(botAnimPos.x, botAnimPos.y);
+              }
               
               // Play opponent move sound to indicate turn change
               playOpponentMoveSound();
