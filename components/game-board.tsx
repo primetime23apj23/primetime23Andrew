@@ -199,8 +199,10 @@ function BoardSpaceCell({
               key={idx}
               className={cn(
                 "w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-[12px] font-black text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
-                factor === "2" || factor === "3" || factor === "31"
+                factor === "2" || factor === "31"
                   ? "bg-green-100 dark:bg-green-900"
+                  : factor === "3"
+                  ? "bg-red-100 dark:bg-red-900"
                   : factor === "5"
                   ? "bg-sky-100 dark:bg-sky-900"
                   : factor === "7"
@@ -208,7 +210,7 @@ function BoardSpaceCell({
                   : factor === "11"
                   ? "bg-orange-100 dark:bg-orange-900"
                   : factor === "13"
-                  ? "bg-red-100 dark:bg-red-900"
+                  ? "bg-green-100 dark:bg-green-900"
                   : factor === "17"
                   ? "bg-teal-100 dark:bg-teal-900"
                   : factor === "19"
