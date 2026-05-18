@@ -152,7 +152,7 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
           const state = next.get(track.id);
           if (!state || state.done) continue;
 
-          const newProgress = Math.min(state.progress + 0.018, 1);
+          const newProgress = Math.min(state.progress + 0.006, 1);
           const done = newProgress >= 1;
           next.set(track.id, { progress: newProgress, done });
           if (!done) allDone = false;
