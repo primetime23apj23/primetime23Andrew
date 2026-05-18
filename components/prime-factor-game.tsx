@@ -119,6 +119,7 @@ export function PrimeFactorGame() {
   const [fireworks, setFireworks] = useState<FireworkParticle[]>([]);
   const [isTrainCelebrating, setIsTrainCelebrating] = useState(false);
   const [celebrationNumbers, setCelebrationNumbers] = useState<number[]>([]);
+  const [lastClaimedSpace, setLastClaimedSpace] = useState<number | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   
   // Bonus history tracking
@@ -1309,6 +1310,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
       }, 3500);
     }
 
+    // Track the last claimed space for highlighting
+    setLastClaimedSpace(selectedSpace.number);
+
     if (totalScore >= gameState.targetScore && pos) {
       playVictorySound();
       
@@ -1563,6 +1567,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
               // Play opponent move sound to indicate turn change
               playOpponentMoveSound();
               
+              // Track the bot's claimed space
+              setLastClaimedSpace(space.number);
+              
               return {
                 ...prev,
                 board: newBoard,
@@ -1788,6 +1795,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 onSpaceClick={handleSpaceClick}
                 highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
                 validMoves={allHighlightedMoves}
+                lastClaimedSpace={lastClaimedSpace}
               />
             </div>
 
