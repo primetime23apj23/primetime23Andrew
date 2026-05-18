@@ -102,6 +102,10 @@ export function playBonusSound(bonusSpaces: number = 1): void {
         
         noiseSource.start(burstStart);
         noiseSource.stop(burstStart + 0.05);
+      }
+    }
+  } catch (error) {
+    console.log("[v0] Bonus sound effect skipped:", error);
   }
 }
 
