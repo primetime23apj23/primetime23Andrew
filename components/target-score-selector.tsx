@@ -199,9 +199,9 @@ export function TargetScoreSelector({
                           key={diff.value}
                           type="button"
                           onClick={() => setBotDifficulty(diff.value)}
-                          className={`flex-1 flex flex-col items-center gap-0.5 p-2 rounded-lg border-2 transition-all ${
+                          className={`flex-1 flex flex-col items-center gap-0.5 p-2 rounded-lg border-2 transition-colors ${
                             botDifficulty === diff.value
-                              ? "border-primary bg-primary/10 shadow-md"
+                              ? "border-primary bg-primary/10"
                               : "border-border hover:border-primary/50 hover:bg-muted"
                           }`}
                         >
