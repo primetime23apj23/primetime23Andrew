@@ -1432,7 +1432,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       // Bot has no moves, trigger end turn
       const timer = setTimeout(() => {
         handleEndTurn();
-      }, 1000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
     
@@ -1574,9 +1574,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
             });
             
             setSelectedSpace(null);
-          }, 400);
+          }, 800);
         }
-      }, 600);
+    }, 2400);
     }, 1200);
     
     return () => clearTimeout(timer);
