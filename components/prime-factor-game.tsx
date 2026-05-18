@@ -1345,19 +1345,29 @@ const channel = subscribeToSession(sessionCode, (session) => {
   // Check if a specific player has any valid moves
   const checkPlayerHasMoves = useCallback((playerIndex: number, board: BoardSpace[]) => {
     const playerDice = playerIndex === 0 ? player1Dice : player2Dice;
-    if (playerDice.length === 0) return false;
+    // If player has no dice but still has unclaimed spaces, they still have moves
+    // (they may be able to continue with different dice combinations or pass their turn)
     
     const availableSpaces = board.filter(
       (space) => !space.isPrime && space.owner === null && space.number !== 0 && !space.claimed
     );
     
-    for (const space of availableSpaces) {
-      const factors = space.factors;
-      if (factors.length === 0) continue;
-      const match = canMatchFactorization(factors, playerDice);
-      if (match !== null) return true;
+    // If there are no available spaces, player has no moves
+    if (availableSpaces.length === 0) return false;
+    
+    // If player has dice, check if any combination matches
+    if (playerDice.length > 0) {
+      for (const space of availableSpaces) {
+        const factors = space.factors;
+        if (factors.length === 0) continue;
+        const match = canMatchFactorization(factors, playerDice);
+        if (match !== null) return true;
+      }
+      return false;
     }
-    return false;
+    
+    // If player has no dice but spaces are available, they still have potential moves
+    return true;
   }, [player1Dice, player2Dice]);
 
   // End turn
