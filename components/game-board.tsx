@@ -193,7 +193,8 @@ function BoardSpaceCell({
 
       {/* Factorization - individual numbers in rounded boxes */}
       {!space.isPrime && space.factorization && (
-        <div className="grid grid-cols-2 gap-0.5 mt-0.5 justify-items-center">
+        <div className="flex justify-center">
+          <div className="grid grid-cols-2 gap-0.5 mt-0.5 justify-items-center">
           {space.factorization.split(' × ').map((factor, idx) => (
             <span 
               key={idx}
@@ -233,6 +234,7 @@ function BoardSpaceCell({
               {factor}
             </span>
           ))}
+        </div>
         </div>
       )}
     </button>
