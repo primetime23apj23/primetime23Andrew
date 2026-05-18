@@ -15,6 +15,7 @@ interface GameBoardProps {
   validMoves?: number[];
   tracks?: CompletedTrack[];
   boardRef?: React.RefObject<HTMLDivElement | null>;
+  lastClaimedSpace?: number | null;
 }
 
 export function GameBoard({
@@ -24,6 +25,7 @@ export function GameBoard({
   validMoves = [],
   tracks = [],
   boardRef,
+  lastClaimedSpace = null,
 }: GameBoardProps) {
   const internalRef = useRef<HTMLDivElement>(null);
   const gridRef = boardRef ?? internalRef;
@@ -62,6 +64,7 @@ export function GameBoard({
                   onClick={() => space && onSpaceClick(space)}
                   isHighlighted={highlightedSpaces.includes(space?.number ?? -1)}
                   isValidMove={validMoves.includes(space?.number ?? -1)}
+                  isLastClaimed={lastClaimedSpace === space?.number}
                 />
               ))
             )}
@@ -81,6 +84,7 @@ interface BoardSpaceCellProps {
   onClick: () => void;
   isHighlighted: boolean;
   isValidMove: boolean;
+  isLastClaimed?: boolean;
 }
 
 function BoardSpaceCell({
@@ -88,6 +92,7 @@ function BoardSpaceCell({
   onClick,
   isHighlighted,
   isValidMove,
+  isLastClaimed = false,
 }: BoardSpaceCellProps) {
   if (!space) {
     return <div className="w-full h-full bg-white dark:bg-zinc-900" />;
@@ -138,7 +143,10 @@ function BoardSpaceCell({
     return (
       <div 
         data-space={space.number}
-        className="w-full h-full flex items-center justify-center relative overflow-hidden"
+        className={cn(
+          "w-full h-full flex items-center justify-center relative overflow-hidden",
+          isLastClaimed && "ring-4 ring-yellow-400 ring-inset"
+        )}
         style={{ backgroundColor: ownerColor ? ownerColor + "CC" : "#E5E7EB" }}
       >
         <span className="text-lg font-bold text-foreground relative z-50">{space.number}</span>
