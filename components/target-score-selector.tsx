@@ -89,6 +89,26 @@ export function TargetScoreSelector({
           </DialogDescription>
         </DialogHeader>
 
+        {/* Action Buttons - Top */}
+        <div className="flex gap-2 flex-wrap justify-start">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          {!isMultiplayer && onPlayOnline && (
+            <Button variant="outline" onClick={onPlayOnline}>
+              Play Online
+            </Button>
+          )}
+          {onShowTutorial && (
+            <Button variant="outline" onClick={onShowTutorial}>
+              How to Play
+            </Button>
+          )}
+          <Button onClick={handleStartGame} disabled={activeScore < 1}>
+            Start Game
+          </Button>
+        </div>
+
         <div className="space-y-6 py-4">
           {isMultiplayer ? (
             <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
@@ -206,25 +226,6 @@ export function TargetScoreSelector({
               </div>
             </>
           )}
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          {!isMultiplayer && onPlayOnline && (
-            <Button variant="outline" onClick={onPlayOnline}>
-              Play Online
-            </Button>
-          )}
-          {onShowTutorial && (
-            <Button variant="outline" onClick={onShowTutorial}>
-              How to Play
-            </Button>
-          )}
-          <Button onClick={handleStartGame} disabled={activeScore < 1}>
-            Start Game
-          </Button>
         </div>
       </DialogContent>
     </Dialog>
