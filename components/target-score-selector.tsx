@@ -133,8 +133,7 @@ export function TargetScoreSelector({
                         : "border-border hover:border-primary/50 hover:bg-muted"
                     }`}
                   >
-                    <span className="text-lg font-bold">{preset.label}</span>
-                    <span className="text-2xl font-black text-primary">{preset.score}</span>
+                    <span className="text-3xl font-black text-primary">{preset.score}</span>
                     <span className="text-xs text-muted-foreground text-center">{preset.description}</span>
                   </button>
                 ))}
