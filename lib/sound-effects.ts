@@ -121,11 +121,6 @@ export function playFireworksSound(): void {
   }
 }
 
-  } catch (error) {
-    console.log("[v0] Bonus sound effect skipped:", error);
-  }
-}
-
 /**
  * Play opponent/bot move sound - whistle or notification
  */
