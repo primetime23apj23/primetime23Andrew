@@ -1430,11 +1430,15 @@ const channel = subscribeToSession(sessionCode, (session) => {
   useEffect(() => {
     if (!botEnabled || gameState.currentPlayer !== 1 || gameState.phase !== "playing") return;
     
-    // Add delay to prevent bot from immediately taking a turn right after player moves
+    console.log("[v0] Bot effect triggered - currentPlayer:", gameState.currentPlayer, "phase:", gameState.phase);
+    
+    // Add longer delay to prevent bot from immediately taking a turn right after player moves
     const delayTimer = setTimeout(() => {
+      console.log("[v0] Bot delay expired, checking for moves");
       const botMove = getBotMoveForMultiplication(gameState.board, player2Dice, botDifficulty);
       
       if (!botMove) {
+        console.log("[v0] Bot has no moves");
         // Bot has no moves, trigger end turn
         const timer = setTimeout(() => {
           handleEndTurn();
@@ -1442,6 +1446,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
         return () => clearTimeout(timer);
       }
       
+      console.log("[v0] Bot making move for space:", botMove.spaceNumber);
       // Bot "thinks" for a moment, then makes move
       const timer = setTimeout(() => {
         // Select the dice
@@ -1587,7 +1592,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
         }
         }, 2400);
         }, 1200);
-      }, 500); // 500ms delay before bot considers its turn
+      }, 1000); // Increased delay to 1 second before bot considers its turn
     
     return () => clearTimeout(delayTimer);
   }, [botEnabled, gameState.currentPlayer, gameState.phase, player2Dice, botDifficulty, getAnimationPosition, spawnPointAnimation, spawnFireworks, handleEndTurn, gameState.board]);
