@@ -1430,27 +1430,29 @@ const channel = subscribeToSession(sessionCode, (session) => {
   useEffect(() => {
     if (!botEnabled || gameState.currentPlayer !== 1 || gameState.phase !== "playing") return;
     
-    const botMove = getBotMoveForMultiplication(gameState.board, player2Dice, botDifficulty);
-    
-    if (!botMove) {
-      // Bot has no moves, trigger end turn
-      const timer = setTimeout(() => {
-        handleEndTurn();
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-    
-    // Bot "thinks" for a moment, then makes move
-    const timer = setTimeout(() => {
-      // Select the dice
-      setGameState((prev) => ({
-        ...prev,
-        selectedDice: botMove.diceIds,
-      }));
+    // Add delay to prevent bot from immediately taking a turn right after player moves
+    const delayTimer = setTimeout(() => {
+      const botMove = getBotMoveForMultiplication(gameState.board, player2Dice, botDifficulty);
       
-      // Then claim the space after a short delay
-      setTimeout(() => {
-        const space = gameState.board.find((s) => s.number === botMove.spaceNumber);
+      if (!botMove) {
+        // Bot has no moves, trigger end turn
+        const timer = setTimeout(() => {
+          handleEndTurn();
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+      
+      // Bot "thinks" for a moment, then makes move
+      const timer = setTimeout(() => {
+        // Select the dice
+        setGameState((prev) => ({
+          ...prev,
+          selectedDice: botMove.diceIds,
+        }));
+        
+        // Then claim the space after a short delay
+        setTimeout(() => {
+          const space = gameState.board.find((s) => s.number === botMove.spaceNumber);
         if (space) {
           setSelectedSpace(space);
           // Trigger claim after setting selection
@@ -1583,11 +1585,12 @@ const channel = subscribeToSession(sessionCode, (session) => {
             setSelectedSpace(null);
           }, 800);
         }
-    }, 2400);
-    }, 1200);
+        }, 2400);
+        }, 1200);
+      }, 500); // 500ms delay before bot considers its turn
     
-    return () => clearTimeout(timer);
-  }, [botEnabled, gameState.currentPlayer, gameState.phase, gameState.board, player2Dice, botDifficulty, getAnimationPosition, spawnPointAnimation, spawnFireworks, handleEndTurn]);
+    return () => clearTimeout(delayTimer);
+  }, [botEnabled, gameState.currentPlayer, gameState.phase, player2Dice, botDifficulty, getAnimationPosition, spawnPointAnimation, spawnFireworks, handleEndTurn, gameState.board]);
 
   // Start new round - alternate who goes first
   const handleNewRound = useCallback(() => {
