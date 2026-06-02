@@ -1794,7 +1794,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 boardRef={trackBoardRef}
                 onSpaceClick={handleSpaceClick}
                 highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
-                validMoves={allHighlightedMoves}
+                validMoves={botEnabled ? [] : allHighlightedMoves}
                 lastClaimedSpace={lastClaimedSpace}
               />
             </div>
