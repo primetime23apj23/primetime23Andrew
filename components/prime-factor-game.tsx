@@ -1824,27 +1824,24 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 </div>
                 
                 {/* Player 2 Dice - Right, visible after player 1's first move, then always in bot/multiplayer */}
-                <div className={gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
-                  {player2Dice.length > 0 && (gameState.currentPlayer === 1 || gameState.roundNumber > 1) && (botEnabled || isMultiplayer) && (
-                    <DiceTray
-                      dice={player2Dice}
-                      selectedDice={gameState.currentPlayer === 1 ? gameState.selectedDice : []}
-                      onDieClick={handleDieClick}
-                      onReorder={handleReorderPlayer2Dice}
-                      disabled={
-                        gameState.phase !== "playing" ||
-                        gameState.currentPlayer !== 1 ||
-                        (isMultiplayer && localPlayerIndex !== 1)
-                      }
-                      skins={diceSkins}
-                      playerName={gameState.players[1].name}
-                      hideValues={false}
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+<div className={gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
+  {player2Dice.length > 0 && (gameState.roundNumber > 1 || gameState.currentPlayer === 1 || gameState.movesMadeThisRound > 0) && (botEnabled || isMultiplayer) && (
+    <DiceTray
+      dice={player2Dice}
+      selectedDice={gameState.currentPlayer === 1 ? gameState.selectedDice : []}
+      onDieClick={handleDieClick}
+      onReorder={handleReorderPlayer2Dice}
+      disabled={
+        gameState.phase !== "playing" ||
+        gameState.currentPlayer !== 1 ||
+        (isMultiplayer && localPlayerIndex !== 1)
+      }
+      skins={diceSkins}
+      playerName={gameState.players[1].name}
+      hideValues={false}
+    />
+  )}
+</div>
 
           {/* Sidebar */}
           <div className="space-y-4 order-last lg:order-none">
