@@ -1433,198 +1433,153 @@ const channel = subscribeToSession(sessionCode, (session) => {
     });
   }, [checkPlayerHasMoves, diceRolled, gameState, hasAnyValidMove, isMultiplayer, sessionId, sessionLocalPlayerId, persistGameState]);
 
-  // Bot auto-play effect with lock to prevent multiple concurrent turns
+  // Bot auto-play effect with proper lock management
   useEffect(() => {
-    // Early return checks
-    if (!botEnabled) { botTurnScheduledRef.current = false; return; }
-    if (gameState.currentPlayer !== 1) { botTurnScheduledRef.current = false; return; }
+    if (!botEnabled || isMultiplayer) return;
+    if (gameState.currentPlayer !== 1) return;
     if (gameState.phase !== "playing") return;
-    if (isMultiplayer) { botTurnScheduledRef.current = false; return; }
-    
-    // Prevent scheduling multiple bot turns
     if (botTurnScheduledRef.current) return;
-    
+
     botTurnScheduledRef.current = true;
-    
-    // Add longer delay to prevent bot from immediately taking a turn right after player moves
-    const delayTimer = setTimeout(() => {
-      // Re-check before executing - read from ref for most current state
+
+    const timer = setTimeout(() => {
+      // Read fresh state from ref — never use stale closure values
       const current = gameStateRef.current;
       if (!current || current.currentPlayer !== 1 || current.phase !== "playing") {
         botTurnScheduledRef.current = false;
         return;
       }
-      
+
       const botMove = getBotMoveForMultiplication(current.board, player2Dice, botDifficulty);
-      
+
       if (!botMove) {
+        // Bot has no moves — end its turn and release lock
         botTurnScheduledRef.current = false;
-        // Bot has no moves, trigger end turn
-        const timer = setTimeout(() => {
-          handleEndTurn();
-        }, 2000);
-        return;
-      }
-      
-      // Bot "thinks" for a moment, then makes move
-      const timer = setTimeout(() => {
-        // Select the dice
-        setGameState((prev) => {
-          // Re-check guard before setting state
-          if (prev.currentPlayer !== 1 || prev.phase !== "playing") {
-            botTurnScheduledRef.current = false;
-            return prev;
-          }
+        setGameState(prev => {
+          if (prev.currentPlayer !== 1) return prev;
+          const nextPlayer = (prev.currentPlayer + 1) % prev.players.length;
           return {
             ...prev,
-            selectedDice: botMove.diceIds,
+            currentPlayer: nextPlayer,
+            selectedDice: [],
+            message: `Bot has no valid moves. ${prev.players[nextPlayer].name}'s turn. Roll your dice.`,
           };
         });
-        
-        // Then claim the space after a short delay
-        setTimeout(() => {
-          const space = gameState.board.find((s) => s.number === botMove.spaceNumber);
-        if (space) {
-          setSelectedSpace(space);
-          // Trigger claim after setting selection
-          setTimeout(() => {
-            const pos = getAnimationPosition();
-            
-            const factors = [...space.factors];
-            const diceToRemove: string[] = [];
-            const selectedDieObjects = player2Dice.filter((d) => botMove.diceIds.includes(d.id));
-            
-            for (const factor of factors) {
-              const exactMatch = selectedDieObjects.find(
-                (d) => !diceToRemove.includes(d.id) && d.value === factor
-              );
-              if (exactMatch) {
-                diceToRemove.push(exactMatch.id);
-                continue;
-              }
-              const wildMatch = selectedDieObjects.find(
-                (d) => !diceToRemove.includes(d.id) && d.value === "W"
-              );
-              if (wildMatch) {
-                diceToRemove.push(wildMatch.id);
-              }
-            }
-            
-            setPlayer2Dice((prev) => prev.filter((d) => !diceToRemove.includes(d.id)));
-            
-            setGameState((prev) => {
-              const newBoard = prev.board.map((s) =>
-                s.number === space.number
-                  ? { ...s, owner: prev.currentPlayer, claimed: true }
-                  : s
-              );
-              
-              const { bonusPoints: bonusGained, breakdown } = checkForNewBonus(newBoard, space.number);
-              
-              if (breakdown.length > 0) {
-                setBonusHistory((prevHistory) => [
-                  ...prevHistory,
-                  {
-                    player: prev.players[prev.currentPlayer].name,
-                    space: space.number,
-                    round: prev.roundNumber,
-                    breakdown,
-                  },
-                ]);
-                
-                const playerColor = PLAYER_COLORS[prev.currentPlayer];
-                const newTracks: CompletedTrack[] = breakdown.map((b, i) => ({
-                  id: `track-${Date.now()}-${i}`,
-                  primeStart: b.primeStart,
-                  primeEnd: b.primeEnd,
-                  spaces: b.spaces,
-                  direction: b.direction,
-                  playerColor,
-                  animating: true,
-                }));
-                
-                setCompletedTracks((tracks) => [...tracks, ...newTracks]);
-                
-                setTimeout(() => {
-                  setCompletedTracks((tracks) =>
-                    tracks.map((t) =>
-                      newTracks.some((nt) => nt.id === t.id)
-                        ? { ...t, animating: false }
-                        : t
-                    )
-                  );
-                }, 3500);
-              }
-              
-              const newPlayers = prev.players.map((player, idx) => {
-                if (idx === prev.currentPlayer) {
-                  return {
-                    ...player,
-                    score: player.score + 1,
-                    bonusPoints: player.bonusPoints + bonusGained,
-                  };
-                }
-                return player;
-              });
-              
-              const totalScore =
-                newPlayers[prev.currentPlayer].score +
-                newPlayers[prev.currentPlayer].bonusPoints;
-              
-              if (totalScore >= prev.targetScore) {
-                // Train celebration will handle the victory animation
-                setCelebrationNumbers(ownedNumbers);
-                setIsTrainCelebrating(true);
-                return {
-                  ...prev,
-                  board: newBoard,
-                  players: newPlayers,
-                  selectedDice: [],
-                  phase: "gameOver",
-                  message: `${newPlayers[prev.currentPlayer].name} wins with ${totalScore} points!`,
-                };
-              }
-              
-              const nextPlayer = (prev.currentPlayer + 1) % prev.players.length;
-              
-              // Play capture sound (train horn) for claiming the space
-              playCapturSound();
-              
-              // Play fireworks animation and sound for bonus points
-              if (bonusGained > 0) {
-                playFireworksSound();
-                const botAnimPos = getAnimationPosition();
-                spawnFireworks(botAnimPos.x, botAnimPos.y);
-              }
-              
-              // Play opponent move sound to indicate turn change
-              playOpponentMoveSound();
-              
-              // Track the bot's claimed space
-              setLastClaimedSpace(space.number);
-              
-              return {
-                ...prev,
-                board: newBoard,
-                players: newPlayers,
-                currentPlayer: nextPlayer,
-                selectedDice: [],
-                message: `Bot claimed space ${space.number}! ${newPlayers[nextPlayer].name}'s turn.`,
-              };
-            });
-            
-            setSelectedSpace(null);
-          }, 800);
+        return;
+      }
+
+      // Execute bot move inline — no nested setTimeouts
+      const space = current.board.find(s => s.number === botMove.spaceNumber);
+      if (!space) { botTurnScheduledRef.current = false; return; }
+
+      const factors = [...space.factors];
+      const selectedDieObjects = player2Dice.filter(d => botMove.diceIds.includes(d.id));
+      const diceToRemove: string[] = [];
+      for (const factor of factors) {
+        const exact = selectedDieObjects.find(d => !diceToRemove.includes(d.id) && d.value === factor);
+        if (exact) { diceToRemove.push(exact.id); continue; }
+        const wild = selectedDieObjects.find(d => !diceToRemove.includes(d.id) && d.value === "W");
+        if (wild) diceToRemove.push(wild.id);
+      }
+
+      setPlayer2Dice(prev => prev.filter(d => !diceToRemove.includes(d.id)));
+
+      setGameState(prev => {
+        // CRITICAL: verify it's still bot's turn before applying
+        if (prev.currentPlayer !== 1 || prev.phase !== "playing") {
+          botTurnScheduledRef.current = false;
+          return prev;
         }
-        }, 2400);
-        }, 1200);
-      }, 1000); // Increased delay to 1 second before bot considers its turn
-    
-    return () => {
-      clearTimeout(delayTimer);
-      botTurnScheduledRef.current = false;
-    };
-  }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer, player2Dice, botDifficulty, getAnimationPosition, spawnPointAnimation, spawnFireworks, handleEndTurn, gameState.board]);
+
+        const newBoard = prev.board.map(s =>
+          s.number === space.number ? { ...s, owner: 1, claimed: true } : s
+        );
+        const { bonusPoints: bonusGained, breakdown } = checkForNewBonus(newBoard, space.number);
+        const newPlayers = prev.players.map((p, i) =>
+          i === 1 ? { ...p, score: p.score + 1, bonusPoints: p.bonusPoints + bonusGained } : p
+        );
+        const totalScore = newPlayers[1].score + newPlayers[1].bonusPoints;
+
+        if (totalScore >= prev.targetScore) {
+          botTurnScheduledRef.current = false;
+          setCelebrationNumbers(ownedNumbers);
+          setIsTrainCelebrating(true);
+          return { 
+            ...prev, 
+            board: newBoard, 
+            players: newPlayers, 
+            selectedDice: [], 
+            phase: "gameOver",
+            message: `Bot wins with ${totalScore} points!` 
+          };
+        }
+
+        // Handle bonus points if applicable
+        if (breakdown.length > 0) {
+          setBonusHistory((prevHistory) => [
+            ...prevHistory,
+            {
+              player: prev.players[1].name,
+              space: space.number,
+              round: prev.roundNumber,
+              breakdown,
+            },
+          ]);
+          
+          const playerColor = PLAYER_COLORS[1];
+          const newTracks: CompletedTrack[] = breakdown.map((b, i) => ({
+            id: `track-${Date.now()}-${i}`,
+            primeStart: b.primeStart,
+            primeEnd: b.primeEnd,
+            spaces: b.spaces,
+            direction: b.direction,
+            playerColor,
+            animating: true,
+          }));
+          
+          setCompletedTracks((tracks) => [...tracks, ...newTracks]);
+          
+          setTimeout(() => {
+            setCompletedTracks((tracks) =>
+              tracks.map((t) =>
+                newTracks.some((nt) => nt.id === t.id)
+                  ? { ...t, animating: false }
+                  : t
+              )
+            );
+          }, 3500);
+        }
+
+        // Switch to player 0 and release lock AFTER state is applied
+        botTurnScheduledRef.current = false;
+        playCapturSound();
+        
+        if (bonusGained > 0) {
+          playFireworksSound();
+          const botAnimPos = getAnimationPosition();
+          spawnFireworks(botAnimPos.x, botAnimPos.y);
+        }
+        
+        playOpponentMoveSound();
+        setLastClaimedSpace(space.number);
+
+        return {
+          ...prev,
+          board: newBoard,
+          players: newPlayers,
+          currentPlayer: 0,   // ← human's turn
+          selectedDice: [],
+          message: `Bot claimed space ${space.number}! ${newPlayers[0].name}'s turn.`,
+        };
+      });
+
+    }, 1500);
+
+    // CRITICAL: do NOT clear botTurnScheduledRef in cleanup
+    // Only clear the timer itself
+    return () => clearTimeout(timer);
+
+  }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer]);
 
   // Start new round - alternate who goes first
   const handleNewRound = useCallback(() => {
