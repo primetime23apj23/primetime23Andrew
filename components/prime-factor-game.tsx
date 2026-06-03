@@ -121,6 +121,8 @@ export function PrimeFactorGame() {
   const [celebrationNumbers, setCelebrationNumbers] = useState<number[]>([]);
   const [lastClaimedSpace, setLastClaimedSpace] = useState<number | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const botTurnScheduledRef = useRef(false);
+  const gameStateRef = useRef<GameState>(gameState);
   
   // Bonus history tracking
   const [bonusHistory, setBonusHistory] = useState<Array<{
@@ -280,6 +282,11 @@ export function PrimeFactorGame() {
   }, [gameState.currentPlayer, isMultiplayer, sessionLocalPlayerId, sessionPlayer1Id, sessionPlayer2Id]);
   const isLocalPlayersTurn =
     !isMultiplayer || (localPlayerIndex !== null && localPlayerIndex === gameState.currentPlayer);
+
+  // Keep gameStateRef in sync for use in callbacks
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   // Calculate valid moves based on selected dice
   const validMoves = useMemo(() => {
@@ -1426,25 +1433,37 @@ const channel = subscribeToSession(sessionCode, (session) => {
     });
   }, [checkPlayerHasMoves, diceRolled, gameState, hasAnyValidMove, isMultiplayer, sessionId, sessionLocalPlayerId, persistGameState]);
 
-  // Bot auto-play effect
+  // Bot auto-play effect with lock to prevent multiple concurrent turns
   useEffect(() => {
-    // STRICT GUARD - only proceed if bot should genuinely play
-    if (!botEnabled) return;
-    if (gameState.currentPlayer !== 1) return;
+    // Early return checks
+    if (!botEnabled) { botTurnScheduledRef.current = false; return; }
+    if (gameState.currentPlayer !== 1) { botTurnScheduledRef.current = false; return; }
     if (gameState.phase !== "playing") return;
-    if (!gameState.board || gameState.board.length === 0) return;
-    if (player2Dice.length === 0 && !checkPlayerHasMoves(1, gameState.board)) return;
+    if (isMultiplayer) { botTurnScheduledRef.current = false; return; }
+    
+    // Prevent scheduling multiple bot turns
+    if (botTurnScheduledRef.current) return;
+    
+    botTurnScheduledRef.current = true;
     
     // Add longer delay to prevent bot from immediately taking a turn right after player moves
     const delayTimer = setTimeout(() => {
-      const botMove = getBotMoveForMultiplication(gameState.board, player2Dice, botDifficulty);
+      // Re-check before executing - read from ref for most current state
+      const current = gameStateRef.current;
+      if (!current || current.currentPlayer !== 1 || current.phase !== "playing") {
+        botTurnScheduledRef.current = false;
+        return;
+      }
+      
+      const botMove = getBotMoveForMultiplication(current.board, player2Dice, botDifficulty);
       
       if (!botMove) {
+        botTurnScheduledRef.current = false;
         // Bot has no moves, trigger end turn
         const timer = setTimeout(() => {
           handleEndTurn();
         }, 2000);
-        return () => clearTimeout(timer);
+        return;
       }
       
       // Bot "thinks" for a moment, then makes move
@@ -1452,7 +1471,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
         // Select the dice
         setGameState((prev) => {
           // Re-check guard before setting state
-          if (prev.currentPlayer !== 1 || prev.phase !== "playing") return prev;
+          if (prev.currentPlayer !== 1 || prev.phase !== "playing") {
+            botTurnScheduledRef.current = false;
+            return prev;
+          }
           return {
             ...prev,
             selectedDice: botMove.diceIds,
@@ -1598,8 +1620,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
         }, 1200);
       }, 1000); // Increased delay to 1 second before bot considers its turn
     
-    return () => clearTimeout(delayTimer);
-  }, [botEnabled, gameState.currentPlayer, gameState.phase, player2Dice, botDifficulty, getAnimationPosition, spawnPointAnimation, spawnFireworks, handleEndTurn, gameState.board]);
+    return () => {
+      clearTimeout(delayTimer);
+      botTurnScheduledRef.current = false;
+    };
+  }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer, player2Dice, botDifficulty, getAnimationPosition, spawnPointAnimation, spawnFireworks, handleEndTurn, gameState.board]);
 
   // Start new round - alternate who goes first
   const handleNewRound = useCallback(() => {
