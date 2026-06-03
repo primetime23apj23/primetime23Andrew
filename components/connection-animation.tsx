@@ -181,7 +181,14 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
   return (
     <svg
       className="absolute inset-0 pointer-events-none"
-      style={{ width: "100%", height: "100%", overflow: "visible" }}
+      style={{ 
+        width: "100%", 
+        height: "100%", 
+        overflow: "visible",
+        WebkitOverflowScrolling: "touch",
+        WebkitTransform: "translate3d(0, 0, 0)",
+        display: "block"
+      }}
     >
       {tracks.map((track) => {
         // Include prime endpoints but inset them to avoid overlap
