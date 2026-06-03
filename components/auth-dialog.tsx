@@ -69,8 +69,14 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
       email: emailValue,
       userId,
     });
+    
+    // Call onAuthed FIRST to update parent state
     onAuthed(playerName, emailValue, userId);
-    onOpenChange(false);
+    
+    // Then close the dialog after a microtask to ensure state is propagated
+    Promise.resolve().then(() => {
+      onOpenChange(false);
+    });
   }, [onAuthed, onOpenChange]);
 
   const checkCurrentUser = async () => {
