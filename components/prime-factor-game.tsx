@@ -1428,17 +1428,18 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   // Bot auto-play effect
   useEffect(() => {
-    if (!botEnabled || gameState.currentPlayer !== 1 || gameState.phase !== "playing") return;
-    
-    console.log("[v0] Bot effect triggered - currentPlayer:", gameState.currentPlayer, "phase:", gameState.phase);
+    // STRICT GUARD - only proceed if bot should genuinely play
+    if (!botEnabled) return;
+    if (gameState.currentPlayer !== 1) return;
+    if (gameState.phase !== "playing") return;
+    if (!gameState.board || gameState.board.length === 0) return;
+    if (player2Dice.length === 0 && !checkPlayerHasMoves(1, gameState.board)) return;
     
     // Add longer delay to prevent bot from immediately taking a turn right after player moves
     const delayTimer = setTimeout(() => {
-      console.log("[v0] Bot delay expired, checking for moves");
       const botMove = getBotMoveForMultiplication(gameState.board, player2Dice, botDifficulty);
       
       if (!botMove) {
-        console.log("[v0] Bot has no moves");
         // Bot has no moves, trigger end turn
         const timer = setTimeout(() => {
           handleEndTurn();
@@ -1446,14 +1447,17 @@ const channel = subscribeToSession(sessionCode, (session) => {
         return () => clearTimeout(timer);
       }
       
-      console.log("[v0] Bot making move for space:", botMove.spaceNumber);
       // Bot "thinks" for a moment, then makes move
       const timer = setTimeout(() => {
         // Select the dice
-        setGameState((prev) => ({
-          ...prev,
-          selectedDice: botMove.diceIds,
-        }));
+        setGameState((prev) => {
+          // Re-check guard before setting state
+          if (prev.currentPlayer !== 1 || prev.phase !== "playing") return prev;
+          return {
+            ...prev,
+            selectedDice: botMove.diceIds,
+          };
+        });
         
         // Then claim the space after a short delay
         setTimeout(() => {
