@@ -1786,7 +1786,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 boardRef={trackBoardRef}
                 onSpaceClick={handleSpaceClick}
                 highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
-                validMoves={botEnabled ? [] : allHighlightedMoves}
+                validMoves={botEnabled || isMultiplayer ? [] : allHighlightedMoves}
                 lastClaimedSpace={lastClaimedSpace}
               />
             </div>
