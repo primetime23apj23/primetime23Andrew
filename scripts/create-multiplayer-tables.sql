@@ -62,6 +62,9 @@ CREATE POLICY "Allow anonymous users to create players" ON game_players
 CREATE POLICY "Allow anonymous users to read players" ON game_players
   FOR SELECT USING (true);
 
+CREATE POLICY "Allow players to update their profile" ON game_players
+  FOR UPDATE USING (true);
+
 -- RLS Policies for game_states - allow anonymous read/write
 CREATE POLICY "Allow anonymous users to create game states" ON game_states
   FOR INSERT WITH CHECK (true);
