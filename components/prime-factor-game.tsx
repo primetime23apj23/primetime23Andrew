@@ -1825,7 +1825,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 
                 {/* Player 2 Dice - Right, visible after player 1's first move, then always in bot/multiplayer */}
                 <div className={gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
-                  {player2Dice.length > 0 && (gameState.currentPlayer === 1 || gameState.roundNumber > 1) && (botEnabled || isMultiplayer) && (
+                  {player2Dice.length > 0 && (gameState.roundNumber > 1) && (
                     <DiceTray
                       dice={player2Dice}
                       selectedDice={gameState.currentPlayer === 1 ? gameState.selectedDice : []}
