@@ -74,12 +74,14 @@ interface PrimeFactorGameProps {
   showRulesState?: [boolean, (value: boolean) => void];
   showTutorialState?: [boolean, (value: boolean) => void];
   showExitDialogState?: [boolean, (value: boolean) => void];
+  onGameActiveChange?: (isActive: boolean) => void;
 }
 
 export function PrimeFactorGame({ 
   showRulesState,
   showTutorialState,
   showExitDialogState,
+  onGameActiveChange,
 }: PrimeFactorGameProps = {}) {
   const [showSetup, setShowSetup] = useState(false);
   const [showModeSelect, setShowModeSelect] = useState(true);
@@ -428,32 +430,10 @@ export function PrimeFactorGame({
     if (!hasAnyValidMove && currentPlayerDice.length >= 0) {
       const currentPlayerIndex = gameState.currentPlayer;
       const opponentIndex = (gameState.currentPlayer + 1) % gameState.players.length;
-      const opponentDiceArr = opponentIndex === 0 ? player1Dice : player2Dice;
       
-      const availableSpaces = gameState.board.filter(
-        (space) => !space.isPrime && space.owner === null && space.number !== 0 && !space.claimed
-      );
-      
-      let opponentHasMoves = false;
-      for (const space of availableSpaces) {
-        const factors = space.factors;
-        if (factors.length === 0) continue;
-        const match = canMatchFactorization(factors, opponentDiceArr);
-        if (match !== null) {
-          opponentHasMoves = true;
-          break;
-        }
-      }
-      
-      if (!opponentHasMoves) {
-        setGameState((prev) => ({
-          ...prev,
-          phase: "roundEnd",
-          selectedDice: [],
-          roundNumber: prev.roundNumber + 1,
-          message: `Round ${prev.roundNumber} complete! Both players are out of moves. Click "New Round" to continue.`,
-        }));
-      } else {
+      if (isMultiplayer) {
+        // In multiplayer, we can't check opponent's moves locally, so just switch turns
+        // The opponent will check their own moves when they play
         setGameState((prev) => ({
           ...prev,
           currentPlayer: opponentIndex,
@@ -462,9 +442,46 @@ export function PrimeFactorGame({
           message: `${prev.players[currentPlayerIndex].name} has no valid moves. ${prev.players[opponentIndex].name}'s turn! Roll your dice.`,
         }));
         setDiceRolled(false);
+      } else {
+        // For bot and local modes, check if opponent has moves
+        const opponentDiceArr = opponentIndex === 0 ? player1Dice : player2Dice;
+        
+        const availableSpaces = gameState.board.filter(
+          (space) => !space.isPrime && space.owner === null && space.number !== 0 && !space.claimed
+        );
+        
+        let opponentHasMoves = false;
+        for (const space of availableSpaces) {
+          const factors = space.factors;
+          if (factors.length === 0) continue;
+          const match = canMatchFactorization(factors, opponentDiceArr);
+          if (match !== null) {
+            opponentHasMoves = true;
+            break;
+          }
+        }
+        
+        if (!opponentHasMoves) {
+          setGameState((prev) => ({
+            ...prev,
+            phase: "roundEnd",
+            selectedDice: [],
+            roundNumber: prev.roundNumber + 1,
+            message: `Round ${prev.roundNumber} complete! Both players are out of moves. Click "New Round" to continue.`,
+          }));
+        } else {
+          setGameState((prev) => ({
+            ...prev,
+            currentPlayer: opponentIndex,
+            selectedDice: [],
+            phase: "rolling",
+            message: `${prev.players[currentPlayerIndex].name} has no valid moves. ${prev.players[opponentIndex].name}'s turn! Roll your dice.`,
+          }));
+          setDiceRolled(false);
+        }
       }
     }
-  }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, player1Dice, player2Dice, gameState.board, gameState.players]);
+  }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, player1Dice, player2Dice, gameState.board, gameState.players, isMultiplayer]);
 
   // Spawn floating emoji animation
   const spawnPointAnimation = useCallback((x: number, y: number, points: number, isBonus: boolean) => {
@@ -948,6 +965,7 @@ export function PrimeFactorGame({
       setShowSetup(true);
       setShowModeSelect(false);
       setPlayerNames(["Player 1", "Bot"]);
+      onGameActiveChange?.(true);
       return;
     }
 
@@ -957,6 +975,7 @@ export function PrimeFactorGame({
       setShowSetup(true);
       setShowModeSelect(false);
       setPlayerNames(["Player 1", "Player 2"]);
+      onGameActiveChange?.(true);
       return;
     }
 
@@ -996,6 +1015,7 @@ export function PrimeFactorGame({
             session.player_1_name || "Player 1",
             session.player_2_name || joiningPlayerName || "Player 2",
           ]);
+          onGameActiveChange?.(true);
           setShowLobby(false);
           // Move straight to setup so both players can start
           setShowSetup(true);

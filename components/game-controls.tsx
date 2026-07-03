@@ -56,16 +56,28 @@ export function GameControls({
         )}
 
         {phase === "playing" && (
-          <Button
-            onClick={onEndTurn}
-            disabled={!canEndTurn || hasValidMoves}
-            variant="secondary"
-            className="gap-2"
-            title={hasValidMoves ? "You must play if you have valid moves" : "End your turn"}
-          >
-            <SkipForward className="w-4 h-4" />
-            {hasValidMoves ? "Must Play" : "End Turn"}
-          </Button>
+          <>
+            <Button
+              onClick={onEndTurn}
+              disabled={!canEndTurn || hasValidMoves}
+              variant="secondary"
+              className="gap-2"
+              title={hasValidMoves ? "You must play if you have valid moves" : "End your turn"}
+            >
+              <SkipForward className="w-4 h-4" />
+              {hasValidMoves ? "Must Play" : "End Turn"}
+            </Button>
+            {isMultiplayer && onReadyForNextRound && (
+              <Button 
+                onClick={onReadyForNextRound}
+                variant="outline"
+                className="gap-2"
+              >
+                <Dices className="w-5 h-5" />
+                Ready for Next Round
+              </Button>
+            )}
+          </>
         )}
 
         {phase === "roundEnd" && (
