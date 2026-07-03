@@ -1823,85 +1823,138 @@ const channel = subscribeToSession(sessionCode, (session) => {
           </div>
         </div>
 
-        {/* Main Game Area - Grid with dice on sides */}
-        <div className="flex flex-col gap-4">
-          {/* Top: Game Board centered */}
-          <div>
-            <GameBoard
-              board={gameState.board}
-              tracks={completedTracks}
-              boardRef={trackBoardRef}
-              onSpaceClick={handleSpaceClick}
-              highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
-              validMoves={botEnabled || isMultiplayer ? [] : allHighlightedMoves}
-              lastClaimedSpace={lastClaimedSpace}
-              opponentSelectedSpace={isMultiplayer ? opponentSelectedSpace : null}
-            />
-          </div>
-
-          {/* Bottom: Dice on sides + Space Detail in center */}
-          {diceRolled && (
-            <div className="flex flex-col md:flex-row items-stretch justify-between gap-4">
-              {/* Player 1 Dice - Left */}
-              <div className={`flex-1 ${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
-                <DiceTray
-                  dice={player1Dice}
-                  selectedDice={gameState.currentPlayer === 0 ? gameState.selectedDice : []}
-                  onDieClick={handleDieClick}
-                  onReorder={handleReorderPlayer1Dice}
-                  disabled={
-                    gameState.phase !== "playing" ||
-                    gameState.currentPlayer !== 0 ||
-                    (isMultiplayer && localPlayerIndex !== 0)
-                  }
-                  skins={diceSkins}
-                  playerName={gameState.players[0].name}
-                />
-              </div>
-
-              {/* Space Detail (Claim Button) - Center */}
-              <div className="flex items-end justify-center">
-                <SpaceDetail
-                  space={selectedSpace}
-                  selectedDice={selectedDiceObjects}
-                  canClaim={canClaimSpace}
-                  onClaim={handleClaim}
-                  onCancel={handleCancel}
-                  isAutoSelected={diceAutoSelected}
-                />
-              </div>
-              
-              {/* Player 2 Dice - Right, Visible in bot/multiplayer after player 1's first move */}
-              <div className={`flex-1 ${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
-                {player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.currentPlayer === 1 || gameState.board.some(s => s.owner === 0)) && (
-                  <DiceTray
-                    dice={player2Dice}
-                    selectedDice={gameState.currentPlayer === 1 ? gameState.selectedDice : []}
-                    onDieClick={handleDieClick}
-                    onReorder={handleReorderPlayer2Dice}
-                    disabled={
-                      gameState.phase !== "playing" ||
-                      gameState.currentPlayer !== 1 ||
-                      (isMultiplayer && localPlayerIndex !== 1)
-                    }
-                    skins={diceSkins}
-                    playerName={gameState.players[1].name}
-                    hideValues={false}
-                  />
-                )}
+        {/* Main Game Area - Board with scores and bonuses on sides */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Left side - Player 1 Score & Bonus */}
+          <div className="flex flex-col gap-4 lg:w-64">
+            <div className="border rounded-lg p-4 bg-card">
+              <h3 className="font-semibold text-sm mb-3">{gameState.players[0].name}</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Score:</span>
+                  <span className="font-bold">{gameState.players[0].score}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Bonus:</span>
+                  <span className="font-bold text-amber-600">{gameState.players[0].bonusPoints}</span>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex justify-between text-sm font-semibold">
+                    <span>Total:</span>
+                    <span>{gameState.players[0].score + gameState.players[0].bonusPoints}</span>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
+            
+            {/* Player 1 Bonus History */}
+            <div className="overflow-auto">
+              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[0].name)} />
+            </div>
+          </div>
+
+          {/* Center - Game Board and Controls */}
+          <div className="flex-1 flex flex-col gap-4">
+            {/* Top: Game Board centered */}
+            <div>
+              <GameBoard
+                board={gameState.board}
+                tracks={completedTracks}
+                boardRef={trackBoardRef}
+                onSpaceClick={handleSpaceClick}
+                highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
+                validMoves={botEnabled || isMultiplayer ? [] : allHighlightedMoves}
+                lastClaimedSpace={lastClaimedSpace}
+                opponentSelectedSpace={isMultiplayer ? opponentSelectedSpace : null}
+              />
+            </div>
+
+            {/* Bottom: Dice on sides + Space Detail in center */}
+            {diceRolled && (
+              <div className="flex flex-col md:flex-row items-stretch justify-between gap-4">
+                {/* Player 1 Dice - Left */}
+                <div className={`flex-1 ${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
+                  <DiceTray
+                    dice={player1Dice}
+                    selectedDice={gameState.currentPlayer === 0 ? gameState.selectedDice : []}
+                    onDieClick={handleDieClick}
+                    onReorder={handleReorderPlayer1Dice}
+                    disabled={
+                      gameState.phase !== "playing" ||
+                      gameState.currentPlayer !== 0 ||
+                      (isMultiplayer && localPlayerIndex !== 0)
+                    }
+                    skins={diceSkins}
+                    playerName={gameState.players[0].name}
+                  />
+                </div>
+
+                {/* Space Detail (Claim Button) - Center */}
+                <div className="flex items-end justify-center">
+                  <SpaceDetail
+                    space={selectedSpace}
+                    selectedDice={selectedDiceObjects}
+                    canClaim={canClaimSpace}
+                    onClaim={handleClaim}
+                    onCancel={handleCancel}
+                    isAutoSelected={diceAutoSelected}
+                  />
+                </div>
+                
+                {/* Player 2 Dice - Right, Visible in bot/multiplayer after player 1's first move */}
+                <div className={`flex-1 ${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
+                  {player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.currentPlayer === 1 || gameState.board.some(s => s.owner === 0)) && (
+                    <DiceTray
+                      dice={player2Dice}
+                      selectedDice={gameState.currentPlayer === 1 ? gameState.selectedDice : []}
+                      onDieClick={handleDieClick}
+                      onReorder={handleReorderPlayer2Dice}
+                      disabled={
+                        gameState.phase !== "playing" ||
+                        gameState.currentPlayer !== 1 ||
+                        (isMultiplayer && localPlayerIndex !== 1)
+                      }
+                      skins={diceSkins}
+                      playerName={gameState.players[1].name}
+                      hideValues={false}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right side - Player 2 Score & Bonus */}
+          <div className="flex flex-col gap-4 lg:w-64">
+            <div className="border rounded-lg p-4 bg-card">
+              <h3 className="font-semibold text-sm mb-3">{gameState.players[1].name}</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Score:</span>
+                  <span className="font-bold">{gameState.players[1].score}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Bonus:</span>
+                  <span className="font-bold text-amber-600">{gameState.players[1].bonusPoints}</span>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex justify-between text-sm font-semibold">
+                    <span>Total:</span>
+                    <span>{gameState.players[1].score + gameState.players[1].bonusPoints}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Player 2 Bonus History */}
+            <div className="overflow-auto">
+              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[1].name)} />
+            </div>
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-4">
-          <Scoreboard
-            players={gameState.players}
-            currentPlayer={gameState.currentPlayer}
-            targetScore={gameState.targetScore}
-          />
-          
+        {/* Bottom Controls - Timer and Game Controls */}
+        <div className="flex flex-col items-center gap-4">
           {timerMode !== "disabled" && (
             <GameTimer
               initialSeconds={getTimerSeconds()}
@@ -1925,8 +1978,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
             onShowTutorial={() => setShowTutorial(true)}
             message={gameState.message}
           />
-          
-          <BonusBreakdownPanel history={bonusHistory} />
         </div>
 
         {/* Legend */}
