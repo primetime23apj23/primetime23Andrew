@@ -124,10 +124,17 @@ export function PrimeFactorGame({
   const [heartbeatInterval, setHeartbeatInterval] = useState<NodeJS.Timeout | null>(null);
   const [multiplayerTargetScore, setMultiplayerTargetScore] = useState(37);
   
+  // Game state
+  const [gameState, setGameState] = useState<GameState>(createInitialState(37));
+  
   // Track each player's dice separately
   const [player1Dice, setPlayer1Dice] = useState<Die[]>([]);
   const [player2Dice, setPlayer2Dice] = useState<Die[]>([]);
   const [diceRolled, setDiceRolled] = useState(false);
+  
+  // Board interaction states
+  const [selectedSpace, setSelectedSpace] = useState<BoardSpace | null>(null);
+  const [opponentSelectedSpace, setOpponentSelectedSpace] = useState<number | null>(null);
   
   // Animation states
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
