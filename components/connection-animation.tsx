@@ -46,6 +46,10 @@ function getCellCenter(boardEl: HTMLElement, spaceNumber: number): { x: number; 
 
 // Choo choo train SVG component
 function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle: number; progress: number }) {
+  // Determine if train is facing left (angle between 90 and 270 degrees)
+  const normalizedAngle = ((angle % 360) + 360) % 360;
+  const facingLeft = normalizedAngle > 90 && normalizedAngle < 270;
+  
   // Firework sparks that trail behind
   const sparks = [];
   const sparkCount = 6;
@@ -89,7 +93,7 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
   }
 
   return (
-    <g transform={`translate(${x}, ${y}) rotate(${angle})`}>
+    <g transform={`translate(${x}, ${y}) rotate(${angle}) ${facingLeft ? 'scaleX(-1)' : ''}`}>
       {/* Firework sparks */}
       {sparks}
       {/* Smoke puffs */}
