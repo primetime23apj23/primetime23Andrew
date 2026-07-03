@@ -50,7 +50,7 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
   // Only flip for angles close to 180 degrees (pure left movement)
   // Don't flip for down-left (225°) or up-left (315°) as they should face their direction naturally
   const normalizedAngle = ((angle % 360) + 360) % 360;
-  const facingLeft = normalizedAngle > 135 && normalizedAngle < 225;
+  const facingLeft = normalizedAngle > 160 && normalizedAngle < 200;
   
   // Firework sparks that trail behind
   const sparks = [];

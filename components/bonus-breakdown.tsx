@@ -17,8 +17,8 @@ interface BonusBreakdownProps {
 const directionLabels: Record<string, string> = {
   horizontal: "Row",
   vertical: "Column",
-  "diagonal-down": "Diagonal (top-left to bottom-right)",
-  "diagonal-up": "Diagonal (top-right to bottom-left)",
+  "diagonal-down": "Diagonal",
+  "diagonal-up": "Diagonal",
 };
 
 export function BonusBreakdownPanel({ history }: BonusBreakdownProps) {
@@ -70,17 +70,9 @@ export function BonusBreakdownPanel({ history }: BonusBreakdownProps) {
                 {entry.breakdown.map((bonus, bIdx) => (
                   <div
                     key={`${bonus.direction}-${bIdx}`}
-                    className="mt-1 p-1.5 bg-green-100 dark:bg-green-900/30 rounded text-green-800 dark:text-green-300"
+                    className="mt-1 p-1.5 bg-green-100 dark:bg-green-900/30 rounded text-green-800 dark:text-green-300 text-xs font-medium"
                   >
-                    <div className="font-medium">
-                      +{bonus.points} bonus ({directionLabels[bonus.direction]})
-                    </div>
-                    <div className="text-[10px] opacity-80">
-                      Primes: {bonus.primeStart} to {bonus.primeEnd}
-                    </div>
-                    <div className="text-[10px] opacity-80">
-                      Spaces filled: [{bonus.spaces.join(", ")}]
-                    </div>
+                    +{bonus.points} bonus ({directionLabels[bonus.direction]})
                   </div>
                 ))}
               </div>
