@@ -1339,10 +1339,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
       return player;
     });
 
-    playCapturSound();
-
-    // Play fireworks animation and sound for bonus points
+    // Only play sounds and animations for bonus points
     if (bonusGained > 0 && pos) {
+      playCapturSound();
       playFireworksSound();
       spawnFireworks(pos.x, pos.y);
     }
