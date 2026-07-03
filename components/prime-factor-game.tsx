@@ -135,6 +135,7 @@ export function PrimeFactorGame({
   // Board interaction states
   const [selectedSpace, setSelectedSpace] = useState<BoardSpace | null>(null);
   const [opponentSelectedSpace, setOpponentSelectedSpace] = useState<number | null>(null);
+  const [diceAutoSelected, setDiceAutoSelected] = useState(false);
   
   // Animation states
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
@@ -1842,34 +1843,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-7xl mx-auto space-y-4">
-        {/* Header */}
-        <header className="flex items-center justify-between gap-4">
-          <div></div>
-          <div className="text-right shrink-0">
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Patented by
-            </p>
-            <p className="text-sm sm:text-base font-semibold">
-              Andrew Paul Jaffe
-            </p>
-          </div>
-        </header>
-
-        {/* Toolbar - with controls on right side */}
-        <div className="flex items-center justify-between gap-2">
-          <div></div>
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowExitConfirm(true)}
-              className="text-xs"
-            >
-              Exit Game
-            </Button>
-          </div>
-        </div>
-
         {/* Main Game Area - Board with scores and bonuses on sides */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Left side - Player 1 Score & Bonus */}
