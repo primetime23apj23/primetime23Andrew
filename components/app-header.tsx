@@ -58,6 +58,14 @@ export function AppHeader({ title = "Multiplication Game" }: AppHeaderProps) {
 
   return (
     <>
+      {/* Patent Attribution Bar */}
+      <div className="bg-muted/50 border-b py-2 text-center">
+        <div className="text-xs sm:text-sm text-muted-foreground">
+          <span>Patented by</span>
+          <span className="mx-1 font-semibold text-foreground">Andrew Paul Jaffe</span>
+        </div>
+      </div>
+
       <header className="border-b bg-background sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
           <div className="font-bold text-lg">{title}</div>
