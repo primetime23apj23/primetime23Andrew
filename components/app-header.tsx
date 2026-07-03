@@ -4,16 +4,24 @@ import { useEffect, useState } from "react";
 import { usePlayerProfile } from "@/hooks/use-player-profile";
 import { AuthDialog } from "./auth-dialog";
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, HelpCircle, X } from "lucide-react";
 import { supabase } from "@/lib/supabase-multiplayer";
 
 const headerLog = (...args: any[]) => console.debug("[AppHeader]", ...args);
 
 interface AppHeaderProps {
   title?: string;
+  onShowRules?: () => void;
+  onShowTutorial?: () => void;
+  onExitGame?: () => void;
 }
 
-export function AppHeader({ title = "Multiplication Game" }: AppHeaderProps) {
+export function AppHeader({ 
+  title = "Multiplication Game",
+  onShowRules,
+  onShowTutorial,
+  onExitGame,
+}: AppHeaderProps) {
   const { user, isAuthenticated, loading } = usePlayerProfile();
   const [showAuth, setShowAuth] = useState(false);
   const [cachedPlayerName, setCachedPlayerName] = useState<string | null>(null);
@@ -67,8 +75,45 @@ export function AppHeader({ title = "Multiplication Game" }: AppHeaderProps) {
       </div>
 
       <header className="border-b bg-background sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
           <div className="font-bold text-lg">{title}</div>
+
+          {/* Center buttons */}
+          <div className="flex items-center gap-2">
+            {onShowRules && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onShowRules}
+                className="gap-2"
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Rules</span>
+              </Button>
+            )}
+            {onShowTutorial && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onShowTutorial}
+                className="gap-2"
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Tutorial</span>
+              </Button>
+            )}
+            {onExitGame && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={onExitGame}
+                className="gap-2"
+              >
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Exit</span>
+              </Button>
+            )}
+          </div>
 
           <div className="flex items-center gap-3">
             {(isAuthenticated && user) || (userId && playerName) ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Dices, SkipForward, RotateCcw, HelpCircle } from "lucide-react";
+import { Dices, SkipForward, RotateCcw } from "lucide-react";
 
 interface GameControlsProps {
   phase: string;
@@ -12,8 +12,6 @@ interface GameControlsProps {
   onEndTurn: () => void;
   onNewRound: () => void;
   onNewGame: () => void;
-  onShowRules: () => void;
-  onShowTutorial?: () => void;
   message: string;
 }
 
@@ -26,8 +24,6 @@ export function GameControls({
   onEndTurn,
   onNewRound,
   onNewGame,
-  onShowRules,
-  onShowTutorial,
   message,
 }: GameControlsProps) {
   return (
@@ -75,18 +71,6 @@ export function GameControls({
           <Button onClick={onNewGame} className="gap-2" size="lg">
             <RotateCcw className="w-5 h-5" />
             New Game
-          </Button>
-        )}
-
-        <Button variant="outline" onClick={onShowRules} className="gap-2 bg-transparent">
-          <HelpCircle className="w-4 h-4" />
-          Rules
-        </Button>
-
-        {onShowTutorial && (
-          <Button variant="outline" onClick={onShowTutorial} className="gap-2 bg-transparent">
-            <HelpCircle className="w-4 h-4" />
-            Tutorial
           </Button>
         )}
       </div>

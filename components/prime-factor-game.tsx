@@ -68,15 +68,28 @@ const createInitialState = (targetScore: number): GameState => ({
   targetScore,
 });
 
-export function PrimeFactorGame() {
-  const [gameState, setGameState] = useState<GameState>(createInitialState(37));
-  const [selectedSpace, setSelectedSpace] = useState<BoardSpace | null>(null);
-  const [opponentSelectedSpace, setOpponentSelectedSpace] = useState<number | null>(null);
-  const [diceAutoSelected, setDiceAutoSelected] = useState(false);
-  const [showRules, setShowRules] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false);
+interface PrimeFactorGameProps {
+  showRulesState?: [boolean, (value: boolean) => void];
+  showTutorialState?: [boolean, (value: boolean) => void];
+  showExitDialogState?: [boolean, (value: boolean) => void];
+}
+
+export function PrimeFactorGame({ 
+  showRulesState,
+  showTutorialState,
+  showExitDialogState,
+}: PrimeFactorGameProps = {}) {
   const [showSetup, setShowSetup] = useState(false);
   const [showModeSelect, setShowModeSelect] = useState(true);
+  
+  // Use external state if provided, otherwise use local state
+  const [showRulesLocal, setShowRulesLocal] = useState(false);
+  const [showTutorialLocal, setShowTutorialLocal] = useState(false);
+  const [showExitLocal, setShowExitLocal] = useState(false);
+  
+  const [showRules, setShowRules] = showRulesState || [showRulesLocal, setShowRulesLocal];
+  const [showTutorial, setShowTutorial] = showTutorialState || [showTutorialLocal, setShowTutorialLocal];
+  const [showExitDialog, setShowExitDialog] = showExitDialogState || [showExitLocal, setShowExitLocal];
   
   // Authentication and session recovery
   const { user: authUser, isAuthenticated, loading: authLoading } = usePlayerProfile();
@@ -1968,8 +1981,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
             onEndTurn={handleEndTurn}
             onNewRound={handleNewRound}
             onNewGame={handleNewGame}
-            onShowRules={() => setShowRules(true)}
-            onShowTutorial={() => setShowTutorial(true)}
             message={gameState.message}
           />
         </div>
