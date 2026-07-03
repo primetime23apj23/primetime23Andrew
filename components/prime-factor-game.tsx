@@ -327,9 +327,8 @@ export function PrimeFactorGame({
     }
     
     const product = numericValues.reduce((a, b) => a * b, 1);
-    console.log("[v0] validMoves - selectedDiceValues:", selectedDieValues, "product:", product, "wildCount:", wildCount);
     
-    const matches = gameState.board
+    return gameState.board
       .filter((space) => {
         if (space.isPrime || space.owner !== null || space.number === 0 || space.claimed) return false;
         
@@ -338,19 +337,12 @@ export function PrimeFactorGame({
         
         if (wildCount === 0) {
           const factorProduct = factors.reduce((a, b) => a * b, 1);
-          const isMatch = factorProduct === product;
-          if (space.number <= 10 || space.number === 6) {
-            console.log("[v0] space", space.number, "factors:", factors, "factorProduct:", factorProduct, "match:", isMatch);
-          }
-          return isMatch;
+          return factorProduct === product;
         }
         
         return false;
       })
       .map((s) => s.number);
-    
-    console.log("[v0] validMoves result:", matches);
-    return matches;
   }, [gameState.selectedDice, currentPlayerDice, gameState.board]);
 
   // Highlight possible board spaces where selected dice are a valid subset of the space's factors
@@ -1909,7 +1901,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 boardRef={trackBoardRef}
                 onSpaceClick={handleSpaceClick}
                 highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
-                validMoves={botEnabled || isMultiplayer ? [] : allHighlightedMoves}
+                validMoves={allHighlightedMoves}
                 lastClaimedSpace={lastClaimedSpace}
                 opponentSelectedSpace={isMultiplayer ? opponentSelectedSpace : null}
               />
