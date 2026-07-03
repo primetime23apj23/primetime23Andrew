@@ -1668,16 +1668,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
     });
   }, [gameState, localPlayerIndex, persistGameState]);
 
-  // Watch for when both players are ready and trigger next round
-  useEffect(() => {
-    if (gameState.phase === "roundEnd" && gameState.player1Ready && gameState.player2Ready && isMultiplayer) {
-      const timer = setTimeout(() => {
-        handleNewRound();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [gameState.phase, gameState.player1Ready, gameState.player2Ready, isMultiplayer, handleNewRound]);
-
   const handleNewRound = useCallback(() => {
     const dice1 = rollDice().map((d, i) => ({ ...d, id: `p1-r${gameState.roundNumber}-${i}` }));
     const dice2 = rollDice().map((d, i) => ({ ...d, id: `p2-r${gameState.roundNumber}-${i}` }));
@@ -1707,6 +1697,16 @@ const channel = subscribeToSession(sessionCode, (session) => {
       diceRolled: true,
     });
   }, [gameState, persistGameState]);
+
+  // Watch for when both players are ready and trigger next round
+  useEffect(() => {
+    if (gameState.phase === "roundEnd" && gameState.player1Ready && gameState.player2Ready && isMultiplayer) {
+      const timer = setTimeout(() => {
+        handleNewRound();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.phase, gameState.player1Ready, gameState.player2Ready, isMultiplayer, handleNewRound]);
 
   // Reorder dice
   const handleReorderPlayer1Dice = useCallback((newOrder: Die[]) => {
