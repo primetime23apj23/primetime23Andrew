@@ -199,9 +199,14 @@ function DieComponent({
         getColorClasses()
       )}
     >
-      <span className="text-foreground">
-        {die.value === "W" ? "W" : die.value}
-      </span>
+      {die.value === "W" ? (
+        <div className="flex flex-col items-center justify-center gap-0.5">
+          <span className="text-xs sm:text-sm font-semibold leading-none">Any</span>
+          <span className="text-xs leading-none">Prime</span>
+        </div>
+      ) : (
+        <span className="text-foreground">{die.value}</span>
+      )}
     </button>
   );
 }
