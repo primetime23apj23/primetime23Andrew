@@ -16,6 +16,7 @@ interface GameBoardProps {
   tracks?: CompletedTrack[];
   boardRef?: React.RefObject<HTMLDivElement | null>;
   lastClaimedSpace?: number | null;
+  opponentSelectedSpace?: number | null;
 }
 
 export function GameBoard({
@@ -26,6 +27,7 @@ export function GameBoard({
   tracks = [],
   boardRef,
   lastClaimedSpace = null,
+  opponentSelectedSpace = null,
 }: GameBoardProps) {
   const internalRef = useRef<HTMLDivElement>(null);
   const gridRef = boardRef ?? internalRef;
@@ -65,6 +67,7 @@ export function GameBoard({
                   isHighlighted={highlightedSpaces.includes(space?.number ?? -1)}
                   isValidMove={validMoves.includes(space?.number ?? -1)}
                   isLastClaimed={lastClaimedSpace === space?.number}
+                  isOpponentSelected={opponentSelectedSpace === space?.number}
                 />
               ))
             )}
@@ -85,6 +88,7 @@ interface BoardSpaceCellProps {
   isHighlighted: boolean;
   isValidMove: boolean;
   isLastClaimed?: boolean;
+  isOpponentSelected?: boolean;
 }
 
 function BoardSpaceCell({
@@ -93,6 +97,7 @@ function BoardSpaceCell({
   isHighlighted,
   isValidMove,
   isLastClaimed = false,
+  isOpponentSelected = false,
 }: BoardSpaceCellProps) {
   if (!space) {
     return <div className="w-full h-full bg-white dark:bg-zinc-900" />;
@@ -171,7 +176,8 @@ function BoardSpaceCell({
         space.isPrime && "cursor-default",
         space.owner !== null && "cursor-default",
         isHighlighted && "ring-2 ring-chart-1",
-        isValidMove && !space.owner && "ring-2 ring-green-500"
+        isValidMove && !space.owner && "ring-2 ring-green-500",
+        isOpponentSelected && !space.owner && "ring-2 ring-dashed ring-purple-500"
       )}
       style={!space.isPrime && ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
     >

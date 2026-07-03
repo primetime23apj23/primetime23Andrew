@@ -5,15 +5,12 @@ import React from "react"
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Die } from "@/lib/game-utils";
-import type { DiceSkin } from "./dice-skin-settings";
-
 interface DiceTrayProps {
   dice: Die[];
   selectedDice: string[];
   onDieClick: (die: Die) => void;
   onReorder?: (newOrder: Die[]) => void;
   disabled?: boolean;
-  skins?: DiceSkin[];
   playerName?: string;
   hideValues?: boolean;
 }
@@ -24,7 +21,6 @@ export function DiceTray({
   onDieClick,
   onReorder,
   disabled = false,
-  skins = [],
   playerName = "Your",
   hideValues = false,
 }: DiceTrayProps) {
@@ -199,9 +195,14 @@ function DieComponent({
         getColorClasses()
       )}
     >
-      <span className="text-foreground">
-        {die.value === "W" ? "W" : die.value}
-      </span>
+      {die.value === "W" ? (
+        <div className="flex flex-col items-center justify-center gap-0.5">
+          <span className="text-xs sm:text-sm font-semibold leading-none">Any</span>
+          <span className="text-xs leading-none">Prime</span>
+        </div>
+      ) : (
+        <span className="text-foreground">{die.value}</span>
+      )}
     </button>
   );
 }
