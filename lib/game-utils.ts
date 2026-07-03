@@ -428,6 +428,8 @@ export interface GameState {
   selectedDice: string[];
   message: string;
   targetScore: number;
+  player1Ready?: boolean;
+  player2Ready?: boolean;
 }
 
 export const PLAYER_COLORS = ['#F5D5D5', '#D5EBE8', '#F9F0D9', '#E1EDF5'];

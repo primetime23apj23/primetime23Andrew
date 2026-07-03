@@ -66,6 +66,8 @@ const createInitialState = (targetScore: number): GameState => ({
   selectedDice: [],
   message: "Set up your game and roll the dice to start!",
   targetScore,
+  player1Ready: false,
+  player2Ready: false,
 });
 
 interface PrimeFactorGameProps {
@@ -583,6 +585,8 @@ export function PrimeFactorGame({
         breakdown: BonusBreakdown[];
       }>;
       completedTracks?: CompletedTrack[];
+      player1Ready?: boolean;
+      player2Ready?: boolean;
     }
   ) => {
     if (!isMultiplayer || !sessionId || !sessionLocalPlayerId) return;
@@ -666,6 +670,8 @@ export function PrimeFactorGame({
         message: typeof savedState.message === "string" ? savedState.message : prev.message,
         targetScore:
           typeof savedState.targetScore === "number" ? savedState.targetScore : prev.targetScore,
+        player1Ready: typeof savedState.player1Ready === "boolean" ? savedState.player1Ready : prev.player1Ready,
+        player2Ready: typeof savedState.player2Ready === "boolean" ? savedState.player2Ready : prev.player2Ready,
       };
     });
 
@@ -1641,6 +1647,28 @@ const channel = subscribeToSession(sessionCode, (session) => {
   }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer]);
 
   // Start new round - alternate who goes first
+  const handleReadyForNextRound = useCallback(() => {
+    const isPlayer1 = localPlayerIndex === 0;
+    const nextGameState = {
+      ...gameState,
+      player1Ready: isPlayer1 ? true : gameState.player1Ready,
+      player2Ready: isPlayer1 ? gameState.player2Ready : true,
+    };
+
+    setGameState(nextGameState);
+    void persistGameState('player-ready', {
+      gameState: nextGameState,
+    });
+
+    // Check if both players are ready
+    if (nextGameState.player1Ready && nextGameState.player2Ready) {
+      // Proceed to next round after a short delay
+      setTimeout(() => {
+        handleNewRound();
+      }, 500);
+    }
+  }, [gameState, localPlayerIndex, persistGameState]);
+
   const handleNewRound = useCallback(() => {
     const dice1 = rollDice().map((d, i) => ({ ...d, id: `p1-r${gameState.roundNumber}-${i}` }));
     const dice2 = rollDice().map((d, i) => ({ ...d, id: `p2-r${gameState.roundNumber}-${i}` }));
@@ -1653,10 +1681,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
     const startingPlayer = (gameState.roundNumber - 1) % 2;
     const nextGameState = {
       ...gameState,
+      roundNumber: gameState.roundNumber + 1,
       phase: "playing" as const,
       currentPlayer: startingPlayer,
       selectedDice: [],
-      message: `Round ${gameState.roundNumber} started! ${gameState.players[startingPlayer].name} goes first.`,
+      player1Ready: false,
+      player2Ready: false,
+      message: `Round ${gameState.roundNumber + 1} started! ${gameState.players[startingPlayer].name} goes first.`,
     };
 
     setGameState(nextGameState);
@@ -1980,8 +2011,12 @@ const channel = subscribeToSession(sessionCode, (session) => {
             onRoll={handleRoll}
             onEndTurn={handleEndTurn}
             onNewRound={handleNewRound}
+            onReadyForNextRound={handleReadyForNextRound}
             onNewGame={handleNewGame}
             message={gameState.message}
+            player1Ready={gameState.player1Ready}
+            player2Ready={gameState.player2Ready}
+            isMultiplayer={isMultiplayer}
           />
         </div>
 
