@@ -70,12 +70,12 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
       userId,
     });
     
-    // Call onAuthed FIRST to update parent state
-    onAuthed(playerName, emailValue, userId);
+    // Close the dialog first
+    onOpenChange(false);
     
-    // Then close the dialog after a microtask to ensure state is propagated
+    // Then call onAuthed to update parent state after dialog closes
     Promise.resolve().then(() => {
-      onOpenChange(false);
+      onAuthed(playerName, emailValue, userId);
     });
   }, [onAuthed, onOpenChange]);
 
