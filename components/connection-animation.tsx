@@ -46,11 +46,8 @@ function getCellCenter(boardEl: HTMLElement, spaceNumber: number): { x: number; 
 
 // Choo choo train SVG component
 function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle: number; progress: number }) {
-  // Determine if train needs to be flipped (facing roughly left/backwards)
-  // Only flip for angles close to 180 degrees (pure left movement)
-  // Don't flip for down-left (225°) or up-left (315°) as they should face their direction naturally
-  const normalizedAngle = ((angle % 360) + 360) % 360;
-  const facingLeft = normalizedAngle > 160 && normalizedAngle < 200;
+  // Keep train facing right for all animations
+  const facingLeft = false;
   
   // Firework sparks that trail behind
   const sparks = [];
