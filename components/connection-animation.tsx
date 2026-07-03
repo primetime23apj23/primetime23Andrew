@@ -93,9 +93,10 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
   }
 
   return (
-    <g transform={`translate(${x}, ${y}) rotate(${angle}) ${facingLeft ? 'scaleX(-1)' : ''}`}>
-      {/* Firework sparks */}
-      {sparks}
+    <g transform={`translate(${x}, ${y}) rotate(${angle})`} style={{ transformOrigin: '0 0' }}>
+      <g transform={facingLeft ? 'scaleX(-1)' : ''} style={{ transformOrigin: '0 0' }}>
+        {/* Firework sparks */}
+        {sparks}
       {/* Smoke puffs */}
       {smokes}
       
@@ -117,13 +118,14 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
       <circle cx="-8" cy="8" r="1.5" fill="#718096" />
       <circle cx="4" cy="8" r="4" fill="#2d3748" stroke="#1a202c" strokeWidth="1" />
       <circle cx="4" cy="8" r="1.5" fill="#718096" />
-      {/* Connecting rod animation */}
-      <line 
-        x1="-8" y1="8" 
-        x2="4" y2="8" 
-        stroke="#a0aec0" strokeWidth="1.5" 
-        transform={`translate(0, ${Math.sin(progress * 40) * 1.5})`}
-      />
+        {/* Connecting rod animation */}
+        <line 
+          x1="-8" y1="8" 
+          x2="4" y2="8" 
+          stroke="#a0aec0" strokeWidth="1.5" 
+          transform={`translate(0, ${Math.sin(progress * 40) * 1.5})`}
+        />
+      </g>
     </g>
   );
 }
