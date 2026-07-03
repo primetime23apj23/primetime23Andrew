@@ -71,6 +71,7 @@ const createInitialState = (targetScore: number): GameState => ({
 export function PrimeFactorGame() {
   const [gameState, setGameState] = useState<GameState>(createInitialState(37));
   const [selectedSpace, setSelectedSpace] = useState<BoardSpace | null>(null);
+  const [opponentSelectedSpace, setOpponentSelectedSpace] = useState<number | null>(null);
   const [diceAutoSelected, setDiceAutoSelected] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -562,6 +563,7 @@ export function PrimeFactorGame() {
       player1Dice?: Die[];
       player2Dice?: Die[];
       diceRolled?: boolean;
+      selectedSpace?: BoardSpace | null;
       bonusHistory?: Array<{
         player: string;
         space: number;
@@ -582,6 +584,7 @@ export function PrimeFactorGame() {
     const nextSyncVersion = gameStateVersionRef.current + 1;
 
     try {
+      const nextSelectedSpace = overrides?.selectedSpace ?? selectedSpace;
       await updateGameState(sessionId, sessionLocalPlayerId, {
         board: nextState.board,
         players: nextState.players,
@@ -589,6 +592,7 @@ export function PrimeFactorGame() {
         phase: nextState.phase,
         roundNumber: nextState.roundNumber,
         selectedDice: nextState.selectedDice,
+        selectedSpace: nextSelectedSpace ? nextSelectedSpace.number : null,
         message: nextState.message,
         targetScore: nextState.targetScore,
         player1Dice: nextPlayer1Dice,
@@ -611,6 +615,7 @@ export function PrimeFactorGame() {
     isMultiplayer,
     player1Dice,
     player2Dice,
+    selectedSpace,
     sessionId,
     sessionLocalPlayerId,
   ]);
@@ -664,7 +669,14 @@ export function PrimeFactorGame() {
     );
     setBonusHistory(Array.isArray(savedState.bonusHistory) ? savedState.bonusHistory : []);
     setCompletedTracks(Array.isArray(savedState.completedTracks) ? savedState.completedTracks : []);
-  }, [getSavedStateVersion]);
+    
+    // Sync opponent's selected space (if different from local player)
+    if (typeof savedState.selectedSpace === "number" && sessionLocalPlayerId && savedState.player_id !== sessionLocalPlayerId) {
+      setOpponentSelectedSpace(savedState.selectedSpace);
+    } else if (typeof savedState.selectedSpace !== "number") {
+      setOpponentSelectedSpace(null);
+    }
+  }, [getSavedStateVersion, sessionLocalPlayerId]);
 
   const getLatestGameStateRecord = useCallback((states: Array<Record<string, any>>) => {
     return [...states].sort((a, b) => {
@@ -1786,6 +1798,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
               highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
               validMoves={botEnabled || isMultiplayer ? [] : allHighlightedMoves}
               lastClaimedSpace={lastClaimedSpace}
+              opponentSelectedSpace={isMultiplayer ? opponentSelectedSpace : null}
             />
           </div>
 
