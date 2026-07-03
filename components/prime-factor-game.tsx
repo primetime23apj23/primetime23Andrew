@@ -676,7 +676,44 @@ export function PrimeFactorGame() {
     } else if (typeof savedState.selectedSpace !== "number") {
       setOpponentSelectedSpace(null);
     }
-  }, [getSavedStateVersion, sessionLocalPlayerId]);
+
+    // Play sounds for opponent's claimed spaces in multiplayer
+    setGameState((prev) => {
+      if (
+        isMultiplayer &&
+        sessionLocalPlayerId &&
+        savedState.player_id !== sessionLocalPlayerId &&
+        Array.isArray(savedState.board) &&
+        Array.isArray(prev.board)
+      ) {
+        // Find newly claimed spaces by opponent (player 1 / player 2)
+        const opponentId = sessionLocalPlayerId === 0 ? 1 : 0;
+        const newlyClaimedByOpponent = savedState.board.filter((space: BoardSpace) => {
+          const oldSpace = prev.board.find((s) => s.number === space.number);
+          return (
+            space.claimed &&
+            space.owner === opponentId &&
+            oldSpace &&
+            (!oldSpace.claimed || oldSpace.owner !== opponentId)
+          );
+        });
+
+        // Play celebration sounds for opponent's move
+        if (newlyClaimedByOpponent.length > 0) {
+          playCapturSound();
+          
+          // Check if opponent got bonus points
+          const bonusSpaces = newlyClaimedByOpponent.length;
+          if (bonusSpaces > 1) {
+            playBonusSound(bonusSpaces);
+          }
+          
+          playOpponentMoveSound();
+        }
+      }
+      return prev;
+    });
+  }, [getSavedStateVersion, sessionLocalPlayerId, isMultiplayer]);
 
   const getLatestGameStateRecord = useCallback((states: Array<Record<string, any>>) => {
     return [...states].sort((a, b) => {
