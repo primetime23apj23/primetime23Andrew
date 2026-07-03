@@ -27,19 +27,13 @@ export const metadata = {
     description:
       "An exciting math board game where kids learn multiplication through play, strategy, and dice rolls.",
     type: "website",
-    images: [
-      {
-        url: "/dice-skins/owl.jpg",
-      },
-    ],
   },
 
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Multiplication Game",
     description:
       "Learn multiplication with a fun, strategic board game for kids!",
-    images: ["/dice-skins/owl.jpg"],
   },
 };
 
