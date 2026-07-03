@@ -1774,112 +1774,109 @@ const channel = subscribeToSession(sessionCode, (session) => {
           </div>
         </div>
 
-        {/* Main Game Area */}
-        <div className="flex flex-col lg:grid lg:grid-cols-[1fr_320px] gap-4">
-          {/* Board + Dice Below + Space Detail */}
-          <div className="space-y-4 order-first lg:order-none">
-            {/* Game Board */}
-            <div>
-              <GameBoard
-                board={gameState.board}
-                tracks={completedTracks}
-                boardRef={trackBoardRef}
-                onSpaceClick={handleSpaceClick}
-                highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
-                validMoves={botEnabled || isMultiplayer ? [] : allHighlightedMoves}
-                lastClaimedSpace={lastClaimedSpace}
-              />
-            </div>
+        {/* Main Game Area - Grid with dice on sides */}
+        <div className="flex flex-col gap-4">
+          {/* Top: Game Board centered */}
+          <div>
+            <GameBoard
+              board={gameState.board}
+              tracks={completedTracks}
+              boardRef={trackBoardRef}
+              onSpaceClick={handleSpaceClick}
+              highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
+              validMoves={botEnabled || isMultiplayer ? [] : allHighlightedMoves}
+              lastClaimedSpace={lastClaimedSpace}
+            />
+          </div>
 
-            {/* Both Players' Dice Side by Side (below board) */}
-            {diceRolled && (
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-                {/* Player 1 Dice - Left */}
-                <div className={gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
+          {/* Bottom: Dice on sides + Space Detail in center */}
+          {diceRolled && (
+            <div className="flex flex-col md:flex-row items-stretch justify-between gap-4">
+              {/* Player 1 Dice - Left */}
+              <div className={`flex-1 ${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
+                <DiceTray
+                  dice={player1Dice}
+                  selectedDice={gameState.currentPlayer === 0 ? gameState.selectedDice : []}
+                  onDieClick={handleDieClick}
+                  onReorder={handleReorderPlayer1Dice}
+                  disabled={
+                    gameState.phase !== "playing" ||
+                    gameState.currentPlayer !== 0 ||
+                    (isMultiplayer && localPlayerIndex !== 0)
+                  }
+                  skins={diceSkins}
+                  playerName={gameState.players[0].name}
+                />
+              </div>
+
+              {/* Space Detail (Claim Button) - Center */}
+              <div className="flex items-end justify-center">
+                <SpaceDetail
+                  space={selectedSpace}
+                  selectedDice={selectedDiceObjects}
+                  canClaim={canClaimSpace}
+                  onClaim={handleClaim}
+                  onCancel={handleCancel}
+                  isAutoSelected={diceAutoSelected}
+                />
+              </div>
+              
+              {/* Player 2 Dice - Right, Visible in bot/multiplayer after player 1's first move */}
+              <div className={`flex-1 ${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
+                {player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.currentPlayer === 1 || gameState.board.some(s => s.owner === 0)) && (
                   <DiceTray
-                    dice={player1Dice}
-                    selectedDice={gameState.currentPlayer === 0 ? gameState.selectedDice : []}
+                    dice={player2Dice}
+                    selectedDice={gameState.currentPlayer === 1 ? gameState.selectedDice : []}
                     onDieClick={handleDieClick}
-                    onReorder={handleReorderPlayer1Dice}
+                    onReorder={handleReorderPlayer2Dice}
                     disabled={
                       gameState.phase !== "playing" ||
-                      gameState.currentPlayer !== 0 ||
-                      (isMultiplayer && localPlayerIndex !== 0)
+                      gameState.currentPlayer !== 1 ||
+                      (isMultiplayer && localPlayerIndex !== 1)
                     }
                     skins={diceSkins}
-                    playerName={gameState.players[0].name}
+                    playerName={gameState.players[1].name}
+                    hideValues={false}
                   />
-                </div>
-
-                {/* Space Detail (Claim Button) - Center */}
-                <div className="flex-shrink-0">
-                  <SpaceDetail
-                    space={selectedSpace}
-                    selectedDice={selectedDiceObjects}
-                    canClaim={canClaimSpace}
-                    onClaim={handleClaim}
-                    onCancel={handleCancel}
-                    isAutoSelected={diceAutoSelected}
-                  />
-                </div>
-                
-                {/* Player 2 Dice - Visible in bot/multiplayer after player 1's first move */}
-                <div className={gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}>
-                  {player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.currentPlayer === 1 || gameState.board.some(s => s.owner === 0)) && (
-                    <DiceTray
-                      dice={player2Dice}
-                      selectedDice={gameState.currentPlayer === 1 ? gameState.selectedDice : []}
-                      onDieClick={handleDieClick}
-                      onReorder={handleReorderPlayer2Dice}
-                      disabled={
-                        gameState.phase !== "playing" ||
-                        gameState.currentPlayer !== 1 ||
-                        (isMultiplayer && localPlayerIndex !== 1)
-                      }
-                      skins={diceSkins}
-                      playerName={gameState.players[1].name}
-                      hideValues={false}
-                    />
-                  )}
-                </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
-          {/* Sidebar */}
-          <div className="space-y-4 order-last lg:order-none">
-            <Scoreboard
-              players={gameState.players}
+        {/* Sidebar */}
+        <div className="space-y-4">
+          <Scoreboard
+            players={gameState.players}
+            currentPlayer={gameState.currentPlayer}
+            targetScore={gameState.targetScore}
+          />
+          
+          {timerMode !== "disabled" && (
+            <GameTimer
+              initialSeconds={getTimerSeconds()}
+              onTimeUp={handleTimeUp}
+              isActive={gameState.phase === "playing"}
               currentPlayer={gameState.currentPlayer}
-              targetScore={gameState.targetScore}
+              playerColors={PLAYER_COLORS}
             />
-            
-            {timerMode !== "disabled" && (
-              <GameTimer
-                initialSeconds={getTimerSeconds()}
-                onTimeUp={handleTimeUp}
-                isActive={gameState.phase === "playing"}
-                currentPlayer={gameState.currentPlayer}
-                playerColors={PLAYER_COLORS}
-              />
-            )}
-            
-            <GameControls
-              phase={gameState.phase}
-              canRoll={!diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn}
-              canEndTurn={gameState.phase === "playing" && isLocalPlayersTurn}
-              hasValidMoves={hasAnyValidMove}
-              onRoll={handleRoll}
-              onEndTurn={handleEndTurn}
-              onNewRound={handleNewRound}
-  onNewGame={handleNewGame}
-  onShowRules={() => setShowRules(true)}
-  onShowTutorial={() => setShowTutorial(true)}
-  message={gameState.message}
-            />
-            
-            <BonusBreakdownPanel history={bonusHistory} />
-          </div>
+          )}
+          
+          <GameControls
+            phase={gameState.phase}
+            canRoll={!diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn}
+            canEndTurn={gameState.phase === "playing" && isLocalPlayersTurn}
+            hasValidMoves={hasAnyValidMove}
+            onRoll={handleRoll}
+            onEndTurn={handleEndTurn}
+            onNewRound={handleNewRound}
+            onNewGame={handleNewGame}
+            onShowRules={() => setShowRules(true)}
+            onShowTutorial={() => setShowTutorial(true)}
+            message={gameState.message}
+          />
+          
+          <BonusBreakdownPanel history={bonusHistory} />
         </div>
 
         {/* Legend */}
