@@ -1720,7 +1720,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   // Watch for when both players are ready and trigger next round
   useEffect(() => {
-    if (gameState.phase === "roundEnd" && gameState.player1Ready && gameState.player2Ready && isMultiplayer) {
+    if ((gameState.phase === "roundEnd" || gameState.phase === "playing") && gameState.player1Ready && gameState.player2Ready && isMultiplayer) {
       const timer = setTimeout(() => {
         handleNewRound();
       }, 500);
