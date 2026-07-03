@@ -9,7 +9,7 @@ import { GameControls } from "./game-controls";
 import { RulesDialog } from "./rules-dialog";
 import { SpaceDetail } from "./space-detail";
 import { GameTimer } from "./game-timer";
-import { DiceSkinSettings, DEFAULT_SKINS, type DiceSkin } from "./dice-skin-settings";
+
 import { TargetScoreSelector } from "./target-score-selector";
 import {
   PointAnimations,
@@ -77,7 +77,6 @@ export function PrimeFactorGame() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
   const [showModeSelect, setShowModeSelect] = useState(true);
-  const [diceSkins, setDiceSkins] = useState<DiceSkin[]>(DEFAULT_SKINS);
   
   // Authentication and session recovery
   const { user: authUser, isAuthenticated, loading: authLoading } = usePlayerProfile();
@@ -1817,7 +1816,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
             >
               Exit Game
             </Button>
-            <DiceSkinSettings skins={diceSkins} onSkinsChange={setDiceSkins} />
           </div>
         </div>
 
@@ -1882,7 +1880,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
                       gameState.currentPlayer !== 0 ||
                       (isMultiplayer && localPlayerIndex !== 0)
                     }
-                    skins={diceSkins}
                     playerName={gameState.players[0].name}
                   />
                 </div>
@@ -1912,7 +1909,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
                         gameState.currentPlayer !== 1 ||
                         (isMultiplayer && localPlayerIndex !== 1)
                       }
-                      skins={diceSkins}
                       playerName={gameState.players[1].name}
                       hideValues={false}
                     />
