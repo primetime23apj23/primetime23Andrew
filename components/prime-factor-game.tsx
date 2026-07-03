@@ -89,9 +89,9 @@ export function PrimeFactorGame({
   const [showTutorialLocal, setShowTutorialLocal] = useState(false);
   const [showExitLocal, setShowExitLocal] = useState(false);
   
-  const [showRules, setShowRules] = showRulesState || [showRulesLocal, setShowRulesLocal];
-  const [showTutorial, setShowTutorial] = showTutorialState || [showTutorialLocal, setShowTutorialLocal];
-  const [showExitDialog, setShowExitDialog] = showExitDialogState || [showExitLocal, setShowExitLocal];
+  const [showRules, setShowRules] = showRulesState ? showRulesState : [showRulesLocal, setShowRulesLocal];
+  const [showTutorial, setShowTutorial] = showTutorialState ? showTutorialState : [showTutorialLocal, setShowTutorialLocal];
+  const [showExitDialog, setShowExitDialog] = showExitDialogState ? showExitDialogState : [showExitLocal, setShowExitLocal];
   
   // Authentication and session recovery
   const { user: authUser, isAuthenticated, loading: authLoading } = usePlayerProfile();
