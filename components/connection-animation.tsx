@@ -271,7 +271,8 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
               const t = (targetDist - accumulated) / segLen;
               trainX = centers[i - 1].x + dx * t;
               trainY = centers[i - 1].y + dy * t;
-              trainAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
+              // Always keep train facing right (0 degrees)
+              trainAngle = 0;
               break;
             }
             accumulated += segLen;
