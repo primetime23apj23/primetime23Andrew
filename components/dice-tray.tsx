@@ -148,7 +148,7 @@ function DieComponent({
     
     switch (value) {
       case 2: return "bg-green-100 dark:bg-green-900 border-yellow-500 dark:border-yellow-400";
-      case 3: return "bg-green-100 dark:bg-green-900 border-yellow-500 dark:border-yellow-400";
+      case 3: return "bg-rose-100 dark:bg-rose-900 border-yellow-500 dark:border-yellow-400";
       case 5: return "bg-sky-100 dark:bg-sky-900 border-yellow-500 dark:border-yellow-400";
       case 7: return "bg-amber-100 dark:bg-amber-900 border-yellow-500 dark:border-yellow-400";
       case 11: return "bg-orange-100 dark:bg-orange-900 border-yellow-500 dark:border-yellow-400";
