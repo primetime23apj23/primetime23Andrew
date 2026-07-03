@@ -2087,7 +2087,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
   />
   
   {/* Exit Confirmation Dialog */}
-  <Dialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
+  <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
     <DialogContent>
       <DialogHeader>
         <DialogTitle>Exit Game</DialogTitle>
@@ -2096,13 +2096,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
         </DialogDescription>
       </DialogHeader>
       <div className="flex gap-2 justify-end">
-        <Button variant="outline" onClick={() => setShowExitConfirm(false)}>
+        <Button variant="outline" onClick={() => setShowExitDialog(false)}>
           Continue Playing
         </Button>
         <Button
           variant="destructive"
           onClick={() => {
-            setShowExitConfirm(false);
+            setShowExitDialog(false);
             window.location.href = "/";
           }}
         >
