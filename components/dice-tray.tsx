@@ -97,7 +97,6 @@ export function DiceTray({
               isSelected={selectedDice.includes(die.id)}
               onClick={() => onDieClick(die)}
               disabled={disabled || die.used}
-              skin={skins.find((s) => s.value === die.value)}
               isDragging={draggedId === die.id}
               isDragOver={dragOverId === die.id}
               onDragStart={(e) => handleDragStart(e, die.id)}
@@ -118,7 +117,6 @@ interface DieComponentProps {
   isSelected: boolean;
   onClick: () => void;
   disabled: boolean;
-  skin?: DiceSkin;
   isDragging: boolean;
   isDragOver: boolean;
   onDragStart: (e: React.DragEvent) => void;
@@ -133,7 +131,6 @@ function DieComponent({
   isSelected, 
   onClick, 
   disabled, 
-  skin,
   isDragging,
   isDragOver,
   onDragStart,
