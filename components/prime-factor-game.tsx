@@ -701,14 +701,12 @@ export function PrimeFactorGame() {
         // Play celebration sounds for opponent's move
         if (newlyClaimedByOpponent.length > 0) {
           playCapturSound();
-          
-          // Check if opponent got bonus points
-          const bonusSpaces = newlyClaimedByOpponent.length;
-          if (bonusSpaces > 1) {
-            playBonusSound(bonusSpaces);
-          }
-          
           playOpponentMoveSound();
+          
+          // Check if opponent got bonus points (multiple spaces in one turn counts as bonus)
+          if (newlyClaimedByOpponent.length > 1) {
+            playBonusSound(newlyClaimedByOpponent.length);
+          }
         }
       }
       return prev;
