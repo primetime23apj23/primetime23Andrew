@@ -202,40 +202,44 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
 
         if (rawCenters.length < 2) return null;
 
+        // Check if track goes right to left - if so, reverse it to always go left to right
+        const shouldReverse = rawCenters[rawCenters.length - 1].x < rawCenters[0].x;
+        const orderedRawCenters = shouldReverse ? [...rawCenters].reverse() : rawCenters;
+
         // Inset the prime endpoints (first and last) significantly to avoid circles
         const centers: { x: number; y: number }[] = [];
-        for (let i = 0; i < rawCenters.length; i++) {
+        for (let i = 0; i < orderedRawCenters.length; i++) {
           if (i === 0) {
             // First point (primeStart) - inset toward next point
-            const next = rawCenters[1];
-            const dx = next.x - rawCenters[i].x;
-            const dy = next.y - rawCenters[i].y;
+            const next = orderedRawCenters[1];
+            const dx = next.x - orderedRawCenters[i].x;
+            const dy = next.y - orderedRawCenters[i].y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist > 0) {
               centers.push({
-                x: rawCenters[i].x + (dx / dist) * trackInset,
-                y: rawCenters[i].y + (dy / dist) * trackInset,
+                x: orderedRawCenters[i].x + (dx / dist) * trackInset,
+                y: orderedRawCenters[i].y + (dy / dist) * trackInset,
               });
             } else {
-              centers.push(rawCenters[i]);
+              centers.push(orderedRawCenters[i]);
             }
-          } else if (i === rawCenters.length - 1) {
+          } else if (i === orderedRawCenters.length - 1) {
             // Last point (primeEnd) - inset toward previous point
-            const prev = rawCenters[i - 1];
-            const dx = prev.x - rawCenters[i].x;
-            const dy = prev.y - rawCenters[i].y;
+            const prev = orderedRawCenters[i - 1];
+            const dx = prev.x - orderedRawCenters[i].x;
+            const dy = prev.y - orderedRawCenters[i].y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist > 0) {
               centers.push({
-                x: rawCenters[i].x + (dx / dist) * trackInset,
-                y: rawCenters[i].y + (dy / dist) * trackInset,
+                x: orderedRawCenters[i].x + (dx / dist) * trackInset,
+                y: orderedRawCenters[i].y + (dy / dist) * trackInset,
               });
             } else {
-              centers.push(rawCenters[i]);
+              centers.push(orderedRawCenters[i]);
             }
           } else {
             // Intermediate points - use as-is
-            centers.push(rawCenters[i]);
+            centers.push(orderedRawCenters[i]);
           }
         }
 
@@ -271,8 +275,7 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
               const t = (targetDist - accumulated) / segLen;
               trainX = centers[i - 1].x + dx * t;
               trainY = centers[i - 1].y + dy * t;
-              // Always keep train facing right (0 degrees)
-              trainAngle = 0;
+              trainAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
               break;
             }
             accumulated += segLen;
