@@ -74,12 +74,14 @@ interface PrimeFactorGameProps {
   showRulesState?: [boolean, (value: boolean) => void];
   showTutorialState?: [boolean, (value: boolean) => void];
   showExitDialogState?: [boolean, (value: boolean) => void];
+  onGameActiveChange?: (isActive: boolean) => void;
 }
 
 export function PrimeFactorGame({ 
   showRulesState,
   showTutorialState,
   showExitDialogState,
+  onGameActiveChange,
 }: PrimeFactorGameProps = {}) {
   const [showSetup, setShowSetup] = useState(false);
   const [showModeSelect, setShowModeSelect] = useState(true);
@@ -948,6 +950,7 @@ export function PrimeFactorGame({
       setShowSetup(true);
       setShowModeSelect(false);
       setPlayerNames(["Player 1", "Bot"]);
+      onGameActiveChange?.(true);
       return;
     }
 
@@ -957,6 +960,7 @@ export function PrimeFactorGame({
       setShowSetup(true);
       setShowModeSelect(false);
       setPlayerNames(["Player 1", "Player 2"]);
+      onGameActiveChange?.(true);
       return;
     }
 
@@ -996,6 +1000,7 @@ export function PrimeFactorGame({
             session.player_1_name || "Player 1",
             session.player_2_name || joiningPlayerName || "Player 2",
           ]);
+          onGameActiveChange?.(true);
           setShowLobby(false);
           // Move straight to setup so both players can start
           setShowSetup(true);
