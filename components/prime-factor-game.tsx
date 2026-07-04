@@ -129,6 +129,7 @@ export function PrimeFactorGame({
   
   // Game state
   const [gameState, setGameState] = useState<GameState>(createInitialState(37));
+  const [roundStarterIndex, setRoundStarterIndex] = useState(0); // Tracks who starts each round (alternates: 0 -> 1 -> 0 -> ...)
   
   // Track each player's dice separately
   const [player1Dice, setPlayer1Dice] = useState<Die[]>([]);
@@ -441,11 +442,11 @@ export function PrimeFactorGame({
       
       if (allExhausted) {
         // All players exhausted - end round
+        // NOTE: Do NOT increment roundNumber here - it's only incremented in handleNewRound
         setGameState((prev) => ({
           ...prev,
           phase: "roundEnd",
           selectedDice: [],
-          roundNumber: prev.roundNumber + 1,
           playerExhausted: [false, false],
           message: `Round ${prev.roundNumber} complete! All players are out of moves. Click "New Round" to continue.`,
         }));
@@ -1688,18 +1689,22 @@ const channel = subscribeToSession(sessionCode, (session) => {
     setPlayer1Dice(nextPlayer1Dice);
     setPlayer2Dice(nextPlayer2Dice);
 
-    const startingPlayer = (gameState.roundNumber - 1) % 2;
+    // Use the dedicated roundStarterIndex, which alternates on a fixed schedule
+    const nextRoundStarterIndex = roundStarterIndex;
     const nextGameState = {
       ...gameState,
       roundNumber: gameState.roundNumber + 1,
       phase: "playing" as const,
-      currentPlayer: startingPlayer,
+      currentPlayer: nextRoundStarterIndex,
       selectedDice: [],
       player1Ready: false,
       player2Ready: false,
       playerExhausted: [false, false],
-      message: `Round ${gameState.roundNumber + 1} started! ${gameState.players[startingPlayer].name} goes first.`,
+      message: `Round ${gameState.roundNumber + 1} started! ${gameState.players[nextRoundStarterIndex].name} goes first.`,
     };
+
+    // Alternate the starter for the next round
+    setRoundStarterIndex(1 - roundStarterIndex);
 
     setGameState(nextGameState);
     void persistGameState('new-round', {
@@ -1708,7 +1713,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       player2Dice: nextPlayer2Dice,
       diceRolled: true,
     });
-  }, [gameState, persistGameState]);
+  }, [gameState, persistGameState, roundStarterIndex]);
 
   // Watch for when both players are ready and trigger next round
   useEffect(() => {
