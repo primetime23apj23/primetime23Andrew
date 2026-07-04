@@ -99,7 +99,7 @@ export function SpaceDetail({
                 key={die.id}
                 className="w-8 h-8 bg-chart-1 text-white rounded flex items-center justify-center font-bold"
               >
-                {die.value}
+                {die.value === 'W' ? 'P' : die.value}
               </span>
             ))}
           </div>
