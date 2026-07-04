@@ -344,12 +344,16 @@ function checkLineConnection(
   const allOccupied = occupancyStatus.every(s => s.occupied);
   console.log(`[v0] ${direction}: All occupied? ${allOccupied}`);
   
-  // Count all positions between the boundary primes for bonus calculation
+  // Count all occupied spaces between the boundary primes for bonus calculation
   let bonusSpaces = spacesInSegment;
   if (allOccupied && segmentStart !== -1 && segmentEnd !== -1) {
     bonusSpaces = [];
     for (let i = segmentStart + step; i < segmentEnd; i += step) {
-      bonusSpaces.push(i);
+      const space = board[i];
+      // Only count spaces that are occupied (not primes, and has an owner)
+      if (space && !space.isPrime && space.owner !== null) {
+        bonusSpaces.push(i);
+      }
     }
     console.log(`[v0] ${direction}: Bonus spaces between ${segmentStart} and ${segmentEnd}: [${bonusSpaces.join(',')}]`);
   }
@@ -410,20 +414,25 @@ function checkColumnConnection(
   const allOccupied = occupancyStatus.every(s => s.occupied);
   console.log(`[v0] ${direction}: All occupied? ${allOccupied}`);
   
-  // Count all positions between the boundary primes for bonus calculation
+  // Count all occupied spaces between the boundary primes for bonus calculation
   let bonusSpaces = spacesInSegment;
   if (allOccupied && segmentStart !== -1 && segmentEnd !== -1) {
     bonusSpaces = [];
     const startIdx = indices.indexOf(segmentStart);
     const endIdx = indices.indexOf(segmentEnd);
     console.log(`[v0] ${direction}: startIdx=${startIdx}, endIdx=${endIdx}, indices.length=${indices.length}`);
+    // Count all occupied spaces between the boundary primes
     for (let i = startIdx + 1; i < endIdx; i++) {
-      bonusSpaces.push(indices[i]);
+      const space = board[indices[i]];
+      // Only count spaces that are occupied (not primes, and has an owner)
+      if (space && !space.isPrime && space.owner !== null) {
+        bonusSpaces.push(indices[i]);
+      }
     }
     console.log(`[v0] ${direction}: Bonus spaces between ${segmentStart} and ${segmentEnd}: [${bonusSpaces.join(',')}]`);
   }
   
-  console.log(`[v0] ${direction}: Returning bonusSpaces=[${bonusSpaces.join(',')}]`);
+  console.log(`[v0] ${direction}: Returning bonusSpaces=[${bonusSpaces.join(',')}], length=${bonusSpaces.length}`);
   return { completed: allOccupied, spaces: bonusSpaces, primeStart: segmentStart, primeEnd: segmentEnd };
 }
 
