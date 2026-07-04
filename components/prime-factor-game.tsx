@@ -457,15 +457,23 @@ export function PrimeFactorGame({
           nextPlayerIndex = (nextPlayerIndex + 1) % gameState.players.length;
         }
         
+        // Check if next player already has rolled dice this turn
+        const nextPlayerDice = nextPlayerIndex === 0 ? player1Dice : player2Dice;
+        const nextPlayerAlreadyRolled = nextPlayerDice.length > 0;
+        
         setGameState((prev) => ({
           ...prev,
           currentPlayer: nextPlayerIndex,
           selectedDice: [],
-          phase: "rolling",
+          // If next player already rolled, keep them in "playing" to use remaining dice
+          // If they haven't rolled yet, set to "rolling" so they roll first
+          phase: nextPlayerAlreadyRolled ? "playing" : "rolling",
           playerExhausted: newExhausted,
-          message: `${prev.players[currentPlayerIndex].name} has no valid moves — skipping. ${prev.players[nextPlayerIndex].name}'s turn! Roll your dice.`,
+          message: nextPlayerAlreadyRolled 
+            ? `${prev.players[currentPlayerIndex].name} has no valid moves — skipping. ${prev.players[nextPlayerIndex].name}, use your remaining dice for extra points!`
+            : `${prev.players[currentPlayerIndex].name} has no valid moves — skipping. ${prev.players[nextPlayerIndex].name}'s turn! Roll your dice.`,
         }));
-        setDiceRolled(false);
+        setDiceRolled(nextPlayerAlreadyRolled); // Keep diceRolled true if they already rolled
       }
     }
   }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, gameState.board, gameState.players, isMultiplayer, gameState.playerExhausted]);
