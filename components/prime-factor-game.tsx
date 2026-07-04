@@ -1673,7 +1673,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
     // Only clear the timer itself
     return () => clearTimeout(timer);
 
-  }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer]);
+  }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer, diceRolled, player2Dice]);
 
   // Start new round - alternate who goes first
   const handleReadyForNextRound = useCallback(() => {
