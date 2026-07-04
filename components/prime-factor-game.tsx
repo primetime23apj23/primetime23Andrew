@@ -1015,8 +1015,8 @@ export function PrimeFactorGame({
             session.player_1_name || "Player 1",
             session.player_2_name || joiningPlayerName || "Player 2",
           ]);
-          onGameActiveChange?.(true);
           setShowLobby(false);
+          onGameActiveChange?.(true);
           // Move straight to setup so both players can start
           setShowSetup(true);
         }
@@ -1067,6 +1067,7 @@ export function PrimeFactorGame({
         setOpponentHasJoined(!!session.player_2_id);
         setOpponentPlayerId(resolvedOpponentId);
         setOpponentName(resolvedOpponentName);
+        onGameActiveChange?.(true);
         setPlayerNames([
           session.player_1_name || "Player 1",
           session.player_2_name || "Player 2",
@@ -1222,6 +1223,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           setShowGameSetup(false);
           setShowLobby(false);
           setPlayerNames([settings.playerName || "Player 1", "Player 2"]);
+          onGameActiveChange?.(true);
         }
       } catch (error) {
         console.error("Error creating lobby:", error);
