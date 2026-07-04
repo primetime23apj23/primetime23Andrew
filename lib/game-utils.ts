@@ -186,6 +186,30 @@ export interface BonusBreakdown {
 // Check for NEW bonus points when a space is claimed
 // Returns bonus if the claimed space completes a connection between primes
 // The bonus goes to whoever completes the connection, regardless of who owns other spaces
+function countPrimesInRange(board: BoardSpace[], start: number, end: number): number {
+  let count = 0;
+  for (let i = start; i <= end; i++) {
+    const space = board[i];
+    if (space && space.isPrime) {
+      count++;
+    }
+  }
+  return count;
+}
+
+function countPrimesInColumn(board: BoardSpace[], indices: number[], start: number, end: number): number {
+  let count = 0;
+  const startIdx = indices.indexOf(start);
+  const endIdx = indices.indexOf(end);
+  for (let i = startIdx; i <= endIdx; i++) {
+    const space = board[indices[i]];
+    if (space && space.isPrime) {
+      count++;
+    }
+  }
+  return count;
+}
+
 export function checkForNewBonus(
   board: BoardSpace[],
   claimedSpaceNumber: number
@@ -209,14 +233,16 @@ export function checkForNewBonus(
   // Check horizontal connection
   const horizontalBonus = checkLineConnection(board, row * 10, row * 10 + 9, 1, claimedSpaceNumber, "horizontal");
   if (horizontalBonus.completed) {
-    bonusPoints += horizontalBonus.spaces.length;
+    // Count primes in the segment (including boundaries)
+    const primeCount = countPrimesInRange(board, horizontalBonus.primeStart, horizontalBonus.primeEnd);
+    bonusPoints += primeCount;
     bonusSpaces.push(...horizontalBonus.spaces);
     breakdown.push({
       direction: "horizontal",
       primeStart: horizontalBonus.primeStart,
       primeEnd: horizontalBonus.primeEnd,
       spaces: horizontalBonus.spaces,
-      points: horizontalBonus.spaces.length,
+      points: primeCount,
     });
   }
   
@@ -228,15 +254,16 @@ export function checkForNewBonus(
   const verticalBonus = checkColumnConnection(board, verticalIndices, claimedSpaceNumber, "vertical");
   console.log(`[v0] verticalBonus result:`, verticalBonus);
   if (verticalBonus.completed) {
-    console.log(`[v0] Vertical bonus completed! spaces:`, verticalBonus.spaces, `length:`, verticalBonus.spaces.length);
-    bonusPoints += verticalBonus.spaces.length;
+    const primeCount = countPrimesInColumn(board, verticalIndices, verticalBonus.primeStart, verticalBonus.primeEnd);
+    console.log(`[v0] Vertical bonus completed! spaces:`, verticalBonus.spaces, `primeCount:`, primeCount);
+    bonusPoints += primeCount;
     bonusSpaces.push(...verticalBonus.spaces);
     breakdown.push({
       direction: "vertical",
       primeStart: verticalBonus.primeStart,
       primeEnd: verticalBonus.primeEnd,
       spaces: verticalBonus.spaces,
-      points: verticalBonus.spaces.length,
+      points: primeCount,
     });
   }
   
@@ -252,14 +279,15 @@ export function checkForNewBonus(
   if (diag1Indices.length > 1) {
     const diag1Bonus = checkColumnConnection(board, diag1Indices, claimedSpaceNumber, "diagonal-down");
     if (diag1Bonus.completed) {
-      bonusPoints += diag1Bonus.spaces.length;
+      const primeCount = countPrimesInColumn(board, diag1Indices, diag1Bonus.primeStart, diag1Bonus.primeEnd);
+      bonusPoints += primeCount;
       bonusSpaces.push(...diag1Bonus.spaces);
       breakdown.push({
         direction: "diagonal-down",
         primeStart: diag1Bonus.primeStart,
         primeEnd: diag1Bonus.primeEnd,
         spaces: diag1Bonus.spaces,
-        points: diag1Bonus.spaces.length,
+        points: primeCount,
       });
     }
   }
@@ -276,14 +304,15 @@ export function checkForNewBonus(
   if (diag2Indices.length > 1) {
     const diag2Bonus = checkColumnConnection(board, diag2Indices, claimedSpaceNumber, "diagonal-up");
     if (diag2Bonus.completed) {
-      bonusPoints += diag2Bonus.spaces.length;
+      const primeCount = countPrimesInColumn(board, diag2Indices, diag2Bonus.primeStart, diag2Bonus.primeEnd);
+      bonusPoints += primeCount;
       bonusSpaces.push(...diag2Bonus.spaces);
       breakdown.push({
         direction: "diagonal-up",
         primeStart: diag2Bonus.primeStart,
         primeEnd: diag2Bonus.primeEnd,
         spaces: diag2Bonus.spaces,
-        points: diag2Bonus.spaces.length,
+        points: primeCount,
       });
     }
   }
