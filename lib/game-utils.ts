@@ -192,8 +192,8 @@ function isPathValid(
   endNum: number,
   indices: number[] | null = null
 ): boolean {
-  // Check if path between two cells contains only primes or empty spaces (no composites)
-  // For columns/diagonals, use indices array. For horizontal, calculate on the fly.
+  // A connection is valid only if NO intermediate prime cells exist along the path.
+  // Composite cells (with factorization) are allowed and expected in the path.
   
   if (indices) {
     // Column or diagonal case: use provided indices
@@ -206,9 +206,9 @@ function isPathValid(
     
     for (let i = minIdx + 1; i < maxIdx; i++) {
       const space = board[indices[i]];
-      // Reject if intermediate cell is composite (has factors)
-      if (space && !space.isPrime && space.factors && space.factors.length > 0) {
-        console.log(`[v0] Path blocked: intermediate cell ${indices[i]} is composite`);
+      // Reject if intermediate cell is a prime - we cannot skip over primes
+      if (space && space.isPrime) {
+        console.log(`[v0] Path blocked: intermediate cell ${indices[i]} is prime`);
         return false;
       }
     }
@@ -219,9 +219,9 @@ function isPathValid(
     
     for (let num = minNum + 1; num < maxNum; num++) {
       const space = board[num];
-      // Reject if intermediate cell is composite (has factors)
-      if (space && !space.isPrime && space.factors && space.factors.length > 0) {
-        console.log(`[v0] Path blocked: intermediate cell ${num} is composite`);
+      // Reject if intermediate cell is a prime - we cannot skip over primes
+      if (space && space.isPrime) {
+        console.log(`[v0] Path blocked: intermediate cell ${num} is prime`);
         return false;
       }
     }
