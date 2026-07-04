@@ -226,7 +226,9 @@ export function checkForNewBonus(
     verticalIndices.push(r * 10 + col);
   }
   const verticalBonus = checkColumnConnection(board, verticalIndices, claimedSpaceNumber, "vertical");
+  console.log(`[v0] verticalBonus result:`, verticalBonus);
   if (verticalBonus.completed) {
+    console.log(`[v0] Vertical bonus completed! spaces:`, verticalBonus.spaces, `length:`, verticalBonus.spaces.length);
     bonusPoints += verticalBonus.spaces.length;
     bonusSpaces.push(...verticalBonus.spaces);
     breakdown.push({
@@ -414,12 +416,14 @@ function checkColumnConnection(
     bonusSpaces = [];
     const startIdx = indices.indexOf(segmentStart);
     const endIdx = indices.indexOf(segmentEnd);
+    console.log(`[v0] ${direction}: startIdx=${startIdx}, endIdx=${endIdx}, indices.length=${indices.length}`);
     for (let i = startIdx + 1; i < endIdx; i++) {
       bonusSpaces.push(indices[i]);
     }
     console.log(`[v0] ${direction}: Bonus spaces between ${segmentStart} and ${segmentEnd}: [${bonusSpaces.join(',')}]`);
   }
   
+  console.log(`[v0] ${direction}: Returning bonusSpaces=[${bonusSpaces.join(',')}]`);
   return { completed: allOccupied, spaces: bonusSpaces, primeStart: segmentStart, primeEnd: segmentEnd };
 }
 
