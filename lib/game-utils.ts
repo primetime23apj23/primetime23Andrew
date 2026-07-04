@@ -186,9 +186,11 @@ export interface BonusBreakdown {
 // Check for NEW bonus points when a space is claimed
 // Returns bonus if the claimed space completes a connection between primes
 // The bonus goes to whoever completes the connection, regardless of who owns other spaces
-function countPrimesInRange(board: BoardSpace[], start: number, end: number): number {
+function countPrimesInRange(board: BoardSpace[], start: number, end: number, step: number = 1): number {
   let count = 0;
-  for (let i = start; i <= end; i++) {
+  const minNum = Math.min(start, end);
+  const maxNum = Math.max(start, end);
+  for (let i = minNum; i <= maxNum; i += step) {
     const space = board[i];
     if (space && space.isPrime) {
       count++;
@@ -201,7 +203,9 @@ function countPrimesInColumn(board: BoardSpace[], indices: number[], start: numb
   let count = 0;
   const startIdx = indices.indexOf(start);
   const endIdx = indices.indexOf(end);
-  for (let i = startIdx; i <= endIdx; i++) {
+  const minIdx = Math.min(startIdx, endIdx);
+  const maxIdx = Math.max(startIdx, endIdx);
+  for (let i = minIdx; i <= maxIdx; i++) {
     const space = board[indices[i]];
     if (space && space.isPrime) {
       count++;
@@ -328,9 +332,9 @@ function checkLineConnection(
   claimedSpaceNumber: number,
   direction: string
 ): { completed: boolean; spaces: number[]; primeStart: number; primeEnd: number } {
-  // Find the segment between two primes that contains the claimed space
-  let segmentStart = -1;
-  let segmentEnd = -1;
+  // Find the immediate segment containing the claimed space
+  let immediateStart = -1;
+  let immediateEnd = -1;
   const spacesInSegment: number[] = [];
   
   let currentSegmentStart = -1;
@@ -345,10 +349,10 @@ function checkLineConnection(
     if (space.isPrime) {
       // Check if the just-ended segment contains our claimed space
       if (currentSegmentStart !== -1 && currentSpaces.includes(claimedSpaceNumber)) {
-        segmentStart = currentSegmentStart;
-        segmentEnd = i;
+        immediateStart = currentSegmentStart;
+        immediateEnd = i;
         spacesInSegment.push(...currentSpaces);
-        console.log(`[v0] Found segment: primes ${currentSegmentStart}-${i}, spaces: [${currentSpaces.join(',')}]`);
+        console.log(`[v0] Found immediate segment: primes ${currentSegmentStart}-${i}, spaces: [${currentSpaces.join(',')}]`);
       }
       currentSegmentStart = i;
       currentSpaces.length = 0;
@@ -363,7 +367,7 @@ function checkLineConnection(
     return { completed: false, spaces: [], primeStart: -1, primeEnd: -1 };
   }
   
-  // Check if ALL spaces in this segment are now occupied (by anyone)
+  // Check if ALL spaces in this immediate segment are now occupied (by anyone)
   const occupancyStatus = spacesInSegment.map(num => {
     const space = board[num];
     return { num, owner: space?.owner, occupied: space?.owner !== null };
@@ -373,21 +377,41 @@ function checkLineConnection(
   const allOccupied = occupancyStatus.every(s => s.occupied);
   console.log(`[v0] ${direction}: All occupied? ${allOccupied}`);
   
-  // Count all occupied spaces between the boundary primes for bonus calculation
-  let bonusSpaces = spacesInSegment;
-  if (allOccupied && segmentStart !== -1 && segmentEnd !== -1) {
-    bonusSpaces = [];
-    for (let i = segmentStart + step; i < segmentEnd; i += step) {
-      const space = board[i];
-      // Only count spaces that are occupied (not primes, and has an owner)
-      if (space && !space.isPrime && space.owner !== null) {
-        bonusSpaces.push(i);
-      }
-    }
-    console.log(`[v0] ${direction}: Bonus spaces between ${segmentStart} and ${segmentEnd}: [${bonusSpaces.join(',')}]`);
+  if (!allOccupied) {
+    return { completed: false, spaces: [], primeStart: -1, primeEnd: -1 };
   }
   
-  return { completed: allOccupied, spaces: bonusSpaces, primeStart: segmentStart, primeEnd: segmentEnd };
+  // Extend the chain outward from the immediate segment
+  let extendedStart = immediateStart;
+  let extendedEnd = immediateEnd;
+  
+  // Walk left from immediateStart
+  for (let i = immediateStart - step; i >= start; i -= step) {
+    const space = board[i];
+    if (!space) break;
+    if (space.isPrime) {
+      extendedStart = i;
+    } else if (space.owner === null) {
+      // Unclaimed composite stops the chain
+      break;
+    }
+  }
+  
+  // Walk right from immediateEnd
+  for (let i = immediateEnd + step; i <= end; i += step) {
+    const space = board[i];
+    if (!space) break;
+    if (space.isPrime) {
+      extendedEnd = i;
+    } else if (space.owner === null) {
+      // Unclaimed composite stops the chain
+      break;
+    }
+  }
+  
+  console.log(`[v0] ${direction}: Extended chain from ${immediateStart}-${immediateEnd} to ${extendedStart}-${extendedEnd}`);
+  
+  return { completed: true, spaces: spacesInSegment, primeStart: extendedStart, primeEnd: extendedEnd };
 }
 
 function checkColumnConnection(
@@ -396,8 +420,8 @@ function checkColumnConnection(
   claimedSpaceNumber: number,
   direction: string
 ): { completed: boolean; spaces: number[]; primeStart: number; primeEnd: number } {
-  let segmentStart = -1;
-  let segmentEnd = -1;
+  let immediateStartIdx = -1;
+  let immediateEndIdx = -1;
   const spacesInSegment: number[] = [];
   
   let currentSegmentStart = -1;
@@ -406,16 +430,17 @@ function checkColumnConnection(
   const primesList = indices.filter(i => board[i]?.isPrime).join(',');
   console.log(`[v0] checkColumnConnection ${direction}: indices=[${indices.join(',')}], primes=[${primesList}], claimed=${claimedSpaceNumber}`);
   
-  for (const i of indices) {
+  for (let idx = 0; idx < indices.length; idx++) {
+    const i = indices[idx];
     const space = board[i];
     if (!space) continue;
     
     if (space.isPrime) {
       if (currentSegmentStart !== -1 && currentSpaces.includes(claimedSpaceNumber)) {
-        segmentStart = currentSegmentStart;
-        segmentEnd = i;
+        immediateStartIdx = indices.indexOf(currentSegmentStart);
+        immediateEndIdx = idx;
         spacesInSegment.push(...currentSpaces);
-        console.log(`[v0] ${direction}: Found segment primes ${currentSegmentStart}-${i}, spaces: [${currentSpaces.join(',')}]`);
+        console.log(`[v0] ${direction}: Found immediate segment primes ${currentSegmentStart}-${i}, spaces: [${currentSpaces.join(',')}]`);
       } else if (currentSegmentStart !== -1) {
         console.log(`[v0] ${direction}: Segment ${currentSegmentStart}-${i} does NOT contain claimed space ${claimedSpaceNumber} (spaces: [${currentSpaces.join(',')}])`);
       }
@@ -433,7 +458,7 @@ function checkColumnConnection(
     return { completed: false, spaces: [], primeStart: -1, primeEnd: -1 };
   }
   
-  // Check if ALL spaces in this segment are now occupied (by anyone)
+  // Check if ALL spaces in this immediate segment are now occupied (by anyone)
   const occupancyStatus = spacesInSegment.map(num => {
     const space = board[num];
     return { num, owner: space?.owner, occupied: space?.owner !== null };
@@ -443,26 +468,42 @@ function checkColumnConnection(
   const allOccupied = occupancyStatus.every(s => s.occupied);
   console.log(`[v0] ${direction}: All occupied? ${allOccupied}`);
   
-  // Count all occupied spaces between the boundary primes for bonus calculation
-  let bonusSpaces = spacesInSegment;
-  if (allOccupied && segmentStart !== -1 && segmentEnd !== -1) {
-    bonusSpaces = [];
-    const startIdx = indices.indexOf(segmentStart);
-    const endIdx = indices.indexOf(segmentEnd);
-    console.log(`[v0] ${direction}: startIdx=${startIdx}, endIdx=${endIdx}, indices.length=${indices.length}`);
-    // Count all occupied spaces between the boundary primes
-    for (let i = startIdx + 1; i < endIdx; i++) {
-      const space = board[indices[i]];
-      // Only count spaces that are occupied (not primes, and has an owner)
-      if (space && !space.isPrime && space.owner !== null) {
-        bonusSpaces.push(indices[i]);
-      }
-    }
-    console.log(`[v0] ${direction}: Bonus spaces between ${segmentStart} and ${segmentEnd}: [${bonusSpaces.join(',')}]`);
+  if (!allOccupied) {
+    return { completed: false, spaces: [], primeStart: -1, primeEnd: -1 };
   }
   
-  console.log(`[v0] ${direction}: Returning bonusSpaces=[${bonusSpaces.join(',')}], length=${bonusSpaces.length}`);
-  return { completed: allOccupied, spaces: bonusSpaces, primeStart: segmentStart, primeEnd: segmentEnd };
+  // Extend the chain outward from the immediate segment
+  let extendedStartIdx = immediateStartIdx;
+  let extendedEndIdx = immediateEndIdx;
+  
+  // Walk upward (lower indices) from immediateStartIdx
+  for (let idx = immediateStartIdx - 1; idx >= 0; idx--) {
+    const space = board[indices[idx]];
+    if (!space) break;
+    if (space.isPrime) {
+      extendedStartIdx = idx;
+    } else if (space.owner === null) {
+      // Unclaimed composite stops the chain
+      break;
+    }
+  }
+  
+  // Walk downward (higher indices) from immediateEndIdx
+  for (let idx = immediateEndIdx + 1; idx < indices.length; idx++) {
+    const space = board[indices[idx]];
+    if (!space) break;
+    if (space.isPrime) {
+      extendedEndIdx = idx;
+    } else if (space.owner === null) {
+      // Unclaimed composite stops the chain
+      break;
+    }
+  }
+  
+  console.log(`[v0] ${direction}: Extended chain from indices ${immediateStartIdx}-${immediateEndIdx} to ${extendedStartIdx}-${extendedEndIdx}`);
+  console.log(`[v0] ${direction}: Extended chain from primes ${indices[immediateStartIdx]}-${indices[immediateEndIdx]} to ${indices[extendedStartIdx]}-${indices[extendedEndIdx]}`);
+  
+  return { completed: true, spaces: spacesInSegment, primeStart: indices[extendedStartIdx], primeEnd: indices[extendedEndIdx] };
 }
 
 // Legacy function for calculating total bonus (used for display)
