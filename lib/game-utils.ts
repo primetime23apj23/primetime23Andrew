@@ -585,6 +585,7 @@ export interface GameState {
   targetScore: number;
   player1Ready?: boolean;
   player2Ready?: boolean;
+  playerExhausted?: boolean[]; // Track which players have no valid moves
 }
 
 export const PLAYER_COLORS = ['#F5D5D5', '#D5EBE8', '#F9F0D9', '#E1EDF5'];

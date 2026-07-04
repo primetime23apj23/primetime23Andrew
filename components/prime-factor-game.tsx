@@ -68,6 +68,7 @@ const createInitialState = (targetScore: number): GameState => ({
   targetScore,
   player1Ready: false,
   player2Ready: false,
+  playerExhausted: [false, false],
 });
 
 interface PrimeFactorGameProps {
@@ -429,59 +430,44 @@ export function PrimeFactorGame({
     
     if (!hasAnyValidMove && currentPlayerDice.length >= 0) {
       const currentPlayerIndex = gameState.currentPlayer;
-      const opponentIndex = (gameState.currentPlayer + 1) % gameState.players.length;
+      const playerExhausted = gameState.playerExhausted || [false, false];
       
-      if (isMultiplayer) {
-        // In multiplayer, we can't check opponent's moves locally, so just switch turns
-        // The opponent will check their own moves when they play
+      // Mark current player as exhausted
+      const newExhausted = [...playerExhausted];
+      newExhausted[currentPlayerIndex] = true;
+      
+      // Check if all players are exhausted
+      const allExhausted = newExhausted.every((exhausted) => exhausted);
+      
+      if (allExhausted) {
+        // All players exhausted - end round
         setGameState((prev) => ({
           ...prev,
-          currentPlayer: opponentIndex,
+          phase: "roundEnd",
+          selectedDice: [],
+          roundNumber: prev.roundNumber + 1,
+          playerExhausted: [false, false],
+          message: `Round ${prev.roundNumber} complete! All players are out of moves. Click "New Round" to continue.`,
+        }));
+      } else {
+        // Find next active player (not exhausted)
+        let nextPlayerIndex = (currentPlayerIndex + 1) % gameState.players.length;
+        while (newExhausted[nextPlayerIndex] && nextPlayerIndex !== currentPlayerIndex) {
+          nextPlayerIndex = (nextPlayerIndex + 1) % gameState.players.length;
+        }
+        
+        setGameState((prev) => ({
+          ...prev,
+          currentPlayer: nextPlayerIndex,
           selectedDice: [],
           phase: "rolling",
-          message: `${prev.players[currentPlayerIndex].name} has no valid moves. ${prev.players[opponentIndex].name}'s turn! Roll your dice.`,
+          playerExhausted: newExhausted,
+          message: `${prev.players[currentPlayerIndex].name} has no valid moves — skipping. ${prev.players[nextPlayerIndex].name}'s turn! Roll your dice.`,
         }));
         setDiceRolled(false);
-      } else {
-        // For bot and local modes, check if opponent has moves
-        const opponentDiceArr = opponentIndex === 0 ? player1Dice : player2Dice;
-        
-        const availableSpaces = gameState.board.filter(
-          (space) => !space.isPrime && space.owner === null && space.number !== 0 && !space.claimed
-        );
-        
-        let opponentHasMoves = false;
-        for (const space of availableSpaces) {
-          const factors = space.factors;
-          if (factors.length === 0) continue;
-          const match = canMatchFactorization(factors, opponentDiceArr);
-          if (match !== null) {
-            opponentHasMoves = true;
-            break;
-          }
-        }
-        
-        if (!opponentHasMoves) {
-          setGameState((prev) => ({
-            ...prev,
-            phase: "roundEnd",
-            selectedDice: [],
-            roundNumber: prev.roundNumber + 1,
-            message: `Round ${prev.roundNumber} complete! Both players are out of moves. Click "New Round" to continue.`,
-          }));
-        } else {
-          setGameState((prev) => ({
-            ...prev,
-            currentPlayer: opponentIndex,
-            selectedDice: [],
-            phase: "rolling",
-            message: `${prev.players[currentPlayerIndex].name} has no valid moves. ${prev.players[opponentIndex].name}'s turn! Roll your dice.`,
-          }));
-          setDiceRolled(false);
-        }
       }
     }
-  }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, player1Dice, player2Dice, gameState.board, gameState.players, isMultiplayer]);
+  }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, gameState.board, gameState.players, isMultiplayer, gameState.playerExhausted]);
 
   // Spawn floating emoji animation
   const spawnPointAnimation = useCallback((x: number, y: number, points: number, isBonus: boolean) => {
@@ -1493,27 +1479,30 @@ const channel = subscribeToSession(sessionCode, (session) => {
       return;
     }
 
-    const nextPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
-    const currentPlayerHasMoves = checkPlayerHasMoves(gameState.currentPlayer, gameState.board);
-    const nextPlayerHasMoves = checkPlayerHasMoves(nextPlayer, gameState.board);
+    // Player made a move, so they're no longer exhausted
+    const playerExhausted = gameState.playerExhausted || [false, false];
+    const newExhausted = [...playerExhausted];
+    newExhausted[gameState.currentPlayer] = false;
 
-    const nextGameState =
-      !currentPlayerHasMoves && !nextPlayerHasMoves
-        ? {
-            ...gameState,
-            phase: "roundEnd" as const,
-            selectedDice: [],
-            roundNumber: gameState.roundNumber + 1,
-            message: `Round ${gameState.roundNumber} complete! Both players are out of moves. Click "New Round" to continue.`,
-          }
-        : {
-            ...gameState,
-            currentPlayer: nextPlayer,
-            selectedDice: [],
-            message: !nextPlayerHasMoves 
-              ? `${gameState.players[nextPlayer].name} has no valid moves. Passing back to ${gameState.players[gameState.currentPlayer].name}.`
-              : `${gameState.players[nextPlayer].name}'s turn! Select dice to claim a space.`,
-          };
+    const nextPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+    
+    // Find next active player (skip exhausted players)
+    let activeNextPlayer = nextPlayer;
+    let skippedPlayers = false;
+    while (newExhausted[activeNextPlayer] && activeNextPlayer !== gameState.currentPlayer) {
+      activeNextPlayer = (activeNextPlayer + 1) % gameState.players.length;
+      skippedPlayers = true;
+    }
+
+    const nextGameState = {
+      ...gameState,
+      currentPlayer: activeNextPlayer,
+      selectedDice: [],
+      playerExhausted: newExhausted,
+      message: skippedPlayers 
+        ? `${gameState.players[activeNextPlayer].name}'s turn! Select dice to claim a space.`
+        : `${gameState.players[activeNextPlayer].name}'s turn! Select dice to claim a space.`,
+    };
 
     // Play opponent move sound when transitioning to next player
     if (nextGameState.currentPlayer !== gameState.currentPlayer) {
@@ -1708,6 +1697,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       selectedDice: [],
       player1Ready: false,
       player2Ready: false,
+      playerExhausted: [false, false],
       message: `Round ${gameState.roundNumber + 1} started! ${gameState.players[startingPlayer].name} goes first.`,
     };
 
