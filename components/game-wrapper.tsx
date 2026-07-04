@@ -13,8 +13,8 @@ export function GameWrapper() {
   return (
     <>
       <AppHeader 
-        onShowRules={() => setShowRules(true)}
-        onShowTutorial={() => setShowTutorial(true)}
+        onShowRules={gameActiveRef.current ? () => setShowRules(true) : undefined}
+        onShowTutorial={gameActiveRef.current ? () => setShowTutorial(true) : undefined}
         onExitGame={gameActiveRef.current ? () => setShowExitDialog(true) : undefined}
       />
       <PrimeFactorGame 
