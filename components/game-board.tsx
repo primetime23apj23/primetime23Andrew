@@ -208,8 +208,8 @@ function BoardSpaceCell({
                 "w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-[12px] font-black text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
                 factor === "2" || factor === "31"
                   ? "bg-green-100 dark:bg-green-900"
-                  : factor === "3"
-                  ? "bg-green-100 dark:bg-green-900"
+                  :                   factor === "3"
+                  ? "bg-rose-100 dark:bg-rose-900"
                   : factor === "5"
                   ? "bg-sky-100 dark:bg-sky-900"
                   : factor === "7"
