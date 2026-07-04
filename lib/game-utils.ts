@@ -342,7 +342,17 @@ function checkLineConnection(
   const allOccupied = occupancyStatus.every(s => s.occupied);
   console.log(`[v0] ${direction}: All occupied? ${allOccupied}`);
   
-  return { completed: allOccupied, spaces: spacesInSegment, primeStart: segmentStart, primeEnd: segmentEnd };
+  // Count all positions between the boundary primes for bonus calculation
+  let bonusSpaces = spacesInSegment;
+  if (allOccupied && segmentStart !== -1 && segmentEnd !== -1) {
+    bonusSpaces = [];
+    for (let i = segmentStart + step; i < segmentEnd; i += step) {
+      bonusSpaces.push(i);
+    }
+    console.log(`[v0] ${direction}: Bonus spaces between ${segmentStart} and ${segmentEnd}: [${bonusSpaces.join(',')}]`);
+  }
+  
+  return { completed: allOccupied, spaces: bonusSpaces, primeStart: segmentStart, primeEnd: segmentEnd };
 }
 
 function checkColumnConnection(
@@ -398,7 +408,19 @@ function checkColumnConnection(
   const allOccupied = occupancyStatus.every(s => s.occupied);
   console.log(`[v0] ${direction}: All occupied? ${allOccupied}`);
   
-  return { completed: allOccupied, spaces: spacesInSegment, primeStart: segmentStart, primeEnd: segmentEnd };
+  // Count all positions between the boundary primes for bonus calculation
+  let bonusSpaces = spacesInSegment;
+  if (allOccupied && segmentStart !== -1 && segmentEnd !== -1) {
+    bonusSpaces = [];
+    const startIdx = indices.indexOf(segmentStart);
+    const endIdx = indices.indexOf(segmentEnd);
+    for (let i = startIdx + 1; i < endIdx; i++) {
+      bonusSpaces.push(indices[i]);
+    }
+    console.log(`[v0] ${direction}: Bonus spaces between ${segmentStart} and ${segmentEnd}: [${bonusSpaces.join(',')}]`);
+  }
+  
+  return { completed: allOccupied, spaces: bonusSpaces, primeStart: segmentStart, primeEnd: segmentEnd };
 }
 
 // Legacy function for calculating total bonus (used for display)
