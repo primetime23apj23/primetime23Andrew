@@ -186,6 +186,50 @@ export interface BonusBreakdown {
 // Check for NEW bonus points when a space is claimed
 // Returns bonus if the claimed space completes a connection between primes
 // The bonus goes to whoever completes the connection, regardless of who owns other spaces
+function isPathValid(
+  board: BoardSpace[],
+  startNum: number,
+  endNum: number,
+  indices: number[] | null = null
+): boolean {
+  // Check if path between two cells contains only primes or empty spaces (no composites)
+  // For columns/diagonals, use indices array. For horizontal, calculate on the fly.
+  
+  if (indices) {
+    // Column or diagonal case: use provided indices
+    const startIdx = indices.indexOf(startNum);
+    const endIdx = indices.indexOf(endNum);
+    if (startIdx === -1 || endIdx === -1) return true; // Invalid indices, allow
+    
+    const minIdx = Math.min(startIdx, endIdx);
+    const maxIdx = Math.max(startIdx, endIdx);
+    
+    for (let i = minIdx + 1; i < maxIdx; i++) {
+      const space = board[indices[i]];
+      // Reject if intermediate cell is composite (has factors)
+      if (space && !space.isPrime && space.factors && space.factors.length > 0) {
+        console.log(`[v0] Path blocked: intermediate cell ${indices[i]} is composite`);
+        return false;
+      }
+    }
+  } else {
+    // Horizontal case
+    const minNum = Math.min(startNum, endNum);
+    const maxNum = Math.max(startNum, endNum);
+    
+    for (let num = minNum + 1; num < maxNum; num++) {
+      const space = board[num];
+      // Reject if intermediate cell is composite (has factors)
+      if (space && !space.isPrime && space.factors && space.factors.length > 0) {
+        console.log(`[v0] Path blocked: intermediate cell ${num} is composite`);
+        return false;
+      }
+    }
+  }
+  
+  return true;
+}
+
 function countPrimesInRange(board: BoardSpace[], start: number, end: number, step: number = 1): number {
   let count = 0;
   const minNum = Math.min(start, end);
@@ -236,7 +280,7 @@ export function checkForNewBonus(
   
   // Check horizontal connection
   const horizontalBonus = checkLineConnection(board, row * 10, row * 10 + 9, 1, claimedSpaceNumber, "horizontal");
-  if (horizontalBonus.completed) {
+  if (horizontalBonus.completed && isPathValid(board, horizontalBonus.primeStart, horizontalBonus.primeEnd)) {
     // Count primes in the segment (including boundaries)
     const primeCount = countPrimesInRange(board, horizontalBonus.primeStart, horizontalBonus.primeEnd);
     bonusPoints += primeCount;
@@ -257,7 +301,7 @@ export function checkForNewBonus(
   }
   const verticalBonus = checkColumnConnection(board, verticalIndices, claimedSpaceNumber, "vertical");
   console.log(`[v0] verticalBonus result:`, verticalBonus);
-  if (verticalBonus.completed) {
+  if (verticalBonus.completed && isPathValid(board, verticalBonus.primeStart, verticalBonus.primeEnd, verticalIndices)) {
     const primeCount = countPrimesInColumn(board, verticalIndices, verticalBonus.primeStart, verticalBonus.primeEnd);
     console.log(`[v0] Vertical bonus completed! spaces:`, verticalBonus.spaces, `primeCount:`, primeCount);
     bonusPoints += primeCount;
@@ -282,7 +326,7 @@ export function checkForNewBonus(
   }
   if (diag1Indices.length > 1) {
     const diag1Bonus = checkColumnConnection(board, diag1Indices, claimedSpaceNumber, "diagonal-down");
-    if (diag1Bonus.completed) {
+    if (diag1Bonus.completed && isPathValid(board, diag1Bonus.primeStart, diag1Bonus.primeEnd, diag1Indices)) {
       const primeCount = countPrimesInColumn(board, diag1Indices, diag1Bonus.primeStart, diag1Bonus.primeEnd);
       bonusPoints += primeCount;
       bonusSpaces.push(...diag1Bonus.spaces);
@@ -307,7 +351,7 @@ export function checkForNewBonus(
   }
   if (diag2Indices.length > 1) {
     const diag2Bonus = checkColumnConnection(board, diag2Indices, claimedSpaceNumber, "diagonal-up");
-    if (diag2Bonus.completed) {
+    if (diag2Bonus.completed && isPathValid(board, diag2Bonus.primeStart, diag2Bonus.primeEnd, diag2Indices)) {
       const primeCount = countPrimesInColumn(board, diag2Indices, diag2Bonus.primeStart, diag2Bonus.primeEnd);
       bonusPoints += primeCount;
       bonusSpaces.push(...diag2Bonus.spaces);
