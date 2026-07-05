@@ -708,6 +708,34 @@ export function PrimeFactorGame({
       };
     });
 
+    // Play sounds for opponent's claimed spaces in multiplayer (do this BEFORE other state updates)
+    if (
+      isMultiplayer &&
+      sessionLocalPlayerId &&
+      savedState.player_id !== sessionLocalPlayerId &&
+      Array.isArray(savedState.board)
+    ) {
+      // Get current board state synchronously to avoid stale closure
+      const currentBoard = gameStateRef.current?.board || [];
+      const opponentId = sessionLocalPlayerId === 0 ? 1 : 0;
+      const newlyClaimedByOpponent = savedState.board.filter((space: BoardSpace) => {
+        const oldSpace = currentBoard.find((s) => s.number === space.number);
+        return (
+          space.claimed &&
+          space.owner === opponentId &&
+          oldSpace &&
+          (!oldSpace.claimed || oldSpace.owner !== opponentId)
+        );
+      });
+
+      // Play celebration sounds for opponent's move only if they got bonus
+      if (newlyClaimedByOpponent.length > 1) {
+        playCapturSound();
+        playOpponentMoveSound();
+        playBonusSound(newlyClaimedByOpponent.length);
+      }
+    }
+
     setPlayer1Dice(Array.isArray(savedState.player1Dice) ? savedState.player1Dice : []);
     setPlayer2Dice(Array.isArray(savedState.player2Dice) ? savedState.player2Dice : []);
     setDiceRolled(
@@ -727,38 +755,7 @@ export function PrimeFactorGame({
     } else if (typeof savedState.selectedSpace !== "number") {
       setOpponentSelectedSpace(null);
     }
-
-    // Play sounds for opponent's claimed spaces in multiplayer
-    setGameState((prev) => {
-      if (
-        isMultiplayer &&
-        sessionLocalPlayerId &&
-        savedState.player_id !== sessionLocalPlayerId &&
-        Array.isArray(savedState.board) &&
-        Array.isArray(prev.board)
-      ) {
-        // Find newly claimed spaces by opponent (player 1 / player 2)
-        const opponentId = sessionLocalPlayerId === 0 ? 1 : 0;
-        const newlyClaimedByOpponent = savedState.board.filter((space: BoardSpace) => {
-          const oldSpace = prev.board.find((s) => s.number === space.number);
-          return (
-            space.claimed &&
-            space.owner === opponentId &&
-            oldSpace &&
-            (!oldSpace.claimed || oldSpace.owner !== opponentId)
-          );
-        });
-
-        // Play celebration sounds for opponent's move only if they got bonus
-        if (newlyClaimedByOpponent.length > 1) {
-          playCapturSound();
-          playOpponentMoveSound();
-          playBonusSound(newlyClaimedByOpponent.length);
-        }
-      }
-      return prev;
-    });
-  }, [getSavedStateVersion, sessionLocalPlayerId, isMultiplayer]);
+  }, [getSavedStateVersion, sessionLocalPlayerId, isMultiplayer, gameStateRef]);
 
   const getLatestGameStateRecord = useCallback((states: Array<Record<string, any>>) => {
     return [...states].sort((a, b) => {
