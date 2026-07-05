@@ -700,8 +700,9 @@ export function PrimeFactorGame({
         message: typeof savedState.message === "string" ? savedState.message : prev.message,
         targetScore:
           typeof savedState.targetScore === "number" ? savedState.targetScore : prev.targetScore,
-        player1Ready: typeof savedState.player1Ready === "boolean" ? savedState.player1Ready : prev.player1Ready,
-        player2Ready: typeof savedState.player2Ready === "boolean" ? savedState.player2Ready : prev.player2Ready,
+        // Monotonic update: once ready is true, don't revert to false (prevents stale realtime records from reverting)
+        player1Ready: typeof savedState.player1Ready === "boolean" ? (savedState.player1Ready || prev.player1Ready) : prev.player1Ready,
+        player2Ready: typeof savedState.player2Ready === "boolean" ? (savedState.player2Ready || prev.player2Ready) : prev.player2Ready,
         readyConfirmationActive: typeof savedState.readyConfirmationActive === "boolean" ? savedState.readyConfirmationActive : prev.readyConfirmationActive,
         readyConfirmationInitiator: typeof savedState.readyConfirmationInitiator === "number" ? savedState.readyConfirmationInitiator : prev.readyConfirmationInitiator,
         readyConfirmationCountdown: typeof savedState.readyConfirmationCountdown === "number" ? savedState.readyConfirmationCountdown : prev.readyConfirmationCountdown,
@@ -1734,14 +1735,21 @@ const channel = subscribeToSession(sessionCode, (session) => {
   }, [gameState, persistGameState, roundStarterIndex]);
 
   // Watch for when both players are ready and trigger next round
+  // Guard against idempotency: only fire if readyConfirmationActive is false (modal closed by both players)
   useEffect(() => {
-    if (gameState.phase === "roundEnd" && gameState.player1Ready && gameState.player2Ready && isMultiplayer) {
+    if (
+      gameState.phase === "roundEnd" && 
+      gameState.player1Ready && 
+      gameState.player2Ready && 
+      !gameState.readyConfirmationActive &&
+      isMultiplayer
+    ) {
       const timer = setTimeout(() => {
         handleNewRound();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [gameState.phase, gameState.player1Ready, gameState.player2Ready, isMultiplayer, handleNewRound]);
+  }, [gameState.phase, gameState.player1Ready, gameState.player2Ready, gameState.readyConfirmationActive, isMultiplayer, handleNewRound]);
 
   // Handle confirmation for ready next round
   const handleConfirmReady = useCallback(() => {
