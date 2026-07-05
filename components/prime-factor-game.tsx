@@ -485,7 +485,6 @@ export function PrimeFactorGame({
   // Spawn floating emoji animation
   const spawnPointAnimation = useCallback((x: number, y: number, points: number, isBonus: boolean) => {
     const emoji = getRandomEmoji(isBonus);
-    console.log("[v0] spawnPointAnimation - x:", x, "y:", y, "points:", points, "isBonus:", isBonus, "emoji:", emoji);
     const newEmoji: FloatingEmoji = {
       id: `emoji-${Date.now()}-${Math.random()}`,
       emoji,
@@ -493,10 +492,7 @@ export function PrimeFactorGame({
       y,
       points,
     };
-    setFloatingEmojis((prev) => {
-      console.log("[v0] Adding emoji to state, newEmoji:", newEmoji, "prev length:", prev.length);
-      return [...prev, newEmoji];
-    });
+    setFloatingEmojis((prev) => [...prev, newEmoji]);
   }, []);
 
   // Spawn firework burst
