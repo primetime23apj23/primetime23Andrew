@@ -9,6 +9,7 @@ import { GameControls } from "./game-controls";
 import { RulesDialog } from "./rules-dialog";
 import { SpaceDetail } from "./space-detail";
 import { GameTimer } from "./game-timer";
+import { NextRoundConfirmation } from "./next-round-confirmation";
 
 import { TargetScoreSelector } from "./target-score-selector";
 import {
@@ -69,6 +70,9 @@ const createInitialState = (targetScore: number): GameState => ({
   player1Ready: false,
   player2Ready: false,
   playerExhausted: [false, false],
+  readyConfirmationActive: false,
+  readyConfirmationInitiator: null,
+  readyConfirmationCountdown: 0,
 });
 
 interface PrimeFactorGameProps {
@@ -1673,17 +1677,17 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer, diceRolled, player2Dice]);
 
-  // Start new round - alternate who goes first
+  // Start new round - show confirmation modal
   const handleReadyForNextRound = useCallback(() => {
-    const isPlayer1 = localPlayerIndex === 0;
     const nextGameState = {
       ...gameState,
-      player1Ready: isPlayer1 ? true : gameState.player1Ready,
-      player2Ready: isPlayer1 ? gameState.player2Ready : true,
+      readyConfirmationActive: true,
+      readyConfirmationInitiator: localPlayerIndex,
+      readyConfirmationCountdown: 15,
     };
 
     setGameState(nextGameState);
-    void persistGameState('player-ready', {
+    void persistGameState('ready-confirmation-started', {
       gameState: nextGameState,
     });
   }, [gameState, localPlayerIndex, persistGameState]);
@@ -1732,6 +1736,79 @@ const channel = subscribeToSession(sessionCode, (session) => {
       return () => clearTimeout(timer);
     }
   }, [gameState.phase, gameState.player1Ready, gameState.player2Ready, isMultiplayer, handleNewRound]);
+
+  // Handle confirmation for ready next round
+  const handleConfirmReady = useCallback(() => {
+    const isPlayer1 = localPlayerIndex === 0;
+    const nextGameState = {
+      ...gameState,
+      readyConfirmationActive: false,
+      readyConfirmationInitiator: null,
+      readyConfirmationCountdown: 0,
+      player1Ready: isPlayer1 ? gameState.player1Ready : true,
+      player2Ready: isPlayer1 ? true : gameState.player2Ready,
+    };
+
+    setGameState(nextGameState);
+    void persistGameState('player-confirmed-ready', {
+      gameState: nextGameState,
+    });
+  }, [gameState, localPlayerIndex, persistGameState]);
+
+  // Handle decline for ready next round
+  const handleDeclineReady = useCallback(() => {
+    const nextGameState = {
+      ...gameState,
+      readyConfirmationActive: false,
+      readyConfirmationInitiator: null,
+      readyConfirmationCountdown: 0,
+    };
+
+    setGameState(nextGameState);
+    void persistGameState('player-declined-ready', {
+      gameState: nextGameState,
+    });
+  }, [gameState, persistGameState]);
+
+  // Countdown timer for ready confirmation
+  useEffect(() => {
+    if (!gameState.readyConfirmationActive || gameState.readyConfirmationCountdown === 0) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setGameState((prev) => ({
+        ...prev,
+        readyConfirmationCountdown: Math.max(0, (prev.readyConfirmationCountdown || 15) - 1),
+      }));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gameState.readyConfirmationActive]);
+
+  // Auto-advance when countdown reaches 0
+  useEffect(() => {
+    if (gameState.readyConfirmationActive && gameState.readyConfirmationCountdown === 0 && isMultiplayer) {
+      const timer = setTimeout(() => {
+        const isPlayer1 = localPlayerIndex === 0;
+        const nextGameState = {
+          ...gameState,
+          readyConfirmationActive: false,
+          readyConfirmationInitiator: null,
+          readyConfirmationCountdown: 0,
+          player1Ready: true,
+          player2Ready: true,
+        };
+
+        setGameState(nextGameState);
+        void persistGameState('ready-confirmation-auto-advance', {
+          gameState: nextGameState,
+        });
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.readyConfirmationActive, gameState.readyConfirmationCountdown, gameState, isMultiplayer, localPlayerIndex, persistGameState]);
 
   // Reorder dice
   const handleReorderPlayer1Dice = useCallback((newOrder: Die[]) => {
@@ -2024,6 +2101,17 @@ const channel = subscribeToSession(sessionCode, (session) => {
             isMultiplayer={isMultiplayer}
           />
         </div>
+
+        {/* Ready for Next Round Confirmation Modal */}
+        <NextRoundConfirmation
+          isOpen={gameState.readyConfirmationActive || false}
+          initiatorName={gameState.readyConfirmationInitiator !== null ? gameState.players[gameState.readyConfirmationInitiator].name : ""}
+          currentPlayerIndex={localPlayerIndex}
+          initiatorIndex={gameState.readyConfirmationInitiator || 0}
+          countdown={gameState.readyConfirmationCountdown || 0}
+          onConfirm={handleConfirmReady}
+          onDecline={handleDeclineReady}
+        />
 
         {/* Legend */}
         <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
