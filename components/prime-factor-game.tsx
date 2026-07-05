@@ -640,6 +640,11 @@ export function PrimeFactorGame({
         diceRolled: nextDiceRolled,
         bonusHistory: nextBonusHistory,
         completedTracks: nextCompletedTracks,
+        player1Ready: nextState.player1Ready,
+        player2Ready: nextState.player2Ready,
+        readyConfirmationActive: nextState.readyConfirmationActive,
+        readyConfirmationInitiator: nextState.readyConfirmationInitiator,
+        readyConfirmationCountdown: nextState.readyConfirmationCountdown,
         actionType,
         syncVersion: nextSyncVersion,
       }, nextState.roundNumber);
@@ -696,6 +701,9 @@ export function PrimeFactorGame({
           typeof savedState.targetScore === "number" ? savedState.targetScore : prev.targetScore,
         player1Ready: typeof savedState.player1Ready === "boolean" ? savedState.player1Ready : prev.player1Ready,
         player2Ready: typeof savedState.player2Ready === "boolean" ? savedState.player2Ready : prev.player2Ready,
+        readyConfirmationActive: typeof savedState.readyConfirmationActive === "boolean" ? savedState.readyConfirmationActive : prev.readyConfirmationActive,
+        readyConfirmationInitiator: typeof savedState.readyConfirmationInitiator === "number" ? savedState.readyConfirmationInitiator : prev.readyConfirmationInitiator,
+        readyConfirmationCountdown: typeof savedState.readyConfirmationCountdown === "number" ? savedState.readyConfirmationCountdown : prev.readyConfirmationCountdown,
       };
     });
 
@@ -1711,6 +1719,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
       selectedDice: [],
       player1Ready: false,
       player2Ready: false,
+      readyConfirmationActive: false,
+      readyConfirmationInitiator: null,
+      readyConfirmationCountdown: 0,
       playerExhausted: [false, false],
       message: `Round ${gameState.roundNumber + 1} started! ${gameState.players[nextRoundStarterIndex].name} goes first.`,
     };
@@ -1739,14 +1750,18 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   // Handle confirmation for ready next round
   const handleConfirmReady = useCallback(() => {
-    const isPlayer1 = localPlayerIndex === 0;
+    // Mark the initiator as ready (they initiated)
+    // Mark this player as ready (they confirmed)
+    const initiatorIsPlayer1 = gameState.readyConfirmationInitiator === 0;
+    const currentIsPlayer1 = localPlayerIndex === 0;
+    
     const nextGameState = {
       ...gameState,
       readyConfirmationActive: false,
       readyConfirmationInitiator: null,
       readyConfirmationCountdown: 0,
-      player1Ready: isPlayer1 ? gameState.player1Ready : true,
-      player2Ready: isPlayer1 ? true : gameState.player2Ready,
+      player1Ready: initiatorIsPlayer1 || currentIsPlayer1 ? true : gameState.player1Ready,
+      player2Ready: initiatorIsPlayer1 || currentIsPlayer1 ? gameState.player2Ready : true,
     };
 
     setGameState(nextGameState);
