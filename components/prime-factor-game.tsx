@@ -1373,6 +1373,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       playCapturSound();
       playFireworksSound();
       spawnFireworks(pos.x, pos.y);
+      spawnPointAnimation(pos.x, pos.y - 40, bonusGained, true);
     }
 
     const totalScore =
