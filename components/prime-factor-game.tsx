@@ -312,7 +312,7 @@ export function PrimeFactorGame({
     return null;
   }, [gameState.currentPlayer, isMultiplayer, sessionLocalPlayerId, sessionPlayer1Id, sessionPlayer2Id]);
   const isLocalPlayersTurn =
-    !isMultiplayer || (localPlayerIndex !== null && localPlayerIndex === gameState.currentPlayer);
+    (!isMultiplayer && !botEnabled) || (localPlayerIndex !== null && localPlayerIndex === gameState.currentPlayer);
 
   // Keep gameStateRef in sync for use in callbacks
   useEffect(() => {
@@ -1370,14 +1370,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
     });
 
     // Only play sounds and animations for bonus points
-    console.log("[v0] bonusGained:", bonusGained, "pos:", pos, "breakdown:", breakdown);
     if (bonusGained > 0 && pos) {
-      console.log("[v0] Spawning animation with bonusGained:", bonusGained);
       playCapturSound();
       playFireworksSound();
       spawnFireworks(pos.x, pos.y);
       spawnPointAnimation(pos.x, pos.y - 40, bonusGained, true);
-      console.log("[v0] floatingEmojis state after spawn:", floatingEmojis);
     }
 
     const totalScore =
