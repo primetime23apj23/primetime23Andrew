@@ -749,15 +749,11 @@ export function PrimeFactorGame({
           );
         });
 
-        // Play celebration sounds for opponent's move
-        if (newlyClaimedByOpponent.length > 0) {
+        // Play celebration sounds for opponent's move only if they got bonus
+        if (newlyClaimedByOpponent.length > 1) {
           playCapturSound();
-          
-          // Only play train sound and bonus sound if opponent got bonus (multiple spaces)
-          if (newlyClaimedByOpponent.length > 1) {
-            playOpponentMoveSound();
-            playBonusSound(newlyClaimedByOpponent.length);
-          }
+          playOpponentMoveSound();
+          playBonusSound(newlyClaimedByOpponent.length);
         }
       }
       return prev;
