@@ -192,39 +192,8 @@ function isPathValid(
   endNum: number,
   indices: number[] | null = null
 ): boolean {
-  // A connection is valid only if NO intermediate prime cells exist along the path.
-  // Composite cells (with factorization) are allowed and expected in the path.
-  
-  if (indices) {
-    // Column or diagonal case: use provided indices
-    const startIdx = indices.indexOf(startNum);
-    const endIdx = indices.indexOf(endNum);
-    if (startIdx === -1 || endIdx === -1) return true; // Invalid indices, allow
-    
-    const minIdx = Math.min(startIdx, endIdx);
-    const maxIdx = Math.max(startIdx, endIdx);
-    
-    for (let i = minIdx + 1; i < maxIdx; i++) {
-      const space = board[indices[i]];
-      // All intermediate spaces must be claimed by current player
-      if (!space || !space.claimedBy) {
-        return false;
-      }
-    }
-  } else {
-    // Horizontal case
-    const minNum = Math.min(startNum, endNum);
-    const maxNum = Math.max(startNum, endNum);
-    
-    for (let num = minNum + 1; num < maxNum; num++) {
-      const space = board[num];
-      // All intermediate spaces must be claimed by current player
-      if (!space || !space.claimedBy) {
-        return false;
-      }
-    }
-  }
-  
+  // A valid path is simply a line between two spaces.
+  // No intermediate validation needed - checkForNewBonus handles the claimed space checks.
   return true;
 }
 
