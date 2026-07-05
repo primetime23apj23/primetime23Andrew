@@ -695,7 +695,8 @@ export function PrimeFactorGame({
         players: Array.isArray(savedState.players) ? savedState.players : prev.players,
         currentPlayer:
           typeof savedState.currentPlayer === "number" ? savedState.currentPlayer : prev.currentPlayer,
-        phase: savedState.phase || prev.phase,
+        // Monotonic phase: once roundEnd, don't revert to playing (prevents stale realtime records from reverting phase)
+        phase: prev.phase === "roundEnd" ? "roundEnd" : (savedState.phase || prev.phase),
         roundNumber:
           typeof savedState.roundNumber === "number" ? savedState.roundNumber : prev.roundNumber,
         selectedDice: playerChanged ? [] : prev.selectedDice,
