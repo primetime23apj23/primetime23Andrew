@@ -484,14 +484,19 @@ export function PrimeFactorGame({
 
   // Spawn floating emoji animation
   const spawnPointAnimation = useCallback((x: number, y: number, points: number, isBonus: boolean) => {
+    const emoji = getRandomEmoji(isBonus);
+    console.log("[v0] spawnPointAnimation - x:", x, "y:", y, "points:", points, "isBonus:", isBonus, "emoji:", emoji);
     const newEmoji: FloatingEmoji = {
       id: `emoji-${Date.now()}-${Math.random()}`,
-      emoji: getRandomEmoji(isBonus),
+      emoji,
       x,
       y,
       points,
     };
-    setFloatingEmojis((prev) => [...prev, newEmoji]);
+    setFloatingEmojis((prev) => {
+      console.log("[v0] Adding emoji to state, newEmoji:", newEmoji, "prev length:", prev.length);
+      return [...prev, newEmoji];
+    });
   }, []);
 
   // Spawn firework burst
@@ -1369,11 +1374,14 @@ const channel = subscribeToSession(sessionCode, (session) => {
     });
 
     // Only play sounds and animations for bonus points
+    console.log("[v0] bonusGained:", bonusGained, "pos:", pos, "breakdown:", breakdown);
     if (bonusGained > 0 && pos) {
+      console.log("[v0] Spawning animation with bonusGained:", bonusGained);
       playCapturSound();
       playFireworksSound();
       spawnFireworks(pos.x, pos.y);
       spawnPointAnimation(pos.x, pos.y - 40, bonusGained, true);
+      console.log("[v0] floatingEmojis state after spawn:", floatingEmojis);
     }
 
     const totalScore =
