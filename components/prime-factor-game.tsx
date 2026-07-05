@@ -1750,25 +1750,21 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   // Handle confirmation for ready next round
   const handleConfirmReady = useCallback(() => {
-    // Mark the initiator as ready (they initiated)
-    // Mark this player as ready (they confirmed)
-    const initiatorIsPlayer1 = gameState.readyConfirmationInitiator === 0;
-    const currentIsPlayer1 = localPlayerIndex === 0;
-    
+    // Both players are now ready - mark both as ready
     const nextGameState = {
       ...gameState,
       readyConfirmationActive: false,
       readyConfirmationInitiator: null,
       readyConfirmationCountdown: 0,
-      player1Ready: initiatorIsPlayer1 || currentIsPlayer1 ? true : gameState.player1Ready,
-      player2Ready: initiatorIsPlayer1 || currentIsPlayer1 ? gameState.player2Ready : true,
+      player1Ready: true,
+      player2Ready: true,
     };
 
     setGameState(nextGameState);
     void persistGameState('player-confirmed-ready', {
       gameState: nextGameState,
     });
-  }, [gameState, localPlayerIndex, persistGameState]);
+  }, [gameState, persistGameState]);
 
   // Handle decline for ready next round
   const handleDeclineReady = useCallback(() => {
