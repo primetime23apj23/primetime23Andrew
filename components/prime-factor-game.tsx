@@ -671,8 +671,10 @@ export function PrimeFactorGame({
   }, []);
 
   const applySavedGameState = useCallback((savedState: Record<string, any>) => {
+    console.log("[v0] applySavedGameState called, ready flags:", { p1Ready: savedState.player1Ready, p2Ready: savedState.player2Ready, confirmationActive: savedState.readyConfirmationActive });
     const incomingVersion = getSavedStateVersion(savedState);
     if (incomingVersion >= 0 && incomingVersion < gameStateVersionRef.current) {
+      console.log("[v0] Skipping stale version, incoming:", incomingVersion, "current:", gameStateVersionRef.current);
       return;
     }
 
@@ -707,6 +709,8 @@ export function PrimeFactorGame({
         readyConfirmationInitiator: typeof savedState.readyConfirmationInitiator === "number" ? savedState.readyConfirmationInitiator : prev.readyConfirmationInitiator,
         readyConfirmationCountdown: typeof savedState.readyConfirmationCountdown === "number" ? savedState.readyConfirmationCountdown : prev.readyConfirmationCountdown,
       };
+      console.log("[v0] applySavedGameState result - p1Ready:", newState.player1Ready, "p2Ready:", newState.player2Ready, "confirmationActive:", newState.readyConfirmationActive);
+      return newState;
     });
 
     // Play sounds for opponent's claimed spaces in multiplayer (do this BEFORE other state updates)
@@ -1683,6 +1687,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   // Start new round - show confirmation modal
   const handleReadyForNextRound = useCallback(() => {
+    console.log("[v0] handleReadyForNextRound called, localPlayerIndex:", localPlayerIndex);
     const nextGameState = {
       ...gameState,
       readyConfirmationActive: true,
@@ -1690,6 +1695,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       readyConfirmationCountdown: 15,
     };
 
+    console.log("[v0] Setting ready confirmation active, state:", nextGameState);
     setGameState(nextGameState);
     void persistGameState('ready-confirmation-started', {
       gameState: nextGameState,
@@ -1737,6 +1743,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
   // Watch for when both players are ready and trigger next round
   // Guard against idempotency: only fire if readyConfirmationActive is false (modal closed by both players)
   useEffect(() => {
+    console.log("[v0] Both ready effect checking - phase:", gameState.phase, "p1Ready:", gameState.player1Ready, "p2Ready:", gameState.player2Ready, "confirmationActive:", gameState.readyConfirmationActive, "isMultiplayer:", isMultiplayer);
     if (
       gameState.phase === "roundEnd" && 
       gameState.player1Ready && 
@@ -1744,6 +1751,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       !gameState.readyConfirmationActive &&
       isMultiplayer
     ) {
+      console.log("[v0] All conditions met - calling handleNewRound!");
       const timer = setTimeout(() => {
         handleNewRound();
       }, 500);
@@ -1753,6 +1761,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   // Handle confirmation for ready next round
   const handleConfirmReady = useCallback(() => {
+    console.log("[v0] handleConfirmReady called");
     // Both players are now ready - mark both as ready
     const nextGameState = {
       ...gameState,
@@ -1763,6 +1772,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       player2Ready: true,
     };
 
+    console.log("[v0] Confirmed ready - setting both players ready, state:", nextGameState);
     setGameState(nextGameState);
     void persistGameState('player-confirmed-ready', {
       gameState: nextGameState,
