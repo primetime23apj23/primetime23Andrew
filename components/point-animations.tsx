@@ -32,6 +32,14 @@ export function PointAnimations({
 }: PointAnimationsProps) {
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      {/* Floating emoji animations for points */}
+      {animations.map((animation) => (
+        <FloatingPoint
+          key={animation.id}
+          {...animation}
+          onComplete={() => onAnimationComplete(animation.id)}
+        />
+      ))}
       {/* Firework particles for bonus points */}
       {fireworks.map((particle) => (
         <FireworkDot key={particle.id} {...particle} />

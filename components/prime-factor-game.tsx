@@ -1369,15 +1369,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
     });
 
     // Only play sounds and animations for bonus points
-    console.log("[v0] Space clicked - bonusGained:", bonusGained, "breakdown:", breakdown, "pos:", pos, "condition:", bonusGained > 0 && pos);
     if (bonusGained > 0 && pos) {
-      console.log("[v0] Playing animations for bonus points");
       playCapturSound();
       playFireworksSound();
       spawnFireworks(pos.x, pos.y);
-      console.log("[v0] About to spawn point animation with params:", pos.x, pos.y - 40, bonusGained, true);
       spawnPointAnimation(pos.x, pos.y - 40, bonusGained, true);
-      console.log("[v0] Point animation spawned");
     }
 
     const totalScore =
