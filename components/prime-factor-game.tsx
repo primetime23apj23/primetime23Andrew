@@ -1353,7 +1353,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
   const handleClaim = useCallback(async () => {
     if (!selectedSpace || !canClaimSpace) return;
 
-    if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+    // During remaining dice bonus phase, skip turn validation
+    // (opponent is exhausted, so turn validation doesn't apply)
+    const otherPlayerIndex = 1 - gameState.currentPlayer;
+    const playerExhausted = gameState.playerExhausted || [false, false];
+    const isRemainingDicePhase = playerExhausted[otherPlayerIndex] === true;
+
+    if (isMultiplayer && sessionId && sessionLocalPlayerId && !isRemainingDicePhase) {
       const valid = await validateTurn(sessionId, sessionLocalPlayerId);
       if (!valid.valid) {
         setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
