@@ -63,6 +63,8 @@ const createInitialState = (targetScore: number): GameState => ({
   dice: [],
   phase: "setup",
   roundNumber: 1,
+  roundStarterIndex: 0,
+  player1HasMoved: false,
   selectedDice: [],
   message: "Set up your game and roll the dice to start!",
   targetScore,
@@ -1411,6 +1413,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             board: newBoard,
             players: newPlayers,
             currentPlayer: (currentPlayerIndex + 1) % gameState.players.length,
+            player1HasMoved: currentPlayerIndex === 0 ? true : gameState.player1HasMoved,
             selectedDice: [],
             message: `Claimed space ${selectedSpace.number}! ${newPlayers[(currentPlayerIndex + 1) % gameState.players.length].name}'s turn.`,
           };
@@ -1728,11 +1731,14 @@ const channel = subscribeToSession(sessionCode, (session) => {
     setPlayer1Dice(nextPlayer1Dice);
     setPlayer2Dice(nextPlayer2Dice);
 
-    // Alternate the starter for this round (use the alternated value, not the current one)
-    const nextRoundStarterIndex = 1 - roundStarterIndex;
+    // Alternate the starter for this round using the GameState's roundStarterIndex
+    const currentRoundStarter = gameState.roundStarterIndex ?? 0;
+    const nextRoundStarterIndex = 1 - currentRoundStarter;
     const nextGameState = {
       ...gameState,
       roundNumber: gameState.roundNumber + 1,
+      roundStarterIndex: nextRoundStarterIndex,
+      player1HasMoved: false,
       phase: "playing" as const,
       currentPlayer: nextRoundStarterIndex,
       selectedDice: [],
@@ -1745,9 +1751,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
       message: `Round ${gameState.roundNumber + 1} started! ${gameState.players[nextRoundStarterIndex].name} goes first.`,
     };
 
-    // Update the roundStarterIndex state for the next round
-    setRoundStarterIndex(nextRoundStarterIndex);
-
     setGameState(nextGameState);
     void persistGameState('new-round', {
       gameState: nextGameState,
@@ -1755,7 +1758,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       player2Dice: nextPlayer2Dice,
       diceRolled: true,
     });
-  }, [gameState, persistGameState, roundStarterIndex]);
+  }, [gameState, persistGameState]);
 
   // Watch for when both players are ready and trigger next round
   // Guard against idempotency: only fire if readyConfirmationActive is false (modal closed by both players)
@@ -2081,7 +2084,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             </div>
 
             {/* Player 2 Dice - Visible in bot/multiplayer after player 1's first move */}
-            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.currentPlayer === 1 || gameState.board.some(s => s.owner === 0)) && (
+            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.player1HasMoved || gameState.currentPlayer === 1) && (
               <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
                   dice={player2Dice}
