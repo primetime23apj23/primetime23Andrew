@@ -1993,11 +1993,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 </div>
               </div>
             </div>
-            
-            {/* Player 1 Bonus History */}
-            <div className="overflow-auto">
-              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[0].name)} />
-            </div>
 
             {/* Player 1 Dice */}
             {diceRolled && (
@@ -2020,6 +2015,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 />
               </div>
             )}
+
+            {/* Player 1 Bonus History */}
+            <div className="overflow-auto">
+              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[0].name)} />
+            </div>
           </div>
 
           {/* Center - Game Board and Space Detail */}
@@ -2062,11 +2062,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 </div>
               </div>
             </div>
-            
-            {/* Player 2 Bonus History */}
-            <div className="overflow-auto">
-              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[1].name)} />
-            </div>
 
             {/* Player 2 Dice - Visible in bot/multiplayer after player 1's first move */}
             {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.currentPlayer === 1 || gameState.board.some(s => s.owner === 0)) && (
@@ -2090,6 +2085,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 />
               </div>
             )}
+
+            {/* Player 2 Bonus History */}
+            <div className="overflow-auto">
+              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[1].name)} />
+            </div>
           </div>
         </div>
 
