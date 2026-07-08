@@ -88,7 +88,7 @@ export function DiceTray({
   return (
     <div className="bg-card border rounded-lg p-4">
       <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-        {playerName}&apos;s Dice ({dice.length} remaining){!hideValues && " - Click to select, drag to reorder"}
+        {playerName}&apos;s Dice ({dice.length} remaining){!hideValues && " - Click to select or deselect, drag to reorder"}
       </h3>
       <div className="flex flex-wrap gap-2 justify-center">
         {hideValues ? (
