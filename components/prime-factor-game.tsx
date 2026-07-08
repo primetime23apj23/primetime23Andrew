@@ -627,16 +627,18 @@ export function PrimeFactorGame({
       return false;
     }
     
-    // During normal play, space must not be claimed by anyone
-    // During remaining dice phase, space can be claimed by another player
-    const isRemainingDicePhase = gameState.selectedDice.length > 0 && selectedSpace.claimed && selectedSpace.owner !== gameState.currentPlayer;
+    // Check if other player has no valid moves (remaining dice bonus phase)
+    const otherPlayerIndex = 1 - gameState.currentPlayer;
+    const playerExhausted = gameState.playerExhausted || [false, false];
+    const isRemainingDicePhase = playerExhausted[otherPlayerIndex] === true;
     
-    if (selectedSpace.owner !== null && !isRemainingDicePhase) {
-      return false;
-    }
-    
-    if (selectedSpace.claimed && !isRemainingDicePhase) {
-      return false;
+    // During normal play, space must not be owned or claimed by anyone
+    // During remaining dice phase, any unclaimed or opponent-owned space can be claimed
+    if (!isRemainingDicePhase) {
+      // Normal phase: only claim unclaimed spaces
+      if (selectedSpace.owner !== null || selectedSpace.claimed) {
+        return false;
+      }
     }
     
     const selectedDieObjects = currentPlayerDice.filter((d) =>
@@ -651,7 +653,7 @@ export function PrimeFactorGame({
     );
     
     return match !== null;
-  }, [selectedSpace, gameState.selectedDice, currentPlayerDice, gameState.currentPlayer]);
+  }, [selectedSpace, gameState.selectedDice, currentPlayerDice, gameState.playerExhausted, gameState.currentPlayer]);
 
   // Persist game state to database for multiplayer
   const persistGameState = useCallback(async (
