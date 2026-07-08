@@ -7,7 +7,6 @@ import { DiceTray } from "./dice-tray";
 import { Scoreboard } from "./scoreboard";
 import { GameControls } from "./game-controls";
 import { RulesDialog } from "./rules-dialog";
-import { SpaceDetail } from "./space-detail";
 import { GameTimer } from "./game-timer";
 import { NextRoundConfirmation } from "./next-round-confirmation";
 
@@ -2039,16 +2038,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
               />
             </div>
 
-            {/* Space Detail (Info Only) - Center */}
-            {diceRolled && (
-              <div className="flex items-center justify-center">
-                <SpaceDetail
-                  space={selectedSpace}
-                  selectedDice={selectedDiceObjects}
-                  isAutoSelected={diceAutoSelected}
-                />
-              </div>
-            )}
+
           </div>
 
           {/* Right side - Player 2 Score & Bonus & Dice */}
