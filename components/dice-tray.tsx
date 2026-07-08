@@ -238,6 +238,6 @@ function DieComponent({
       ) : (
         <span className="text-foreground">{die.value}</span>
       )}
-    </button>
+    </div>
   );
 }
