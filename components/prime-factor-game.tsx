@@ -1656,9 +1656,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
         // Switch to player 0 and release lock AFTER state is applied
         botTurnScheduledRef.current = false;
-        playCapturSound();
         
         if (bonusGained > 0) {
+          playCapturSound();
           playFireworksSound();
           const botAnimPos = getAnimationPosition();
           spawnFireworks(botAnimPos.x, botAnimPos.y);
