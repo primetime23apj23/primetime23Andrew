@@ -123,13 +123,13 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
         email: result.user.email,
         id: result.user.id,
       });
+      setLoading(false);
       finishAuth(result.user.playerName, result.user.email, result.user.id, 'signUp');
     } else {
       log('signUp:error', result.error);
       setError(result.error || "Failed to sign up");
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleSignIn = async () => {
@@ -156,13 +156,13 @@ export function AuthDialog({ open, onOpenChange, onAuthed }: AuthDialogProps) {
         email: result.user.email,
         id: result.user.id,
       });
+      setLoading(false);
       finishAuth(result.user.playerName, result.user.email, result.user.id, 'signIn');
     } else {
       log('signIn:error', result.error);
       setError(result.error || "Failed to sign in");
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

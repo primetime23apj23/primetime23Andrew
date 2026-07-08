@@ -579,12 +579,18 @@ export function PrimeFactorGame({
     }
   }, [isLocalPlayersTurn, isMultiplayer, currentPlayerDice, canMatchFactorization, gameState]);
 
-  // Reset manual selection flag when all dice are deselected
+  // Reset manual selection flag when all dice are deselected or turn changes
   useEffect(() => {
     if (gameState.selectedDice.length === 0) {
       manualSelectionRef.current = false;
     }
   }, [gameState.selectedDice]);
+
+  // Clear selectedSpace and manual selection flag when player turn changes
+  useEffect(() => {
+    setSelectedSpace(null);
+    manualSelectionRef.current = false;
+  }, [gameState.currentPlayer]);
 
   // Auto-select space when dice match exactly one space
   useEffect(() => {
@@ -742,7 +748,7 @@ export function PrimeFactorGame({
         typeof savedState.currentPlayer === "number" && 
         savedState.currentPlayer !== prev.currentPlayer;
       
-      return {
+      const newState = {
         ...prev,
         board: Array.isArray(savedState.board) ? savedState.board : prev.board,
         players: Array.isArray(savedState.players) ? savedState.players : prev.players,
