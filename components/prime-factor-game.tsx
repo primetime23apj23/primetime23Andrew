@@ -141,10 +141,25 @@ export function PrimeFactorGame({
   const [player2Dice, setPlayer2Dice] = useState<Die[]>([]);
   const [diceRolled, setDiceRolled] = useState(false);
   
+  // Bot settings
+  const [botEnabled, setBotEnabled] = useState(false);
+  const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
+  
   // Board interaction states
   const [selectedSpace, setSelectedSpace] = useState<BoardSpace | null>(null);
   const [opponentSelectedSpace, setOpponentSelectedSpace] = useState<number | null>(null);
   const [diceAutoSelected, setDiceAutoSelected] = useState(false);
+  
+  // Bonus history tracking
+  const [bonusHistory, setBonusHistory] = useState<Array<{
+    player: string;
+    space: number;
+    round: number;
+    breakdown: BonusBreakdown[];
+  }>>([]);
+  
+  // Completed connection tracks
+  const [completedTracks, setCompletedTracks] = useState<CompletedTrack[]>([]);
   
   // Animation states
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
@@ -153,8 +168,10 @@ export function PrimeFactorGame({
   const [celebrationNumbers, setCelebrationNumbers] = useState<number[]>([]);
   const [lastClaimedSpace, setLastClaimedSpace] = useState<number | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const trackBoardRef = useRef<HTMLDivElement>(null);
   const botTurnScheduledRef = useRef(false);
   const gameStateRef = useRef<GameState>(gameState);
+  const gameStateVersionRef = useRef<number>(-1);
   const previousOpponentBonusCountRef = useRef<number>(0);
   const manualSelectionRef = useRef<boolean>(false);
 
