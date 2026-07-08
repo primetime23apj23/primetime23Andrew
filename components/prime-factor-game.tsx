@@ -171,6 +171,7 @@ export function PrimeFactorGame({
   const trackBoardRef = useRef<HTMLDivElement>(null);
   const botTurnScheduledRef = useRef(false);
   const gameStateRef = useRef<GameState>(gameState);
+  const gameStateVersionRef = useRef<number>(-1);
   const previousOpponentBonusCountRef = useRef<number>(0);
   const manualSelectionRef = useRef<boolean>(false);
 
