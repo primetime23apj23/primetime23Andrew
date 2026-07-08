@@ -154,7 +154,7 @@ function BoardSpaceCell({
         )}
         style={{ backgroundColor: ownerColor ? ownerColor + "CC" : "#E5E7EB" }}
       >
-        <span className="text-lg font-bold text-foreground relative z-50">{space.number}</span>
+        <span className="text-lg font-bold text-foreground">{space.number}</span>
       </div>
     );
   }
