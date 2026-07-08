@@ -587,10 +587,18 @@ export function PrimeFactorGame({
   }, [gameState.selectedDice]);
 
   // Clear selectedSpace and manual selection flag when player turn changes
+  // EXCEPT when transitioning to remaining dice bonus phase (when opponent exhausted)
   useEffect(() => {
-    setSelectedSpace(null);
-    manualSelectionRef.current = false;
-  }, [gameState.currentPlayer]);
+    const otherPlayerIndex = 1 - gameState.currentPlayer;
+    const playerExhausted = gameState.playerExhausted || [false, false];
+    const isRemainingDicePhase = playerExhausted[otherPlayerIndex] === true;
+    
+    // Don't clear selection if entering remaining dice bonus phase
+    if (!isRemainingDicePhase) {
+      setSelectedSpace(null);
+      manualSelectionRef.current = false;
+    }
+  }, [gameState.currentPlayer, gameState.playerExhausted]);
 
   // Auto-select space when dice match exactly one space
   useEffect(() => {
@@ -627,18 +635,9 @@ export function PrimeFactorGame({
       return false;
     }
     
-    // Check if other player has no valid moves (remaining dice bonus phase)
-    const otherPlayerIndex = 1 - gameState.currentPlayer;
-    const playerExhausted = gameState.playerExhausted || [false, false];
-    const isRemainingDicePhase = playerExhausted[otherPlayerIndex] === true;
-    
-    // During normal play, space must not be owned or claimed by anyone
-    // During remaining dice phase, any unclaimed or opponent-owned space can be claimed
-    if (!isRemainingDicePhase) {
-      // Normal phase: only claim unclaimed spaces
-      if (selectedSpace.owner !== null || selectedSpace.claimed) {
-        return false;
-      }
+    // Only allow claiming unclaimed spaces in both normal and bonus phases
+    if (selectedSpace.owner !== null || selectedSpace.claimed) {
+      return false;
     }
     
     const selectedDieObjects = currentPlayerDice.filter((d) =>
