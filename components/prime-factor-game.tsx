@@ -2014,6 +2014,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
                     (isMultiplayer && localPlayerIndex !== 0)
                   }
                   playerName={gameState.players[0].name}
+                  showActions={gameState.currentPlayer === 0 && selectedSpace !== null && selectedDiceObjects.length > 0}
+                  canClaim={canClaimSpace}
+                  onClaim={handleClaim}
+                  onCancel={handleCancel}
                 />
               </div>
             )}
@@ -2035,15 +2039,12 @@ const channel = subscribeToSession(sessionCode, (session) => {
               />
             </div>
 
-            {/* Space Detail (Claim Button) - Center */}
+            {/* Space Detail (Info Only) - Center */}
             {diceRolled && (
               <div className="flex items-center justify-center">
                 <SpaceDetail
                   space={selectedSpace}
                   selectedDice={selectedDiceObjects}
-                  canClaim={canClaimSpace}
-                  onClaim={handleClaim}
-                  onCancel={handleCancel}
                   isAutoSelected={diceAutoSelected}
                 />
               </div>
@@ -2092,6 +2093,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   }
                   playerName={gameState.players[1].name}
                   hideValues={false}
+                  showActions={gameState.currentPlayer === 1 && selectedSpace !== null && selectedDiceObjects.length > 0}
+                  canClaim={canClaimSpace}
+                  onClaim={handleClaim}
+                  onCancel={handleCancel}
                 />
               </div>
             )}
