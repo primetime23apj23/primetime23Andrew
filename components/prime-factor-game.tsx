@@ -1465,7 +1465,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
     
     // Reset manual selection flag after claiming
     manualSelectionRef.current = false;
-    setSelectedSpace(null);
 
     if (totalScore >= gameState.targetScore && pos) {
       playVictorySound();
