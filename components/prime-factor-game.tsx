@@ -480,7 +480,7 @@ export function PrimeFactorGame({
         setDiceRolled(nextPlayerAlreadyRolled); // Keep diceRolled true if they already rolled
       }
     }
-  }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, gameState.board, gameState.players, isMultiplayer, gameState.playerExhausted]);
+  }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, gameState.board, gameState.players, isMultiplayer, gameState.playerExhausted, player1Dice.length, player2Dice.length]);
 
   // Spawn floating emoji animation
   const spawnPointAnimation = useCallback((x: number, y: number, points: number, isBonus: boolean) => {
