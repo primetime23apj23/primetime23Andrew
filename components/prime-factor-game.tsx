@@ -186,25 +186,23 @@ export function PrimeFactorGame({
     }
   }, [authUser]);
 
-  // Detect opponent bonus in multiplayer by checking bonus history
+  // Detect opponent bonus points in multiplayer and play sound
   useEffect(() => {
     if (!isMultiplayer || localPlayerIndex === null) return;
     
-    const opponentName = gameState.players[1 - localPlayerIndex].name;
-    const opponentBonusEntries = bonusHistory.filter(entry => entry.player === opponentName);
+    const opponentIndex = 1 - localPlayerIndex;
+    const currentOpponentBonus = gameState.players[opponentIndex]?.bonusPoints ?? 0;
     
-    // Check if a new bonus entry was added for the opponent
-    if (opponentBonusEntries.length > 0) {
-      const latestEntry = opponentBonusEntries[opponentBonusEntries.length - 1];
-      const entryKey = `${latestEntry.player}-${latestEntry.round}-${latestEntry.space}`;
-      const previousKey = previousOpponentBonusRef.current as string;
-      
-      if (entryKey !== previousKey) {
+    // Check if opponent's bonus increased
+    if (currentOpponentBonus > previousOpponentBonusRef.current) {
+      const bonusGained = currentOpponentBonus - previousOpponentBonusRef.current;
+      if (bonusGained > 0) {
         playCapturSound();
-        previousOpponentBonusRef.current = entryKey;
       }
     }
-  }, [bonusHistory, isMultiplayer, localPlayerIndex, gameState.players]);
+    
+    previousOpponentBonusRef.current = currentOpponentBonus;
+  }, [gameState.players, isMultiplayer, localPlayerIndex]);
 
   useEffect(() => {
     if (!sessionId) {
