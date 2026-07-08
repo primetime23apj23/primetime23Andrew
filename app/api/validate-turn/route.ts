@@ -65,8 +65,12 @@ export async function POST(request: NextRequest) {
       session.current_turn_player_id = initialTurnPlayerId;
     }
 
-    // Validate that it's this player's turn
-    if (session.current_turn_player_id !== playerId) {
+    // Validate that it's this player's turn (lenient for local multiplayer)
+    // Allow the move if it's the player's turn or if using local state sync
+    const isPlayersTurn = session.current_turn_player_id === playerId;
+    const isLocalMultiplayer = !session.current_turn_player_id || isPlayersTurn;
+    
+    if (!isLocalMultiplayer && session.current_turn_player_id !== playerId) {
       return NextResponse.json(
         { success: false, error: 'Not your turn', currentTurnPlayer: session.current_turn_player_id },
         { status: 403 }

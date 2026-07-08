@@ -201,7 +201,17 @@ function BoardSpaceCell({
       {!space.isPrime && space.factorization && (
         <div className="flex justify-center">
           <div className="flex flex-wrap gap-0.5 mt-0.5 justify-center max-w-[110px]">
-          {space.factorization.split(' × ').map((factor, idx) => (
+          {(() => {
+            let factors = space.factorization.split(' × ');
+            // Special case: 54 should display as (3, 3, 3, 2) for better aesthetics
+            if (space.number === 54) {
+              factors = ['3', '3', '3', '2'];
+            }
+            // Special case: 60 should display as (2, 2, 3, 5) with 2 factors per row
+            if (space.number === 60) {
+              factors = ['2', '2', '3', '5'];
+            }
+            return factors.map((factor, idx) => (
             <span 
               key={idx}
               className={cn(
@@ -239,8 +249,9 @@ function BoardSpaceCell({
             >
               {factor}
             </span>
-          ))}
-        </div>
+            ));
+            })()}
+          </div>
         </div>
       )}
     </button>
