@@ -191,9 +191,7 @@ export function PrimeFactorGame({
     if (!isMultiplayer || localPlayerIndex === null) return;
     
     const opponentName = gameState.players[1 - localPlayerIndex].name;
-    const opponentBonusEntries = bonusHistory.filter(b => b.player === opponentName);
-    
-    console.log("[v0] Bonus history check: opponent=", opponentName, "entries=", opponentBonusEntries.length);
+    const opponentBonusEntries = bonusHistory.filter(entry => entry.player === opponentName);
     
     // Check if a new bonus entry was added for the opponent
     if (opponentBonusEntries.length > 0) {
@@ -201,10 +199,7 @@ export function PrimeFactorGame({
       const entryKey = `${latestEntry.player}-${latestEntry.round}-${latestEntry.space}`;
       const previousKey = previousOpponentBonusRef.current as string;
       
-      console.log("[v0] Latest opponent bonus: key=", entryKey, "previous=", previousKey);
-      
       if (entryKey !== previousKey) {
-        console.log("[v0] Playing opponent bonus sound");
         playCapturSound();
         previousOpponentBonusRef.current = entryKey;
       }
