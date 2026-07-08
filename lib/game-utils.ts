@@ -480,6 +480,7 @@ export interface GameState {
   phase: 'setup' | 'rolling' | 'playing' | 'roundEnd' | 'gameOver';
   roundNumber: number;
   roundStarterIndex?: number; // Track who starts each round (alternates)
+  player1HasMoved?: boolean; // Track if player 1 has made a move in current round
   selectedDice: string[];
   message: string;
   targetScore: number;

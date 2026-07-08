@@ -64,6 +64,7 @@ const createInitialState = (targetScore: number): GameState => ({
   phase: "setup",
   roundNumber: 1,
   roundStarterIndex: 0,
+  player1HasMoved: false,
   selectedDice: [],
   message: "Set up your game and roll the dice to start!",
   targetScore,
@@ -1412,6 +1413,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             board: newBoard,
             players: newPlayers,
             currentPlayer: (currentPlayerIndex + 1) % gameState.players.length,
+            player1HasMoved: currentPlayerIndex === 0 ? true : gameState.player1HasMoved,
             selectedDice: [],
             message: `Claimed space ${selectedSpace.number}! ${newPlayers[(currentPlayerIndex + 1) % gameState.players.length].name}'s turn.`,
           };
@@ -1736,6 +1738,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       ...gameState,
       roundNumber: gameState.roundNumber + 1,
       roundStarterIndex: nextRoundStarterIndex,
+      player1HasMoved: false,
       phase: "playing" as const,
       currentPlayer: nextRoundStarterIndex,
       selectedDice: [],
@@ -2081,7 +2084,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             </div>
 
             {/* Player 2 Dice - Visible in bot/multiplayer after player 1's first move */}
-            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.currentPlayer === 1 || gameState.board.some(s => s.owner === 0)) && (
+            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.player1HasMoved || gameState.currentPlayer === 1) && (
               <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
                   dice={player2Dice}
