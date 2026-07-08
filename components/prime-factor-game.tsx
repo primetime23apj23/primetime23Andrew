@@ -170,6 +170,7 @@ export function PrimeFactorGame({
   const [botEnabled, setBotEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
   const gameStateVersionRef = useRef<number>(-1);
+  const previousOpponentBonusCountRef = useRef<number>(0);
 
   // Local player id
   useEffect(() => {
@@ -761,6 +762,22 @@ export function PrimeFactorGame({
       setOpponentSelectedSpace(null);
     }
   }, [getSavedStateVersion, sessionLocalPlayerId, isMultiplayer, gameStateRef]);
+
+  // Detect opponent bonus in multiplayer and play sound
+  useEffect(() => {
+    if (!isMultiplayer) return;
+    
+    // Count bonus entries for the opponent (not the local player)
+    const opponentName = gameState.players[1].name;
+    const opponentBonusCount = bonusHistory.filter(b => b.player === opponentName).length;
+    
+    // Check if opponent earned a new bonus since last check
+    if (opponentBonusCount > previousOpponentBonusCountRef.current) {
+      playCapturSound();
+    }
+    
+    previousOpponentBonusCountRef.current = opponentBonusCount;
+  }, [bonusHistory, isMultiplayer, gameState.players]);
 
   const getLatestGameStateRecord = useCallback((states: Array<Record<string, any>>) => {
     return [...states].sort((a, b) => {
