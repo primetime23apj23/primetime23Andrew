@@ -56,8 +56,8 @@ export function GameBoard({
         </div>
         
         {/* Main board */}
-        <div className="flex-1 relative overflow-visible">
-          <div ref={gridRef} className="grid grid-cols-10 grid-rows-10 aspect-square w-full gap-px bg-gray-400 dark:bg-gray-500 p-px rounded-lg overflow-visible">
+        <div className="flex-1 relative overflow-hidden">
+          <div ref={gridRef} className="grid grid-cols-10 grid-rows-10 aspect-square w-full gap-px bg-gray-400 dark:bg-gray-500 p-px rounded-lg overflow-hidden">
             {rows.map((row, rowIndex) =>
               row.map((space, colIndex) => (
                 <BoardSpaceCell
