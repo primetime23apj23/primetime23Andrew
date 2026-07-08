@@ -17,7 +17,7 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ 
-  title = "Multiplication Game",
+  title = "Times of Primes",
   onShowRules,
   onShowTutorial,
   onExitGame,

@@ -33,7 +33,7 @@ export function SpaceDetail({
   if (space.number === 0) {
     return (
       <div className="bg-card border rounded-lg p-4 text-center">
-        <p className="font-bold text-lg">Multiplication Game</p>
+        <p className="font-bold text-lg">Times of Primes</p>
         <p className="text-muted-foreground text-sm">This is the logo space</p>
       </div>
     );
