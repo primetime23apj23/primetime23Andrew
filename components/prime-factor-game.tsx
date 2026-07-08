@@ -617,7 +617,19 @@ export function PrimeFactorGame({
 
   // Check if selected dice match the space
   const canClaimSpace = useMemo(() => {
-    if (!selectedSpace || selectedSpace.isPrime || selectedSpace.owner !== null || selectedSpace.claimed) {
+    if (!selectedSpace || selectedSpace.isPrime) {
+      return false;
+    }
+    
+    // During normal play, space must not be claimed by anyone
+    // During remaining dice phase, space can be claimed by another player
+    const isRemainingDicePhase = gameState.selectedDice.length > 0 && selectedSpace.claimed && selectedSpace.owner !== gameState.currentPlayer;
+    
+    if (selectedSpace.owner !== null && !isRemainingDicePhase) {
+      return false;
+    }
+    
+    if (selectedSpace.claimed && !isRemainingDicePhase) {
       return false;
     }
     
@@ -633,7 +645,7 @@ export function PrimeFactorGame({
     );
     
     return match !== null;
-  }, [selectedSpace, gameState.selectedDice, currentPlayerDice]);
+  }, [selectedSpace, gameState.selectedDice, currentPlayerDice, gameState.currentPlayer]);
 
   // Persist game state to database for multiplayer
   const persistGameState = useCallback(async (
