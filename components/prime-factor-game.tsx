@@ -153,6 +153,7 @@ export function PrimeFactorGame({
   const boardRef = useRef<HTMLDivElement>(null);
   const botTurnScheduledRef = useRef(false);
   const gameStateRef = useRef<GameState>(gameState);
+  const previousOpponentBonusRef = useRef<number>(0);
   
   // Bonus history tracking
   const [bonusHistory, setBonusHistory] = useState<Array<{
@@ -184,6 +185,24 @@ export function PrimeFactorGame({
       setPlayerId(authUser.id);
     }
   }, [authUser]);
+
+  // Detect opponent bonus points in multiplayer and play sound
+  useEffect(() => {
+    if (!isMultiplayer || localPlayerIndex === null) return;
+    
+    const opponentIndex = 1 - localPlayerIndex;
+    const currentOpponentBonus = gameState.players[opponentIndex]?.bonusPoints ?? 0;
+    
+    // Check if opponent's bonus increased
+    if (currentOpponentBonus > previousOpponentBonusRef.current) {
+      const bonusGained = currentOpponentBonus - previousOpponentBonusRef.current;
+      if (bonusGained > 0) {
+        playCapturSound();
+      }
+    }
+    
+    previousOpponentBonusRef.current = currentOpponentBonus;
+  }, [gameState.players, isMultiplayer, localPlayerIndex]);
 
   useEffect(() => {
     if (!sessionId) {
