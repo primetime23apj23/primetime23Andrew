@@ -1711,8 +1711,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
     setPlayer1Dice(nextPlayer1Dice);
     setPlayer2Dice(nextPlayer2Dice);
 
-    // Use the dedicated roundStarterIndex, which alternates on a fixed schedule
-    const nextRoundStarterIndex = roundStarterIndex;
+    // Alternate the starter for this round (use the alternated value, not the current one)
+    const nextRoundStarterIndex = 1 - roundStarterIndex;
     const nextGameState = {
       ...gameState,
       roundNumber: gameState.roundNumber + 1,
@@ -1728,8 +1728,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
       message: `Round ${gameState.roundNumber + 1} started! ${gameState.players[nextRoundStarterIndex].name} goes first.`,
     };
 
-    // Alternate the starter for the next round
-    setRoundStarterIndex(1 - roundStarterIndex);
+    // Update the roundStarterIndex state for the next round
+    setRoundStarterIndex(nextRoundStarterIndex);
 
     setGameState(nextGameState);
     void persistGameState('new-round', {
