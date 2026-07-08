@@ -576,6 +576,32 @@ export function PrimeFactorGame({
     }
   }, [isLocalPlayersTurn, isMultiplayer, currentPlayerDice, canMatchFactorization, gameState]);
 
+  // Auto-select space when dice match exactly one space
+  useEffect(() => {
+    if (gameState.phase !== "playing" || !isLocalPlayersTurn || gameState.selectedDice.length === 0) return;
+    
+    const selectedDieObjects = currentPlayerDice.filter((d) =>
+      gameState.selectedDice.includes(d.id)
+    );
+    
+    // Find all spaces that match the selected dice
+    const matchingSpaces = gameState.board.filter((space) => {
+      if (space.isPrime || space.owner !== null || space.claimed) return false;
+      
+      const match = canMatchFactorization(
+        space.factors,
+        selectedDieObjects.map((d) => ({ ...d, used: false }))
+      );
+      
+      return match !== null;
+    });
+    
+    // If there's exactly one match, auto-select it
+    if (matchingSpaces.length === 1 && (!selectedSpace || selectedSpace.number !== matchingSpaces[0].number)) {
+      setSelectedSpace(matchingSpaces[0]);
+    }
+  }, [gameState.selectedDice, gameState.phase, isLocalPlayersTurn, currentPlayerDice, canMatchFactorization, gameState.board, selectedSpace]);
+
   // Check if selected dice match the space
   const canClaimSpace = useMemo(() => {
     if (!selectedSpace || selectedSpace.isPrime || selectedSpace.owner !== null || selectedSpace.claimed) {
