@@ -200,7 +200,7 @@ function BoardSpaceCell({
       {/* Factorization - individual numbers in rounded boxes */}
       {!space.isPrime && space.factorization && (
         <div className="flex justify-center">
-          <div className="flex flex-wrap gap-0.5 mt-0.5 justify-center max-w-[90px]">
+          <div className="flex flex-wrap gap-0.5 mt-0.5 justify-center max-w-[110px]">
           {space.factorization.split(' × ').map((factor, idx) => (
             <span 
               key={idx}
