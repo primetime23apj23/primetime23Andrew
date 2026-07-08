@@ -246,16 +246,15 @@ export function checkForNewBonus(
   // Check horizontal connection
   const horizontalBonus = checkLineConnection(board, row * 10, row * 10 + 9, 1, claimedSpaceNumber, "horizontal");
   if (horizontalBonus.completed && isPathValid(board, horizontalBonus.primeStart, horizontalBonus.primeEnd)) {
-    // Count primes in the segment (including boundaries)
-    const primeCount = countPrimesInRange(board, horizontalBonus.primeStart, horizontalBonus.primeEnd);
-    bonusPoints += primeCount;
+    // Award 1 point for completing the connection
+    bonusPoints += 1;
     bonusSpaces.push(...horizontalBonus.spaces);
     breakdown.push({
       direction: "horizontal",
       primeStart: horizontalBonus.primeStart,
       primeEnd: horizontalBonus.primeEnd,
       spaces: horizontalBonus.spaces,
-      points: primeCount,
+      points: 1,
     });
   }
   
@@ -266,15 +265,15 @@ export function checkForNewBonus(
   }
   const verticalBonus = checkColumnConnection(board, verticalIndices, claimedSpaceNumber, "vertical");
   if (verticalBonus.completed && isPathValid(board, verticalBonus.primeStart, verticalBonus.primeEnd, verticalIndices)) {
-    const primeCount = countPrimesInColumn(board, verticalIndices, verticalBonus.primeStart, verticalBonus.primeEnd);
-    bonusPoints += primeCount;
+    // Award 1 point for completing the connection
+    bonusPoints += 1;
     bonusSpaces.push(...verticalBonus.spaces);
     breakdown.push({
       direction: "vertical",
       primeStart: verticalBonus.primeStart,
       primeEnd: verticalBonus.primeEnd,
       spaces: verticalBonus.spaces,
-      points: primeCount,
+      points: 1,
     });
   }
   
@@ -290,15 +289,15 @@ export function checkForNewBonus(
   if (diag1Indices.length > 1) {
     const diag1Bonus = checkColumnConnection(board, diag1Indices, claimedSpaceNumber, "diagonal-down");
     if (diag1Bonus.completed && isPathValid(board, diag1Bonus.primeStart, diag1Bonus.primeEnd, diag1Indices)) {
-      const primeCount = countPrimesInColumn(board, diag1Indices, diag1Bonus.primeStart, diag1Bonus.primeEnd);
-      bonusPoints += primeCount;
+      // Award 1 point for completing the connection
+      bonusPoints += 1;
       bonusSpaces.push(...diag1Bonus.spaces);
       breakdown.push({
         direction: "diagonal-down",
         primeStart: diag1Bonus.primeStart,
         primeEnd: diag1Bonus.primeEnd,
         spaces: diag1Bonus.spaces,
-        points: primeCount,
+        points: 1,
       });
     }
   }
@@ -315,15 +314,15 @@ export function checkForNewBonus(
   if (diag2Indices.length > 1) {
     const diag2Bonus = checkColumnConnection(board, diag2Indices, claimedSpaceNumber, "diagonal-up");
     if (diag2Bonus.completed && isPathValid(board, diag2Bonus.primeStart, diag2Bonus.primeEnd, diag2Indices)) {
-      const primeCount = countPrimesInColumn(board, diag2Indices, diag2Bonus.primeStart, diag2Bonus.primeEnd);
-      bonusPoints += primeCount;
+      // Award 1 point for completing the connection
+      bonusPoints += 1;
       bonusSpaces.push(...diag2Bonus.spaces);
       breakdown.push({
         direction: "diagonal-up",
         primeStart: diag2Bonus.primeStart,
         primeEnd: diag2Bonus.primeEnd,
         spaces: diag2Bonus.spaces,
-        points: primeCount,
+        points: 1,
       });
     }
   }
