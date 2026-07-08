@@ -26,7 +26,7 @@ export function NextRoundConfirmation({
   const isCurrentPlayerInitiator = currentPlayerIndex === initiatorIndex;
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onDecline(); }}>
       <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Ready for Next Round</DialogTitle>

@@ -88,7 +88,7 @@ export function DiceTray({
   return (
     <div className="bg-card border rounded-lg p-4">
       <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-        {playerName}&apos;s Dice ({dice.length} remaining){!hideValues && " - Click to select, drag to reorder"}
+        {playerName}&apos;s Dice ({dice.length} remaining){!hideValues && " - Click to select or deselect, drag to reorder"}
       </h3>
       <div className="flex flex-wrap gap-2 justify-center">
         {hideValues ? (
@@ -199,10 +199,7 @@ function DieComponent({
   };
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
+    <div
       draggable={!disabled}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
@@ -214,6 +211,7 @@ function DieComponent({
         "flex items-center justify-center transition-all duration-200",
         "focus:outline-none focus:ring-2 focus:ring-ring",
         "shadow-md hover:shadow-lg overflow-hidden relative border",
+        "user-select-none",
         die.used && "opacity-30 cursor-not-allowed",
         !die.used && !disabled && "cursor-grab hover:-translate-y-0.5",
         isDragging && "opacity-50 scale-95 cursor-grabbing",
@@ -223,6 +221,14 @@ function DieComponent({
           : "",
         getColorClasses()
       )}
+      role="button"
+      tabIndex={disabled ? -1 : 0}
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          onClick();
+        }
+      }}
     >
       {die.value === "W" ? (
         <div className="flex flex-col items-center justify-center gap-0.5">
@@ -232,6 +238,6 @@ function DieComponent({
       ) : (
         <span className="text-foreground">{die.value}</span>
       )}
-    </button>
+    </div>
   );
 }
