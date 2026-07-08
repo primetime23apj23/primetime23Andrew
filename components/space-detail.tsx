@@ -95,11 +95,6 @@ export function SpaceDetail({
               </span>
             ))}
           </div>
-          {!canClaim && selectedDice.length > 0 && (
-            <p className="text-xs text-destructive text-center">
-              Selected dice don't match the factorization
-            </p>
-          )}
         </div>
       )}
     </div>
