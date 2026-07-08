@@ -479,6 +479,7 @@ export interface GameState {
   dice: Die[];
   phase: 'setup' | 'rolling' | 'playing' | 'roundEnd' | 'gameOver';
   roundNumber: number;
+  roundStarterIndex?: number; // Track who starts each round (alternates)
   selectedDice: string[];
   message: string;
   targetScore: number;
