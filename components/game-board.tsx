@@ -207,6 +207,10 @@ function BoardSpaceCell({
             if (space.number === 54) {
               factors = ['3', '3', '3', '2'];
             }
+            // Special case: 60 should display as (2, 2, 3, 5) with 2 factors per row
+            if (space.number === 60) {
+              factors = ['2', '2', '3', '5'];
+            }
             return factors.map((factor, idx) => (
             <span 
               key={idx}
