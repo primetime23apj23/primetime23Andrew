@@ -5,6 +5,9 @@ import React from "react"
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Die } from "@/lib/game-utils";
+import { Button } from "@/components/ui/button";
+import { Check, X } from "lucide-react";
+
 interface DiceTrayProps {
   dice: Die[];
   selectedDice: string[];
@@ -13,6 +16,10 @@ interface DiceTrayProps {
   disabled?: boolean;
   playerName?: string;
   hideValues?: boolean;
+  showActions?: boolean;
+  canClaim?: boolean;
+  onClaim?: () => void;
+  onCancel?: () => void;
 }
 
 export function DiceTray({
@@ -23,6 +30,10 @@ export function DiceTray({
   disabled = false,
   playerName = "Your",
   hideValues = false,
+  showActions = false,
+  canClaim = false,
+  onClaim,
+  onCancel,
 }: DiceTrayProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -108,6 +119,27 @@ export function DiceTray({
           ))
         )}
       </div>
+      
+      {showActions && (
+        <div className="flex gap-2 mt-4">
+          <Button
+            onClick={onClaim}
+            disabled={!canClaim}
+            className="flex-1 gap-2"
+          >
+            <Check className="w-4 h-4" />
+            Claim Space
+          </Button>
+          <Button
+            onClick={onCancel}
+            variant="outline"
+            className="gap-2 bg-transparent"
+          >
+            <X className="w-4 h-4" />
+            Cancel
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,24 +2,16 @@
 
 import type { BoardSpace, Die } from "@/lib/game-utils";
 import { PLAYER_COLORS } from "@/lib/game-utils";
-import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
 
 interface SpaceDetailProps {
   space: BoardSpace | null;
   selectedDice: Die[];
-  canClaim: boolean;
-  onClaim: () => void;
-  onCancel: () => void;
   isAutoSelected?: boolean;
 }
 
 export function SpaceDetail({
   space,
   selectedDice,
-  canClaim,
-  onClaim,
-  onCancel,
   isAutoSelected,
 }: SpaceDetailProps) {
   if (!space) {
@@ -102,24 +94,6 @@ export function SpaceDetail({
                 {die.value === 'W' ? 'P' : die.value}
               </span>
             ))}
-          </div>
-          <div className="flex gap-2 mt-3">
-            <Button
-              onClick={onClaim}
-              disabled={!canClaim}
-              className="flex-1 gap-2"
-            >
-              <Check className="w-4 h-4" />
-              Claim Space
-            </Button>
-            <Button
-              onClick={onCancel}
-              variant="outline"
-              className="gap-2 bg-transparent"
-            >
-              <X className="w-4 h-4" />
-              Cancel
-            </Button>
           </div>
           {!canClaim && selectedDice.length > 0 && (
             <p className="text-xs text-destructive text-center">
