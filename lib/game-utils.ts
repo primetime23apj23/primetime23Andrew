@@ -382,61 +382,11 @@ function checkLineConnection(
     return { completed: false, spaces: [], primeStart: -1, primeEnd: -1 };
   }
   
-  // Extend the chain symmetrically from both sides
-  let extendedStart = immediateStart;
-  let extendedEnd = immediateEnd;
-  let extendSteps = 0;
+  // Only connect to the immediately adjacent primes, don't extend further
+  const primeStart = board[immediateStart].number;
+  const primeEnd = board[immediateEnd].number;
   
-  // Extend one step at a time on BOTH sides simultaneously
-  for (let step_count = 1; ; step_count++) {
-    let leftPos = immediateStart - (step_count * step);
-    let rightPos = immediateEnd + (step_count * step);
-    
-    const leftSpace = leftPos >= start ? board[leftPos] : null;
-    const rightSpace = rightPos <= end ? board[rightPos] : null;
-    
-    // Both sides must be able to extend (must find a prime with clear path)
-    const leftCanExtend = leftSpace && leftSpace.isPrime;
-    const rightCanExtend = rightSpace && rightSpace.isPrime;
-    
-    if (!leftCanExtend || !rightCanExtend) {
-      // One or both sides can't extend, stop here
-      break;
-    }
-    
-    // Check that there's no unclaimed composite blocking the path
-    let leftBlocked = false;
-    let rightBlocked = false;
-    
-    for (let i = immediateStart - ((step_count - 1) * step); i > leftPos; i -= step) {
-      const space = board[i];
-      if (space && !space.isPrime && space.owner === null) {
-        leftBlocked = true;
-        break;
-      }
-    }
-    
-    for (let i = immediateEnd + ((step_count - 1) * step); i < rightPos; i += step) {
-      const space = board[i];
-      if (space && !space.isPrime && space.owner === null) {
-        rightBlocked = true;
-        break;
-      }
-    }
-    
-    if (leftBlocked || rightBlocked) {
-      // Path is blocked on one or both sides, stop extending
-      break;
-    }
-    
-    // Both sides extended successfully, update the boundaries
-    extendedStart = leftPos;
-    extendedEnd = rightPos;
-    extendSteps = step_count;
-  }
-  
-  
-  return { completed: true, spaces: spacesInSegment, primeStart: extendedStart, primeEnd: extendedEnd };
+  return { completed: true, spaces: spacesInSegment, primeStart, primeEnd };
 }
 
 function checkColumnConnection(
@@ -490,61 +440,11 @@ function checkColumnConnection(
     return { completed: false, spaces: [], primeStart: -1, primeEnd: -1 };
   }
   
-  // Extend the chain symmetrically from both sides
-  let extendedStartIdx = immediateStartIdx;
-  let extendedEndIdx = immediateEndIdx;
-  let extendSteps = 0;
+  // Only connect to the immediately adjacent primes, don't extend further
+  const primeStart = board[indices[immediateStartIdx]].number;
+  const primeEnd = board[indices[immediateEndIdx]].number;
   
-  // Extend one step at a time on BOTH sides simultaneously
-  for (let step_count = 1; ; step_count++) {
-    let upIdx = immediateStartIdx - step_count;
-    let downIdx = immediateEndIdx + step_count;
-    
-    const upSpace = upIdx >= 0 ? board[indices[upIdx]] : null;
-    const downSpace = downIdx < indices.length ? board[indices[downIdx]] : null;
-    
-    // Both sides must be able to extend (must find a prime with clear path)
-    const upCanExtend = upSpace && upSpace.isPrime;
-    const downCanExtend = downSpace && downSpace.isPrime;
-    
-    if (!upCanExtend || !downCanExtend) {
-      // One or both sides can't extend, stop here
-      break;
-    }
-    
-    // Check that there's no unclaimed composite blocking the path
-    let upBlocked = false;
-    let downBlocked = false;
-    
-    for (let idx = immediateStartIdx - (step_count - 1); idx > upIdx; idx--) {
-      const space = board[indices[idx]];
-      if (space && !space.isPrime && space.owner === null) {
-        upBlocked = true;
-        break;
-      }
-    }
-    
-    for (let idx = immediateEndIdx + (step_count - 1); idx < downIdx; idx++) {
-      const space = board[indices[idx]];
-      if (space && !space.isPrime && space.owner === null) {
-        downBlocked = true;
-        break;
-      }
-    }
-    
-    if (upBlocked || downBlocked) {
-      // Path is blocked on one or both sides, stop extending
-      break;
-    }
-    
-    // Both sides extended successfully, update the boundaries
-    extendedStartIdx = upIdx;
-    extendedEndIdx = downIdx;
-    extendSteps = step_count;
-  }
-  
-  
-  return { completed: true, spaces: spacesInSegment, primeStart: indices[extendedStartIdx], primeEnd: indices[extendedEndIdx] };
+  return { completed: true, spaces: spacesInSegment, primeStart, primeEnd };
 }
 
 // Legacy function for calculating total bonus (used for display)
