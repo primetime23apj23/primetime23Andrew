@@ -155,24 +155,8 @@ export function PrimeFactorGame({
   const boardRef = useRef<HTMLDivElement>(null);
   const botTurnScheduledRef = useRef(false);
   const gameStateRef = useRef<GameState>(gameState);
-  
-  // Bonus history tracking
-  const [bonusHistory, setBonusHistory] = useState<Array<{
-    player: string;
-    space: number;
-    round: number;
-    breakdown: BonusBreakdown[];
-  }>>([]);
-  
-  // Completed connection tracks
-  const [completedTracks, setCompletedTracks] = useState<CompletedTrack[]>([]);
-  const trackBoardRef = useRef<HTMLDivElement>(null);
-  
-  // Bot settings
-  const [botEnabled, setBotEnabled] = useState(false);
-  const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
-  const gameStateVersionRef = useRef<number>(-1);
   const previousOpponentBonusCountRef = useRef<number>(0);
+  const manualSelectionRef = useRef<boolean>(false);
 
   // Local player id
   useEffect(() => {
@@ -540,6 +524,8 @@ export function PrimeFactorGame({
     if (isMultiplayer && !isLocalPlayersTurn) return;
     if (space.claimed) return;
     
+    // Mark that user manually selected a space
+    manualSelectionRef.current = true;
     setSelectedSpace(space);
     
     // Auto-select dice that can match this space (always, even if dice were previously selected)
@@ -576,9 +562,19 @@ export function PrimeFactorGame({
     }
   }, [isLocalPlayersTurn, isMultiplayer, currentPlayerDice, canMatchFactorization, gameState]);
 
+  // Reset manual selection flag when all dice are deselected
+  useEffect(() => {
+    if (gameState.selectedDice.length === 0) {
+      manualSelectionRef.current = false;
+    }
+  }, [gameState.selectedDice]);
+
   // Auto-select space when dice match exactly one space
   useEffect(() => {
     if (gameState.phase !== "playing" || !isLocalPlayersTurn || gameState.selectedDice.length === 0) return;
+    
+    // If user manually selected a space, don't override it with auto-select
+    if (manualSelectionRef.current) return;
     
     const selectedDieObjects = currentPlayerDice.filter((d) =>
       gameState.selectedDice.includes(d.id)
@@ -1466,6 +1462,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     // Track the last claimed space for highlighting
     setLastClaimedSpace(selectedSpace.number);
+    
+    // Reset manual selection flag after claiming
+    manualSelectionRef.current = false;
+    setSelectedSpace(null);
 
     if (totalScore >= gameState.targetScore && pos) {
       playVictorySound();
