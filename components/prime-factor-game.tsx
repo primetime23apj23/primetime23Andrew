@@ -436,6 +436,12 @@ export function PrimeFactorGame({
   useEffect(() => {
     if (gameState.phase !== "playing" || !diceRolled) return;
     
+    // Don't auto-skip if we just transitioned to bonus phase (when previous player exhausted)
+    const otherPlayerIndex = 1 - gameState.currentPlayer;
+    const playerExhausted = gameState.playerExhausted || [false, false];
+    const isInBonusPhase = playerExhausted[otherPlayerIndex] === true;
+    if (isInBonusPhase) return;
+    
     if (!hasAnyValidMove && currentPlayerDice.length >= 0) {
       const currentPlayerIndex = gameState.currentPlayer;
       const playerExhausted = gameState.playerExhausted || [false, false];
@@ -498,7 +504,7 @@ export function PrimeFactorGame({
         setDiceRolled(nextPlayerAlreadyRolled); // Keep diceRolled true if they already rolled
       }
     }
-  }, [gameState.currentPlayer, gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, gameState.board, gameState.players, isMultiplayer, gameState.playerExhausted, player1Dice.length, player2Dice.length]);
+  }, [gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, gameState.board.length]);
 
   // Spawn floating emoji animation
   const spawnPointAnimation = useCallback((x: number, y: number, points: number, isBonus: boolean) => {
@@ -1633,19 +1639,43 @@ const channel = subscribeToSession(sessionCode, (session) => {
       skippedPlayers = true;
     }
 
-    const nextGameState = {
-      ...gameState,
-      currentPlayer: activeNextPlayer,
-      selectedDice: [],
-      playerExhausted: newExhausted,
-      message: skippedPlayers 
-        ? `${gameState.players[activeNextPlayer].name}'s turn! Select dice to claim a space.`
-        : `${gameState.players[activeNextPlayer].name}'s turn! Select dice to claim a space.`,
-    };
+    // Check if all players are exhausted (round complete)
+    const allExhausted = newExhausted.every((exhausted) => exhausted);
+    
+    console.log("[v0] handleEndTurn: checking round status", {
+      newExhausted,
+      allExhausted,
+      activeNextPlayer,
+      currentPlayer: gameState.currentPlayer,
+    });
+    
+    let nextGameState;
+    if (allExhausted) {
+      // Round is complete - all players exhausted
+      console.log("[v0] handleEndTurn: all players exhausted, ending round");
+      nextGameState = {
+        ...gameState,
+        phase: "roundEnd",
+        selectedDice: [],
+        playerExhausted: [false, false],
+        message: `Round ${gameState.roundNumber} complete! All players are out of moves. Click "Ready for Next Round" when ready.`,
+      };
+    } else {
+      // Continue to next player
+      nextGameState = {
+        ...gameState,
+        currentPlayer: activeNextPlayer,
+        selectedDice: [],
+        playerExhausted: newExhausted,
+        message: skippedPlayers 
+          ? `${gameState.players[activeNextPlayer].name}'s turn! Select dice to claim a space.`
+          : `${gameState.players[activeNextPlayer].name}'s turn! Select dice to claim a space.`,
+      };
 
-    // Play opponent move sound when transitioning to next player
-    if (nextGameState.currentPlayer !== gameState.currentPlayer) {
-      playOpponentMoveSound();
+      // Play opponent move sound when transitioning to next player
+      if (nextGameState.currentPlayer !== gameState.currentPlayer) {
+        playOpponentMoveSound();
+      }
     }
 
     setGameState(nextGameState);
