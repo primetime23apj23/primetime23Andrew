@@ -103,6 +103,16 @@ export async function POST(request: NextRequest) {
         const currentPlayerIndex = gameData.currentPlayer;
         const currentPlayerId = gameData.players[currentPlayerIndex]?.id;
         
+        console.log('[game-states] UPDATE: syncing turn player', {
+          sessionId,
+          currentPlayerIndex,
+          currentPlayerId,
+          playerNames: gameData.players.map((p: any) => ({ name: p.name, id: p.id })),
+          roundNumber: gameData.roundNumber,
+          gameStarterIndex: gameData.gameStarterIndex,
+          actionType: gameData.actionType,
+        });
+        
         if (currentPlayerId) {
           const { error: syncError } = await supabaseAdmin
             .from('game_sessions')
