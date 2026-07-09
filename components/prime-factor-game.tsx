@@ -713,28 +713,83 @@ export function PrimeFactorGame({
     return !player1HasMoves && !player2HasMoves;
   }, [player1Dice, player2Dice, playerHasAnyValidMove]);
 
-  // Auto-detect game end when both players have no valid moves
+  // Auto-detect game end or round advance when both players have no valid moves
   useEffect(() => {
     if (gameState.phase === "gameOver") return; // Already game over
     if (gameState.phase !== "playing" && gameState.phase !== "roundEnd") return;
     
     if (checkGameEnd()) {
-      console.log("[v0] Game end detected - both players exhausted");
+      console.log("[v0] Both players exhausted - checking if target score reached");
       
-      // Calculate final scores
+      // Calculate current scores
       const player1Score = gameState.players[0]?.score || 0;
       const player2Score = gameState.players[1]?.score || 0;
-      const winner = player1Score > player2Score ? 0 : player2Score > player1Score ? 1 : -1;
+      const targetScore = gameState.targetScore || 0;
       
-      const winnerName = winner === -1 ? "It's a tie!" : gameState.players[winner].name + " wins!";
+      console.log("[v0] Scores:", { player1: player1Score, player2: player2Score, target: targetScore });
       
-      setGameState((prev) => ({
-        ...prev,
-        phase: "gameOver",
-        message: `Game Over! ${winnerName}\n${gameState.players[0].name}: ${player1Score} | ${gameState.players[1].name}: ${player2Score}`,
-      }));
+      // Check if anyone has reached the target score
+      const player1ReachedTarget = targetScore > 0 && player1Score >= targetScore;
+      const player2ReachedTarget = targetScore > 0 && player2Score >= targetScore;
+      
+      if (player1ReachedTarget || player2ReachedTarget) {
+        // Someone reached target - game over
+        console.log("[v0] Target score reached - ending game");
+        const winner = player1Score > player2Score ? 0 : player2Score > player1Score ? 1 : -1;
+        const winnerName = winner === -1 ? "It's a tie!" : gameState.players[winner].name + " wins!";
+        
+        setGameState((prev) => ({
+          ...prev,
+          phase: "gameOver",
+          message: `Game Over! ${winnerName}\n${gameState.players[0].name}: ${player1Score} | ${gameState.players[1].name}: ${player2Score}`,
+        }));
+      } else if (targetScore === 0) {
+        // No target score set - game over when both exhausted
+        console.log("[v0] No target score - ending game after round exhaustion");
+        const winner = player1Score > player2Score ? 0 : player2Score > player1Score ? 1 : -1;
+        const winnerName = winner === -1 ? "It's a tie!" : gameState.players[winner].name + " wins!";
+        
+        setGameState((prev) => ({
+          ...prev,
+          phase: "gameOver",
+          message: `Game Over! ${winnerName}\n${gameState.players[0].name}: ${player1Score} | ${gameState.players[1].name}: ${player2Score}`,
+        }));
+      } else {
+        // Target score exists but not reached - trigger new round setup
+        // We set phase to rolling to show round banner and let handleNewRound be called via user interaction
+        // OR we can auto-transition if desired
+        console.log("[v0] Target not reached - setting up next round");
+        
+        // Reset skip flag and auto-transition to next round
+        skipHappenedThisRoundRef.current = false;
+        
+        const nextRoundNumber = gameState.roundNumber + 1;
+        const currentRoundStarter = gameState.roundStarterIndex ?? 0;
+        const nextRoundStarterIndex = 1 - currentRoundStarter;
+        
+        setPlayer1Dice([]);
+        setPlayer2Dice([]);
+        setDiceRolled(false);
+        
+        setGameState((prev) => ({
+          ...prev,
+          roundNumber: nextRoundNumber,
+          roundStarterIndex: nextRoundStarterIndex,
+          player1HasMoved: false,
+          phase: "rolling",
+          currentPlayer: nextRoundStarterIndex,
+          selectedDice: [],
+          player1Ready: false,
+          player2Ready: false,
+          readyConfirmationActive: false,
+          readyConfirmationInitiator: null,
+          readyConfirmationCountdown: 0,
+          playerExhausted: [false, false],
+          message: `Round ${nextRoundNumber} begins — ${prev.players[nextRoundStarterIndex].name}, roll your dice!`,
+        }));
+      }
     }
-  }, [gameState.board, player1Dice, player2Dice, checkGameEnd, gameState.phase, gameState.players]);
+  }, [gameState.board, player1Dice, player2Dice, checkGameEnd, gameState.phase, gameState.players, gameState.targetScore, gameState.roundNumber, gameState.roundStarterIndex]);
 
   // Persist game state to database for multiplayer
   const persistGameState = useCallback(async (
