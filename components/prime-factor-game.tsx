@@ -33,7 +33,7 @@ import { BonusBreakdownPanel } from "./bonus-breakdown";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
 import { playCapturSound, playVictorySound, playOpponentMoveSound, playFireworksSound } from "@/lib/sound-effects";
-import { TrainCelebration } from "./train-celebration";
+import { PartyCelebration } from "./party-celebration";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
@@ -2659,9 +2659,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
         fireworks={fireworks}
         onAnimationComplete={handleAnimationComplete}
       />
-      <TrainCelebration
+      <PartyCelebration
         isActive={isTrainCelebrating}
         numbers={celebrationNumbers}
+        winnerName={gameState.players[gameState.currentPlayer]?.name || "Champion"}
         onComplete={() => setIsTrainCelebrating(false)}
       />
     </div>
