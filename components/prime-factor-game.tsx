@@ -809,6 +809,9 @@ export function PrimeFactorGame({
     }
   }, [gameState.board, player1Dice, player2Dice, checkGameEnd, gameState.phase, gameState.players, gameState.targetScore, gameState.roundNumber, gameState.gameStarterIndex, calculateRoundStarter]);
 
+  // Track the last persisted round number to detect when a round transition happens
+  const lastPersistedRoundRef = useRef<number>(gameState.roundNumber);
+
   // Persist game state to database for multiplayer
   const persistGameState = useCallback(async (
     actionType: string,
@@ -882,6 +885,32 @@ export function PrimeFactorGame({
     sessionId,
     sessionLocalPlayerId,
   ]);
+
+  // Auto-persist round transitions to the server so all clients stay in sync
+  useEffect(() => {
+    // Only persist if we're in rolling phase (just transitioned to new round) and round number changed
+    if (gameState.phase === "rolling" && gameState.roundNumber > lastPersistedRoundRef.current) {
+      console.log("[v0] Round transition detected - persisting new round state", {
+        roundNumber: gameState.roundNumber,
+        currentPlayer: gameState.currentPlayer,
+        currentPlayerName: gameState.players[gameState.currentPlayer]?.name,
+      });
+      
+      lastPersistedRoundRef.current = gameState.roundNumber;
+      
+      // Schedule persist for next tick to allow state to settle
+      const timer = setTimeout(() => {
+        void persistGameState('round-transition', {
+          gameState,
+          player1Dice: [],
+          player2Dice: [],
+          diceRolled: false,
+        });
+      }, 0);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.phase, gameState.roundNumber, gameState.currentPlayer, gameState.players, persistGameState, gameState]);
 
   const getSavedStateVersion = useCallback((savedState: Record<string, any>) => {
     return typeof savedState.syncVersion === "number" ? savedState.syncVersion : -1;
