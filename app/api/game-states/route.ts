@@ -99,34 +99,49 @@ export async function POST(request: NextRequest) {
       }
 
       // Sync the current player to game_sessions so turn validation uses the same source of truth
-      if (gameData.currentPlayer !== undefined && gameData.players) {
+      // We need to look up the actual player IDs from the session, not from the game data
+      if (gameData.currentPlayer !== undefined) {
         const currentPlayerIndex = gameData.currentPlayer;
-        const currentPlayerId = gameData.players[currentPlayerIndex]?.id;
         
-        console.log('[game-states] UPDATE: syncing turn player', {
-          sessionId,
-          currentPlayerIndex,
-          currentPlayerId,
-          playerNames: gameData.players.map((p: any) => ({ name: p.name, id: p.id })),
-          roundNumber: gameData.roundNumber,
-          gameStarterIndex: gameData.gameStarterIndex,
-          actionType: gameData.actionType,
-        });
+        // Fetch session to get the real player IDs
+        const { data: session, error: sessionError } = await supabaseAdmin
+          .from('game_sessions')
+          .select('player_1_id, player_2_id')
+          .eq('id', sessionId)
+          .single();
         
-        if (currentPlayerId) {
-          const { error: syncError } = await supabaseAdmin
-            .from('game_sessions')
-            .update({
-              current_turn_player_id: currentPlayerId,
-              updated_at: now,
-            })
-            .eq('id', sessionId);
+        if (sessionError) {
+          console.error('[game-states] error fetching session for turn sync:', sessionError);
+        } else if (session) {
+          // Map the current player index to the actual session player ID
+          const currentPlayerId = currentPlayerIndex === 0 ? session.player_1_id : session.player_2_id;
           
-          if (syncError) {
-            console.error('[game-states] sync turn player error:', syncError);
-            // Don't fail the request, just log the error
-          } else {
-            console.log('[game-states] synced current_turn_player_id to:', currentPlayerId);
+          console.log('[game-states] UPDATE: syncing turn player', {
+            sessionId,
+            currentPlayerIndex,
+            currentPlayerId,
+            player_1_id: session.player_1_id,
+            player_2_id: session.player_2_id,
+            roundNumber: gameData.roundNumber,
+            gameStarterIndex: gameData.gameStarterIndex,
+            actionType: gameData.actionType,
+          });
+          
+          if (currentPlayerId) {
+            const { error: syncError } = await supabaseAdmin
+              .from('game_sessions')
+              .update({
+                current_turn_player_id: currentPlayerId,
+                updated_at: now,
+              })
+              .eq('id', sessionId);
+            
+            if (syncError) {
+              console.error('[game-states] sync turn player error:', syncError);
+              // Don't fail the request, just log the error
+            } else {
+              console.log('[game-states] synced current_turn_player_id to:', currentPlayerId);
+            }
           }
         }
       }
@@ -155,24 +170,46 @@ export async function POST(request: NextRequest) {
     }
 
     // Sync the current player to game_sessions for new game states too
-    if (gameData.currentPlayer !== undefined && gameData.players) {
+    // We need to look up the actual player IDs from the session, not from the game data
+    if (gameData.currentPlayer !== undefined) {
       const currentPlayerIndex = gameData.currentPlayer;
-      const currentPlayerId = gameData.players[currentPlayerIndex]?.id;
       
-      if (currentPlayerId) {
-        const { error: syncError } = await supabaseAdmin
-          .from('game_sessions')
-          .update({
-            current_turn_player_id: currentPlayerId,
-            updated_at: now,
-          })
-          .eq('id', sessionId);
+      // Fetch session to get the real player IDs
+      const { data: session, error: sessionError } = await supabaseAdmin
+        .from('game_sessions')
+        .select('player_1_id, player_2_id')
+        .eq('id', sessionId)
+        .single();
+      
+      if (sessionError) {
+        console.error('[game-states] error fetching session for turn sync on insert:', sessionError);
+      } else if (session) {
+        // Map the current player index to the actual session player ID
+        const currentPlayerId = currentPlayerIndex === 0 ? session.player_1_id : session.player_2_id;
         
-        if (syncError) {
-          console.error('[game-states] sync turn player error on insert:', syncError);
-          // Don't fail the request, just log the error
-        } else {
-          console.log('[game-states] synced current_turn_player_id on insert to:', currentPlayerId);
+        console.log('[game-states] INSERT: syncing turn player', {
+          sessionId,
+          currentPlayerIndex,
+          currentPlayerId,
+          player_1_id: session.player_1_id,
+          player_2_id: session.player_2_id,
+        });
+        
+        if (currentPlayerId) {
+          const { error: syncError } = await supabaseAdmin
+            .from('game_sessions')
+            .update({
+              current_turn_player_id: currentPlayerId,
+              updated_at: now,
+            })
+            .eq('id', sessionId);
+          
+          if (syncError) {
+            console.error('[game-states] sync turn player error on insert:', syncError);
+            // Don't fail the request, just log the error
+          } else {
+            console.log('[game-states] synced current_turn_player_id on insert to:', currentPlayerId);
+          }
         }
       }
     }
