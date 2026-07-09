@@ -783,10 +783,12 @@ export function PrimeFactorGame({
           nextRoundStarterIndex,
           nextPlayerName: gameState.players[nextRoundStarterIndex]?.name,
           localPlayerId: sessionLocalPlayerId,
+          player1DiceRemaining: player1Dice.length,
+          player2DiceRemaining: player2Dice.length,
         });
         
-        setPlayer1Dice([]);
-        setPlayer2Dice([]);
+        // Don't clear dice - players keep their remaining dice for the next round
+        // Just reset the rolled flag since they need to roll again for the new round
         setDiceRolled(false);
         
         setGameState((prev) => ({
@@ -902,8 +904,9 @@ export function PrimeFactorGame({
       const timer = setTimeout(() => {
         void persistGameState('round-transition', {
           gameState,
-          player1Dice: [],
-          player2Dice: [],
+          // Preserve remaining dice - don't clear them on round transition
+          player1Dice,
+          player2Dice,
           diceRolled: false,
         });
       }, 0);
@@ -2101,16 +2104,16 @@ const channel = subscribeToSession(sessionCode, (session) => {
       message: `Round ${nextRoundNumber} begins — ${gameState.players[nextRoundStarterIndex].name}, roll your dice!`,
     };
 
-    // Reset dice rolling state for new round
-    setPlayer1Dice([]);
-    setPlayer2Dice([]);
+    // Reset dice rolling state for new round but preserve remaining dice
+    // Players keep their unused dice from the previous round
     setDiceRolled(false);
     setGameState(nextGameState);
     
     void persistGameState('new-round', {
       gameState: nextGameState,
-      player1Dice: [],
-      player2Dice: [],
+      // Preserve remaining dice - players continue with what they have left
+      player1Dice,
+      player2Dice,
       diceRolled: false,
     });
   }, [gameState, persistGameState]);
