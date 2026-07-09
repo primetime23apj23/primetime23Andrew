@@ -63,6 +63,7 @@ const createInitialState = (targetScore: number): GameState => ({
   dice: [],
   phase: "setup",
   roundNumber: 1,
+  gameStarterIndex: 0, // Track who started the game (set during setup)
   roundStarterIndex: 0,
   player1HasMoved: false,
   selectedDice: [],
@@ -703,6 +704,15 @@ export function PrimeFactorGame({
     return false;
   }, [gameState.board]);
 
+  // Calculate who should start a specific round based on the game starter and round number
+  // Round 1: Game starter
+  // Round 2: Opposite player
+  // Round 3: Game starter again, etc.
+  const calculateRoundStarter = useCallback((roundNum: number, gameStarter: number): number => {
+    const roundOffset = roundNum - 1; // 0-indexed
+    return (gameStarter + roundOffset) % 2;
+  }, []);
+
   // Check if the game should end (both players exhausted with no valid moves)
   const checkGameEnd = useCallback((): boolean => {
     const player1HasMoves = playerHasAnyValidMove(player1Dice);
@@ -764,12 +774,12 @@ export function PrimeFactorGame({
         skipHappenedThisRoundRef.current = false;
         
         const nextRoundNumber = gameState.roundNumber + 1;
-        const currentRoundStarter = gameState.roundStarterIndex ?? 0;
-        const nextRoundStarterIndex = 1 - currentRoundStarter;
+        const gameStarter = gameState.gameStarterIndex ?? 0;
+        const nextRoundStarterIndex = calculateRoundStarter(nextRoundNumber, gameStarter);
         
         console.log("[v0] AUTO-SKIP ROUND TRANSITION - calculating next starter", {
           nextRoundNumber,
-          currentRoundStarter,
+          gameStarter,
           nextRoundStarterIndex,
           nextPlayerName: gameState.players[nextRoundStarterIndex]?.name,
           localPlayerId: sessionLocalPlayerId,
@@ -797,7 +807,7 @@ export function PrimeFactorGame({
         }));
       }
     }
-  }, [gameState.board, player1Dice, player2Dice, checkGameEnd, gameState.phase, gameState.players, gameState.targetScore, gameState.roundNumber, gameState.roundStarterIndex]);
+  }, [gameState.board, player1Dice, player2Dice, checkGameEnd, gameState.phase, gameState.players, gameState.targetScore, gameState.roundNumber, gameState.gameStarterIndex, calculateRoundStarter]);
 
   // Persist game state to database for multiplayer
   const persistGameState = useCallback(async (
@@ -926,6 +936,8 @@ export function PrimeFactorGame({
         phase: prev.phase === "roundEnd" ? "roundEnd" : (savedState.phase || prev.phase),
         roundNumber:
           typeof savedState.roundNumber === "number" ? savedState.roundNumber : prev.roundNumber,
+        gameStarterIndex:
+          typeof savedState.gameStarterIndex === "number" ? savedState.gameStarterIndex : prev.gameStarterIndex,
         roundStarterIndex:
           typeof savedState.roundStarterIndex === "number" ? savedState.roundStarterIndex : prev.roundStarterIndex,
         selectedDice: playerChanged ? [] : prev.selectedDice,
@@ -1061,6 +1073,9 @@ export function PrimeFactorGame({
       { ...initial.players[1], name: enableBot ? "Bot" : resolvedPlayerNames[1] },
     ];
     initial.phase = "rolling";
+    // Set the game starter - in multiplayer, currentPlayer (0) is typically the session creator
+    // In single-player/bot, Player 1 (0) always starts
+    initial.gameStarterIndex = initial.currentPlayer;
     initial.message = `${resolvedPlayerNames[0]}, roll the dice to start the game!`;
 
     setGameState(initial);
@@ -2020,13 +2035,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
     
     const nextRoundNumber = gameState.roundNumber + 1;
     
-    // Alternate the starter for this round using the GameState's roundStarterIndex
-    const currentRoundStarter = gameState.roundStarterIndex ?? 0;
-    const nextRoundStarterIndex = 1 - currentRoundStarter;
+    // Deterministically calculate the starter for this round based on game starter and round number
+    const gameStarter = gameState.gameStarterIndex ?? 0;
+    const nextRoundStarterIndex = calculateRoundStarter(nextRoundNumber, gameStarter);
     
     console.log("[v0] HANDLE NEW ROUND - calculating next starter", {
       nextRoundNumber,
-      currentRoundStarter,
+      gameStarter,
       nextRoundStarterIndex,
       nextPlayerName: gameState.players[nextRoundStarterIndex]?.name,
       localPlayerId: sessionLocalPlayerId,

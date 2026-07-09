@@ -479,7 +479,8 @@ export interface GameState {
   dice: Die[];
   phase: 'setup' | 'rolling' | 'playing' | 'roundEnd' | 'gameOver';
   roundNumber: number;
-  roundStarterIndex?: number; // Track who starts each round (alternates)
+  gameStarterIndex?: number; // Track who started the game (never changes) - used to deterministically calculate round starters
+  roundStarterIndex?: number; // Track who starts each round (alternates from gameStarterIndex)
   player1HasMoved?: boolean; // Track if player 1 has made a move in current round
   selectedDice: string[];
   message: string;
