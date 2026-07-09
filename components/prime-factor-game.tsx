@@ -176,6 +176,7 @@ export function PrimeFactorGame({
   const manualSelectionRef = useRef<boolean>(false);
   const autoSkipInProgressRef = useRef<boolean>(false);
   const lastAppliedVersionRef = useRef<number>(-1);
+  const skipHappenedThisRoundRef = useRef<boolean>(false);
 
   // Local player id
   useEffect(() => {
@@ -457,6 +458,7 @@ export function PrimeFactorGame({
       
       // Mark auto-skip as in progress to prevent applySavedGameState from interrupting
       autoSkipInProgressRef.current = true;
+      skipHappenedThisRoundRef.current = true;
       
       // Mark current player as exhausted
       const newExhausted = [...playerExhausted];
@@ -511,6 +513,7 @@ export function PrimeFactorGame({
         // Clear the flag after a brief delay to allow state to settle
         setTimeout(() => { autoSkipInProgressRef.current = false; }, 100);
       }
+    }
     }
   }, [gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, gameState.board.length]);
 
@@ -1874,23 +1877,20 @@ const channel = subscribeToSession(sessionCode, (session) => {
   }, [gameState, localPlayerIndex, persistGameState]);
 
   const handleNewRound = useCallback(() => {
-    const dice1 = rollDice().map((d, i) => ({ ...d, id: `p1-r${gameState.roundNumber}-${i}` }));
-    const dice2 = rollDice().map((d, i) => ({ ...d, id: `p2-r${gameState.roundNumber}-${i}` }));
-    const nextPlayer1Dice = sortDice(dice1);
-    const nextPlayer2Dice = sortDice(dice2);
+    // Reset skip flag when starting new round
+    skipHappenedThisRoundRef.current = false;
     
-    setPlayer1Dice(nextPlayer1Dice);
-    setPlayer2Dice(nextPlayer2Dice);
-
+    const nextRoundNumber = gameState.roundNumber + 1;
+    
     // Alternate the starter for this round using the GameState's roundStarterIndex
     const currentRoundStarter = gameState.roundStarterIndex ?? 0;
     const nextRoundStarterIndex = 1 - currentRoundStarter;
     const nextGameState = {
       ...gameState,
-      roundNumber: gameState.roundNumber + 1,
+      roundNumber: nextRoundNumber,
       roundStarterIndex: nextRoundStarterIndex,
       player1HasMoved: false,
-      phase: "playing" as const,
+      phase: "rolling" as const, // Set to rolling so players need to roll first
       currentPlayer: nextRoundStarterIndex,
       selectedDice: [],
       player1Ready: false,
@@ -1899,15 +1899,20 @@ const channel = subscribeToSession(sessionCode, (session) => {
       readyConfirmationInitiator: null,
       readyConfirmationCountdown: 0,
       playerExhausted: [false, false],
-      message: `Round ${gameState.roundNumber + 1} started! ${gameState.players[nextRoundStarterIndex].name} goes first.`,
+      message: `Round ${nextRoundNumber} begins — ${gameState.players[nextRoundStarterIndex].name}, roll your dice!`,
     };
 
+    // Reset dice rolling state for new round
+    setPlayer1Dice([]);
+    setPlayer2Dice([]);
+    setDiceRolled(false);
     setGameState(nextGameState);
+    
     void persistGameState('new-round', {
       gameState: nextGameState,
-      player1Dice: nextPlayer1Dice,
-      player2Dice: nextPlayer2Dice,
-      diceRolled: true,
+      player1Dice: [],
+      player2Dice: [],
+      diceRolled: false,
     });
   }, [gameState, persistGameState]);
 
@@ -2290,6 +2295,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             player1Ready={gameState.player1Ready}
             player2Ready={gameState.player2Ready}
             isMultiplayer={isMultiplayer}
+            roundNumber={gameState.roundNumber}
           />
         </div>
 

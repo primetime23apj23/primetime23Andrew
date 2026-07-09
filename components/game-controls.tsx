@@ -17,6 +17,7 @@ interface GameControlsProps {
   player1Ready?: boolean;
   player2Ready?: boolean;
   isMultiplayer?: boolean;
+  roundNumber?: number;
 }
 
 export function GameControls({
@@ -33,9 +34,17 @@ export function GameControls({
   player1Ready = false,
   player2Ready = false,
   isMultiplayer = false,
+  roundNumber = 1,
 }: GameControlsProps) {
   return (
     <div className="bg-card border rounded-lg p-4 space-y-4">
+      {/* Round indicator for rolling phase (new round transition) */}
+      {phase === "rolling" && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
+          <p className="text-lg font-bold text-blue-900">Round {roundNumber}</p>
+        </div>
+      )}
+      
       {/* Message */}
       <div className="bg-muted rounded-lg p-3 text-center">
         <p className="text-sm font-medium">{message}</p>
