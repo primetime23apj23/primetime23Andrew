@@ -847,6 +847,8 @@ export function PrimeFactorGame({
         currentPlayer: nextState.currentPlayer,
         phase: nextState.phase,
         roundNumber: nextState.roundNumber,
+        gameStarterIndex: nextState.gameStarterIndex,
+        roundStarterIndex: nextState.roundStarterIndex,
         selectedDice: nextState.selectedDice,
         selectedSpace: nextSelectedSpace ? nextSelectedSpace.number : null,
         message: nextState.message,
@@ -1507,9 +1509,14 @@ const channel = subscribeToSession(sessionCode, (session) => {
       // Log state at roll time to diagnose sync issues
       console.log("[v0] handleRoll: current local state", {
         currentPlayer: gameState.currentPlayer,
+        currentPlayerName: gameState.players[gameState.currentPlayer]?.name,
+        gameStarterIndex: gameState.gameStarterIndex,
+        roundStarterIndex: gameState.roundStarterIndex,
         phase: gameState.phase,
         roundNumber: gameState.roundNumber,
         sessionLocalPlayerId,
+        player1Id: gameState.players[0]?.id,
+        player2Id: gameState.players[1]?.id,
       });
       
       const valid = await validateTurn(sessionId, sessionLocalPlayerId);
@@ -1520,6 +1527,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           error: valid.error,
           currentTurnPlayerId: valid.currentTurnPlayer,
           localPlayerId: sessionLocalPlayerId,
+          players: gameState.players.map(p => ({ name: p.name, id: p.id })),
         });
         setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
         return;
