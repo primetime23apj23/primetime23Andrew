@@ -45,8 +45,15 @@ export function GameControls({
         </div>
       )}
       
+      {/* Game Over indicator */}
+      {phase === "gameOver" && (
+        <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 text-center">
+          <p className="text-2xl font-bold text-amber-900">Game Over</p>
+        </div>
+      )}
+      
       {/* Message */}
-      <div className="bg-muted rounded-lg p-3 text-center">
+      <div className="bg-muted rounded-lg p-3 text-center whitespace-pre-line">
         <p className="text-sm font-medium">{message}</p>
       </div>
 
@@ -64,7 +71,7 @@ export function GameControls({
           </Button>
         )}
 
-        {phase === "playing" && (
+        {phase === "playing" && phase !== "gameOver" && (
           <>
             <Button
               onClick={onEndTurn}
