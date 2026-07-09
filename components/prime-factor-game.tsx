@@ -685,6 +685,57 @@ export function PrimeFactorGame({
     return match !== null;
   }, [selectedSpace, gameState.selectedDice, currentPlayerDice, gameState.playerExhausted, gameState.currentPlayer]);
 
+  // Check if a specific player (by their dice) has any valid moves
+  const playerHasAnyValidMove = useCallback((diceToCheck: Die[]): boolean => {
+    if (diceToCheck.length === 0) return false;
+    
+    const availableSpaces = gameState.board.filter(
+      (space) => !space.isPrime && space.owner === null && space.number !== 0 && !space.claimed
+    );
+    
+    for (const space of availableSpaces) {
+      const factors = space.factors;
+      if (factors.length === 0) continue;
+      const match = canMatchFactorization(factors, diceToCheck);
+      if (match !== null) return true;
+    }
+    
+    return false;
+  }, [gameState.board]);
+
+  // Check if the game should end (both players exhausted with no valid moves)
+  const checkGameEnd = useCallback((): boolean => {
+    const player1HasMoves = playerHasAnyValidMove(player1Dice);
+    const player2HasMoves = playerHasAnyValidMove(player2Dice);
+    
+    console.log("[v0] checkGameEnd: player1 has moves:", player1HasMoves, "player2 has moves:", player2HasMoves);
+    
+    return !player1HasMoves && !player2HasMoves;
+  }, [player1Dice, player2Dice, playerHasAnyValidMove]);
+
+  // Auto-detect game end when both players have no valid moves
+  useEffect(() => {
+    if (gameState.phase === "gameOver") return; // Already game over
+    if (gameState.phase !== "playing" && gameState.phase !== "roundEnd") return;
+    
+    if (checkGameEnd()) {
+      console.log("[v0] Game end detected - both players exhausted");
+      
+      // Calculate final scores
+      const player1Score = gameState.players[0]?.score || 0;
+      const player2Score = gameState.players[1]?.score || 0;
+      const winner = player1Score > player2Score ? 0 : player2Score > player1Score ? 1 : -1;
+      
+      const winnerName = winner === -1 ? "It's a tie!" : gameState.players[winner].name + " wins!";
+      
+      setGameState((prev) => ({
+        ...prev,
+        phase: "gameOver",
+        message: `Game Over! ${winnerName}\n${gameState.players[0].name}: ${player1Score} | ${gameState.players[1].name}: ${player2Score}`,
+      }));
+    }
+  }, [gameState.board, player1Dice, player2Dice, checkGameEnd, gameState.phase, gameState.players]);
+
   // Persist game state to database for multiplayer
   const persistGameState = useCallback(async (
     actionType: string,
@@ -2284,7 +2335,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           <GameControls
             phase={gameState.phase}
             canRoll={!diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn}
-            canEndTurn={gameState.phase === "playing" && isLocalPlayersTurn}
+            canEndTurn={gameState.phase === "playing" && gameState.phase !== "gameOver" && isLocalPlayersTurn}
             hasValidMoves={hasAnyValidMove}
             onRoll={handleRoll}
             onEndTurn={handleEndTurn}
