@@ -174,6 +174,8 @@ export function PrimeFactorGame({
   const gameStateVersionRef = useRef<number>(-1);
   const previousOpponentBonusCountRef = useRef<number>(0);
   const manualSelectionRef = useRef<boolean>(false);
+  const autoSkipInProgressRef = useRef<boolean>(false);
+  const lastAppliedVersionRef = useRef<number>(-1);
 
   // Local player id
   useEffect(() => {
@@ -453,6 +455,9 @@ export function PrimeFactorGame({
         currentPlayerDice: currentPlayerDice.length,
       });
       
+      // Mark auto-skip as in progress to prevent applySavedGameState from interrupting
+      autoSkipInProgressRef.current = true;
+      
       // Mark current player as exhausted
       const newExhausted = [...playerExhausted];
       newExhausted[currentPlayerIndex] = true;
@@ -471,6 +476,7 @@ export function PrimeFactorGame({
           playerExhausted: [false, false],
           message: `Round ${prev.roundNumber} complete! All players are out of moves. Click "New Round" to continue.`,
         }));
+        setTimeout(() => { autoSkipInProgressRef.current = false; }, 100);
       } else {
         // Find next active player (not exhausted)
         let nextPlayerIndex = (currentPlayerIndex + 1) % gameState.players.length;
@@ -502,6 +508,8 @@ export function PrimeFactorGame({
             : `${prev.players[currentPlayerIndex].name} has no valid moves — skipping. ${prev.players[nextPlayerIndex].name}'s turn! Roll your dice.`,
         }));
         setDiceRolled(nextPlayerAlreadyRolled); // Keep diceRolled true if they already rolled
+        // Clear the flag after a brief delay to allow state to settle
+        setTimeout(() => { autoSkipInProgressRef.current = false; }, 100);
       }
     }
   }, [gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, gameState.board.length]);
@@ -752,8 +760,22 @@ export function PrimeFactorGame({
   }, []);
 
   const applySavedGameState = useCallback((savedState: Record<string, any>) => {
-    console.log("[v0] applySavedGameState called, ready flags:", { p1Ready: savedState.player1Ready, p2Ready: savedState.player2Ready, confirmationActive: savedState.readyConfirmationActive });
     const incomingVersion = getSavedStateVersion(savedState);
+    
+    // Skip if already applied this version
+    if (incomingVersion >= 0 && incomingVersion === lastAppliedVersionRef.current) {
+      console.log("[v0] applySavedGameState: skipping duplicate version", incomingVersion);
+      return;
+    }
+    
+    // Skip if auto-skip transition is in progress (prevent it from being undone)
+    if (autoSkipInProgressRef.current) {
+      console.log("[v0] applySavedGameState: skipping during auto-skip transition");
+      return;
+    }
+    
+    console.log("[v0] applySavedGameState called with version:", incomingVersion, "ready flags:", { p1Ready: savedState.player1Ready, p2Ready: savedState.player2Ready, confirmationActive: savedState.readyConfirmationActive });
+    
     if (incomingVersion >= 0 && incomingVersion < gameStateVersionRef.current) {
       console.log("[v0] Skipping stale version, incoming:", incomingVersion, "current:", gameStateVersionRef.current);
       return;
@@ -761,6 +783,7 @@ export function PrimeFactorGame({
 
     if (incomingVersion >= 0) {
       gameStateVersionRef.current = incomingVersion;
+      lastAppliedVersionRef.current = incomingVersion;
     }
 
     setGameState((prev) => {
