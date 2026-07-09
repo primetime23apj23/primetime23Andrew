@@ -767,6 +767,14 @@ export function PrimeFactorGame({
         const currentRoundStarter = gameState.roundStarterIndex ?? 0;
         const nextRoundStarterIndex = 1 - currentRoundStarter;
         
+        console.log("[v0] AUTO-SKIP ROUND TRANSITION - calculating next starter", {
+          nextRoundNumber,
+          currentRoundStarter,
+          nextRoundStarterIndex,
+          nextPlayerName: gameState.players[nextRoundStarterIndex]?.name,
+          localPlayerId: sessionLocalPlayerId,
+        });
+        
         setPlayer1Dice([]);
         setPlayer2Dice([]);
         setDiceRolled(false);
@@ -882,7 +890,14 @@ export function PrimeFactorGame({
       return;
     }
     
-    console.log("[v0] applySavedGameState called with version:", incomingVersion, "ready flags:", { p1Ready: savedState.player1Ready, p2Ready: savedState.player2Ready, confirmationActive: savedState.readyConfirmationActive });
+    console.log("[v0] applySavedGameState called with version:", incomingVersion, "round info:", {
+      roundNumber: savedState.roundNumber,
+      roundStarterIndex: savedState.roundStarterIndex,
+      currentPlayer: savedState.currentPlayer,
+      p1Ready: savedState.player1Ready,
+      p2Ready: savedState.player2Ready,
+      confirmationActive: savedState.readyConfirmationActive,
+    });
     
     if (incomingVersion >= 0 && incomingVersion < gameStateVersionRef.current) {
       console.log("[v0] Skipping stale version, incoming:", incomingVersion, "current:", gameStateVersionRef.current);
@@ -911,6 +926,8 @@ export function PrimeFactorGame({
         phase: prev.phase === "roundEnd" ? "roundEnd" : (savedState.phase || prev.phase),
         roundNumber:
           typeof savedState.roundNumber === "number" ? savedState.roundNumber : prev.roundNumber,
+        roundStarterIndex:
+          typeof savedState.roundStarterIndex === "number" ? savedState.roundStarterIndex : prev.roundStarterIndex,
         selectedDice: playerChanged ? [] : prev.selectedDice,
         message: typeof savedState.message === "string" ? savedState.message : prev.message,
         targetScore:
@@ -2006,6 +2023,15 @@ const channel = subscribeToSession(sessionCode, (session) => {
     // Alternate the starter for this round using the GameState's roundStarterIndex
     const currentRoundStarter = gameState.roundStarterIndex ?? 0;
     const nextRoundStarterIndex = 1 - currentRoundStarter;
+    
+    console.log("[v0] HANDLE NEW ROUND - calculating next starter", {
+      nextRoundNumber,
+      currentRoundStarter,
+      nextRoundStarterIndex,
+      nextPlayerName: gameState.players[nextRoundStarterIndex]?.name,
+      localPlayerId: sessionLocalPlayerId,
+    });
+    
     const nextGameState = {
       ...gameState,
       roundNumber: nextRoundNumber,
