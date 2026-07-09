@@ -440,6 +440,13 @@ export function PrimeFactorGame({
       const currentPlayerIndex = gameState.currentPlayer;
       const playerExhausted = gameState.playerExhausted || [false, false];
       
+      console.log("[v0] auto-skip: player has no valid moves", {
+        currentPlayerIndex,
+        playerExhausted,
+        hasAnyValidMove,
+        currentPlayerDice: currentPlayerDice.length,
+      });
+      
       // Mark current player as exhausted
       const newExhausted = [...playerExhausted];
       newExhausted[currentPlayerIndex] = true;
@@ -450,6 +457,7 @@ export function PrimeFactorGame({
       if (allExhausted) {
         // All players exhausted - end round
         // NOTE: Do NOT increment roundNumber here - it's only incremented in handleNewRound
+        console.log("[v0] auto-skip: all players exhausted, ending round");
         setGameState((prev) => ({
           ...prev,
           phase: "roundEnd",
@@ -467,6 +475,13 @@ export function PrimeFactorGame({
         // Check if next player already has rolled dice this turn
         const nextPlayerDice = nextPlayerIndex === 0 ? player1Dice : player2Dice;
         const nextPlayerAlreadyRolled = nextPlayerDice.length > 0;
+        
+        console.log("[v0] auto-skip: advancing to next player", {
+          nextPlayerIndex,
+          newExhausted,
+          nextPlayerAlreadyRolled,
+          nextPlayerName: gameState.players[nextPlayerIndex]?.name,
+        });
         
         setGameState((prev) => ({
           ...prev,
@@ -1359,12 +1374,28 @@ const channel = subscribeToSession(sessionCode, (session) => {
     const playerExhausted = gameState.playerExhausted || [false, false];
     const isRemainingDicePhase = playerExhausted[otherPlayerIndex] === true;
 
+    console.log("[v0] handleClaim: claim attempt", {
+      currentPlayer: gameState.currentPlayer,
+      otherPlayerIndex,
+      playerExhausted,
+      isRemainingDicePhase,
+      phase: gameState.phase,
+      isMultiplayer,
+      sessionId,
+      sessionLocalPlayerId,
+      selectedSpace: selectedSpace.number,
+    });
+
     if (isMultiplayer && sessionId && sessionLocalPlayerId && !isRemainingDicePhase) {
+      console.log("[v0] handleClaim: calling validateTurn (not in bonus phase)");
       const valid = await validateTurn(sessionId, sessionLocalPlayerId);
+      console.log("[v0] handleClaim: validateTurn result", valid);
       if (!valid.valid) {
         setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
         return;
       }
+    } else if (isMultiplayer && sessionId && sessionLocalPlayerId && isRemainingDicePhase) {
+      console.log("[v0] handleClaim: skipping validateTurn (in bonus phase)");
     }
     
     const pos = getAnimationPosition();
