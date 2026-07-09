@@ -514,7 +514,6 @@ export function PrimeFactorGame({
         setTimeout(() => { autoSkipInProgressRef.current = false; }, 100);
       }
     }
-    }
   }, [gameState.phase, hasAnyValidMove, diceRolled, currentPlayerDice.length, gameState.board.length]);
 
   // Spawn floating emoji animation
