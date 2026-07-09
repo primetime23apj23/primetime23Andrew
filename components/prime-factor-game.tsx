@@ -1649,10 +1649,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
       return;
     }
 
-    // Player made a move, so they're no longer exhausted
+    // Keep track of which players are exhausted
+    // Note: If this is called and player has no valid moves, they should already be marked exhausted
+    // from the auto-skip effect, so we just pass through the current exhausted state
     const playerExhausted = gameState.playerExhausted || [false, false];
     const newExhausted = [...playerExhausted];
-    newExhausted[gameState.currentPlayer] = false;
 
     const nextPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
     
