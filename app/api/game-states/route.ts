@@ -98,6 +98,29 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Sync the current player to game_sessions so turn validation uses the same source of truth
+      if (gameData.currentPlayer !== undefined && gameData.players) {
+        const currentPlayerIndex = gameData.currentPlayer;
+        const currentPlayerId = gameData.players[currentPlayerIndex]?.id;
+        
+        if (currentPlayerId) {
+          const { error: syncError } = await supabaseAdmin
+            .from('game_sessions')
+            .update({
+              current_turn_player_id: currentPlayerId,
+              updated_at: now,
+            })
+            .eq('id', sessionId);
+          
+          if (syncError) {
+            console.error('[game-states] sync turn player error:', syncError);
+            // Don't fail the request, just log the error
+          } else {
+            console.log('[game-states] synced current_turn_player_id to:', currentPlayerId);
+          }
+        }
+      }
+
       return NextResponse.json(data);
     }
 
@@ -119,6 +142,29 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to create game state', details: error.message },
         { status: 500 }
       );
+    }
+
+    // Sync the current player to game_sessions for new game states too
+    if (gameData.currentPlayer !== undefined && gameData.players) {
+      const currentPlayerIndex = gameData.currentPlayer;
+      const currentPlayerId = gameData.players[currentPlayerIndex]?.id;
+      
+      if (currentPlayerId) {
+        const { error: syncError } = await supabaseAdmin
+          .from('game_sessions')
+          .update({
+            current_turn_player_id: currentPlayerId,
+            updated_at: now,
+          })
+          .eq('id', sessionId);
+        
+        if (syncError) {
+          console.error('[game-states] sync turn player error on insert:', syncError);
+          // Don't fail the request, just log the error
+        } else {
+          console.log('[game-states] synced current_turn_player_id on insert to:', currentPlayerId);
+        }
+      }
     }
 
     return NextResponse.json(data);

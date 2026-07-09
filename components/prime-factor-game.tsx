@@ -1472,8 +1472,23 @@ const channel = subscribeToSession(sessionCode, (session) => {
   // Roll dice for both players at game start
   const handleRoll = useCallback(async () => {
     if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+      // Log state at roll time to diagnose sync issues
+      console.log("[v0] handleRoll: current local state", {
+        currentPlayer: gameState.currentPlayer,
+        phase: gameState.phase,
+        roundNumber: gameState.roundNumber,
+        sessionLocalPlayerId,
+      });
+      
       const valid = await validateTurn(sessionId, sessionLocalPlayerId);
+      console.log("[v0] handleRoll: validateTurn response", valid);
+      
       if (!valid.valid) {
+        console.log("[v0] handleRoll: turn validation failed", {
+          error: valid.error,
+          currentTurnPlayerId: valid.currentTurnPlayer,
+          localPlayerId: sessionLocalPlayerId,
+        });
         setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
         return;
       }
