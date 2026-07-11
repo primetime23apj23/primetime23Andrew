@@ -66,6 +66,7 @@ const createInitialState = (targetScore: number): GameState => ({
   gameStarterIndex: 0, // Track who started the game (set during setup)
   roundStarterIndex: 0,
   player1HasMoved: false,
+  player2HasMoved: false,
   selectedDice: [],
   message: "Set up your game and roll the dice to start!",
   targetScore,
@@ -863,6 +864,8 @@ export function PrimeFactorGame({
         diceRolled: nextDiceRolled,
         bonusHistory: nextBonusHistory,
         completedTracks: nextCompletedTracks,
+        player1HasMoved: nextState.player1HasMoved,
+        player2HasMoved: nextState.player2HasMoved,
         player1Ready: nextState.player1Ready,
         player2Ready: nextState.player2Ready,
         readyConfirmationActive: nextState.readyConfirmationActive,
@@ -974,6 +977,8 @@ export function PrimeFactorGame({
           typeof savedState.gameStarterIndex === "number" ? savedState.gameStarterIndex : prev.gameStarterIndex,
         roundStarterIndex:
           typeof savedState.roundStarterIndex === "number" ? savedState.roundStarterIndex : prev.roundStarterIndex,
+        player1HasMoved: typeof savedState.player1HasMoved === "boolean" ? savedState.player1HasMoved : prev.player1HasMoved,
+        player2HasMoved: typeof savedState.player2HasMoved === "boolean" ? savedState.player2HasMoved : prev.player2HasMoved,
         selectedDice: playerChanged ? [] : prev.selectedDice,
         message: typeof savedState.message === "string" ? savedState.message : prev.message,
         targetScore:
@@ -1535,10 +1540,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
     [authUser?.id, playerId, selectedGameType, userId]
   );
 
-  // Roll dice for both players at game start
+  // Roll dice for the current player on their turn
   const handleRoll = useCallback(async () => {
     if (isMultiplayer && sessionId && sessionLocalPlayerId) {
-      // Log state at roll time to diagnose sync issues
       console.log("[v0] handleRoll: current local state", {
         currentPlayer: gameState.currentPlayer,
         currentPlayerName: gameState.players[gameState.currentPlayer]?.name,
@@ -1566,27 +1570,35 @@ const channel = subscribeToSession(sessionCode, (session) => {
       }
     }
 
-    const dice1 = rollDice().map((d, i) => ({ ...d, id: `p1-${i}` }));
-    const dice2 = rollDice().map((d, i) => ({ ...d, id: `p2-${i}` }));
+    // Only roll the current player's dice
+    const currentPlayerIndex = gameState.currentPlayer;
+    const newDice = rollDice().map((d, i) => ({ ...d, id: `p${currentPlayerIndex + 1}-${i}` }));
+    const sortedDice = sortDice(newDice);
+    
+    if (currentPlayerIndex === 0) {
+      setPlayer1Dice(sortedDice);
+    } else {
+      setPlayer2Dice(sortedDice);
+    }
+    
+    setDiceRolled(true);
+    
     const nextGameState = {
       ...gameState,
       phase: "playing" as const,
       selectedDice: [],
-      message: `${gameState.players[gameState.currentPlayer].name}, select dice to match a space's factorization!`,
+      message: `${gameState.players[currentPlayerIndex].name}, select dice to match a space's factorization!`,
     };
     
-    setPlayer1Dice(sortDice(dice1));
-    setPlayer2Dice(sortDice(dice2));
-    setDiceRolled(true);
     setGameState(nextGameState);
 
     void persistGameState('roll', {
       gameState: nextGameState,
-      player1Dice: sortDice(dice1),
-      player2Dice: sortDice(dice2),
+      player1Dice: currentPlayerIndex === 0 ? sortedDice : player1Dice,
+      player2Dice: currentPlayerIndex === 1 ? sortedDice : player2Dice,
       diceRolled: true,
     });
-  }, [gameState, isMultiplayer, sessionId, sessionLocalPlayerId, persistGameState]);
+  }, [gameState, isMultiplayer, sessionId, sessionLocalPlayerId, player1Dice, player2Dice, persistGameState]);
 
   // Claim a space
   const handleClaim = useCallback(async () => {
@@ -1733,8 +1745,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
             players: newPlayers,
             currentPlayer: (currentPlayerIndex + 1) % gameState.players.length,
             player1HasMoved: currentPlayerIndex === 0 ? true : gameState.player1HasMoved,
+            player2HasMoved: currentPlayerIndex === 1 ? true : gameState.player2HasMoved,
             selectedDice: [],
-            message: `Claimed space ${selectedSpace.number}! ${newPlayers[(currentPlayerIndex + 1) % gameState.players.length].name}'s turn.`,
+            phase: "rolling" as const,
+            message: `Claimed space ${selectedSpace.number}! ${newPlayers[(currentPlayerIndex + 1) % gameState.players.length].name}, roll the dice!`,
           };
 
     if (currentPlayerIndex === 0) {
@@ -2092,6 +2106,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       roundNumber: nextRoundNumber,
       roundStarterIndex: nextRoundStarterIndex,
       player1HasMoved: false,
+      player2HasMoved: false,
       phase: "rolling" as const, // Set to rolling so players need to roll first
       currentPlayer: nextRoundStarterIndex,
       selectedDice: [],
@@ -2104,16 +2119,18 @@ const channel = subscribeToSession(sessionCode, (session) => {
       message: `Round ${nextRoundNumber} begins — ${gameState.players[nextRoundStarterIndex].name}, roll your dice!`,
     };
 
-    // Reset dice rolling state for new round but preserve remaining dice
-    // Players keep their unused dice from the previous round
+    // Reset dice rolling state for new round
     setDiceRolled(false);
+    // Clear dice so the new round starter can roll fresh
+    setPlayer1Dice([]);
+    setPlayer2Dice([]);
     setGameState(nextGameState);
     
     void persistGameState('new-round', {
       gameState: nextGameState,
-      // Preserve remaining dice - players continue with what they have left
-      player1Dice,
-      player2Dice,
+      // Clear dice for new round - players will roll fresh
+      player1Dice: [],
+      player2Dice: [],
       diceRolled: false,
     });
   }, [gameState, persistGameState]);
@@ -2441,8 +2458,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             </div>
 
-            {/* Player 2 Dice - Visible in bot/multiplayer only after the round starter has made a move */}
-            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && gameState.currentPlayer !== gameState.roundStarterIndex && (
+            {/* Player 2 Dice - Hidden during round starter's first turn if round starter is player 1, visible once they've claimed a square */}
+            {diceRolled && player2Dice.length > 0 && !(gameState.roundStarterIndex === 1 && !gameState.player2HasMoved) && (
               <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
                   dice={player2Dice}
