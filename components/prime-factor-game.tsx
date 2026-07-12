@@ -632,7 +632,7 @@ export function PrimeFactorGame({
     }
   }, [gameState.currentPlayer, gameState.playerExhausted]);
 
-  // Auto-select space when dice match exactly one space
+  // Auto-select space when dice product matches exactly one space number
   useEffect(() => {
     if (gameState.phase !== "playing" || !isLocalPlayersTurn || gameState.selectedDice.length === 0) return;
     
@@ -643,23 +643,24 @@ export function PrimeFactorGame({
       gameState.selectedDice.includes(d.id)
     );
     
-    // Find all spaces that match the selected dice
-    const matchingSpaces = gameState.board.filter((space) => {
+    // Calculate the product of all selected dice
+    const diceValues = selectedDieObjects.map((d) => d.value).filter((v): v is number => v !== "W");
+    const product = diceValues.reduce((a, b) => a * b, 1);
+    
+    // Find the space whose number equals the exact product of all selected dice
+    const matchingSpace = gameState.board.find((space) => {
       if (space.isPrime || space.owner !== null || space.claimed) return false;
-      
-      const match = canMatchFactorization(
-        space.factors,
-        selectedDieObjects.map((d) => ({ ...d, used: false }))
-      );
-      
-      return match !== null;
+      return space.number === product;
     });
     
-    // If there's exactly one match, auto-select it
-    if (matchingSpaces.length === 1 && (!selectedSpace || selectedSpace.number !== matchingSpaces[0].number)) {
-      setSelectedSpace(matchingSpaces[0]);
+    // If there's exactly one space with that number, auto-select it
+    if (matchingSpace && (!selectedSpace || selectedSpace.number !== matchingSpace.number)) {
+      setSelectedSpace(matchingSpace);
+    } else if (!matchingSpace && selectedSpace) {
+      // No matching space for this product, clear selection
+      setSelectedSpace(null);
     }
-  }, [gameState.selectedDice, gameState.phase, isLocalPlayersTurn, currentPlayerDice, canMatchFactorization, gameState.board, selectedSpace]);
+  }, [gameState.selectedDice, gameState.phase, isLocalPlayersTurn, currentPlayerDice, gameState.board, selectedSpace]);
 
   // Check if selected dice match the space
   const canClaimSpace = useMemo(() => {
