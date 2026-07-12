@@ -2442,8 +2442,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             </div>
 
-            {/* Player 2 Dice - Visible in bot/multiplayer only after opponent has moved */}
-            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && gameState.currentPlayer !== gameState.roundStarterIndex && (
+            {/* Player 2 Dice - Hidden when Player 1 (round starter) hasn't moved yet */}
+            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && (gameState.roundStarterIndex === 1 || gameState.player1HasMoved) && (
               <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
                   dice={player2Dice}
