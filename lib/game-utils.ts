@@ -247,8 +247,8 @@ export function checkForNewBonus(
   const horizontalBonus = checkLineConnection(board, row * 10, row * 10 + 9, 1, claimedSpaceNumber, "horizontal");
   if (horizontalBonus.completed && isPathValid(board, horizontalBonus.primeStart, horizontalBonus.primeEnd)) {
     // Award bonus points based on the number of composite spaces between primes
-    const compositesCount = horizontalBonus.spaces.length - 1; // -1 for the claimed space itself
-    const bonusPointsEarned = Math.max(1, Math.ceil(compositesCount / 2));
+    const compositesCount = horizontalBonus.spaces.length;
+    const bonusPointsEarned = compositesCount;
     bonusPoints += bonusPointsEarned;
     bonusSpaces.push(...horizontalBonus.spaces);
     breakdown.push({
@@ -268,8 +268,8 @@ export function checkForNewBonus(
   const verticalBonus = checkColumnConnection(board, verticalIndices, claimedSpaceNumber, "vertical");
   if (verticalBonus.completed && isPathValid(board, verticalBonus.primeStart, verticalBonus.primeEnd, verticalIndices)) {
     // Award bonus points based on the number of composite spaces between primes
-    const compositesCount = verticalBonus.spaces.length - 1; // -1 for the claimed space itself
-    const bonusPointsEarned = Math.max(1, Math.ceil(compositesCount / 2));
+    const compositesCount = verticalBonus.spaces.length;
+    const bonusPointsEarned = compositesCount;
     bonusPoints += bonusPointsEarned;
     bonusSpaces.push(...verticalBonus.spaces);
     breakdown.push({
@@ -294,8 +294,8 @@ export function checkForNewBonus(
     const diag1Bonus = checkColumnConnection(board, diag1Indices, claimedSpaceNumber, "diagonal-down");
     if (diag1Bonus.completed && isPathValid(board, diag1Bonus.primeStart, diag1Bonus.primeEnd, diag1Indices)) {
       // Award bonus points based on the number of composite spaces between primes
-      const compositesCount = diag1Bonus.spaces.length - 1; // -1 for the claimed space itself
-      const bonusPointsEarned = Math.max(1, Math.ceil(compositesCount / 2));
+      const compositesCount = diag1Bonus.spaces.length;
+      const bonusPointsEarned = compositesCount;
       bonusPoints += bonusPointsEarned;
       bonusSpaces.push(...diag1Bonus.spaces);
       breakdown.push({
@@ -321,8 +321,8 @@ export function checkForNewBonus(
     const diag2Bonus = checkColumnConnection(board, diag2Indices, claimedSpaceNumber, "diagonal-up");
     if (diag2Bonus.completed && isPathValid(board, diag2Bonus.primeStart, diag2Bonus.primeEnd, diag2Indices)) {
       // Award bonus points based on the number of composite spaces between primes
-      const compositesCount = diag2Bonus.spaces.length - 1; // -1 for the claimed space itself
-      const bonusPointsEarned = Math.max(1, Math.ceil(compositesCount / 2));
+      const compositesCount = diag2Bonus.spaces.length;
+      const bonusPointsEarned = compositesCount;
       bonusPoints += bonusPointsEarned;
       bonusSpaces.push(...diag2Bonus.spaces);
       breakdown.push({
