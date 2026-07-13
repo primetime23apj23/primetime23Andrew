@@ -2121,7 +2121,15 @@ const channel = subscribeToSession(sessionCode, (session) => {
       player2Dice,
       diceRolled: false,
     });
-  }, [gameState, persistGameState]);
+    
+    // In multiplayer, update the database to reflect the new round starter
+    if (isMultiplayer && sessionId) {
+      const newRoundStarterPlayerId = gameState.players[nextRoundStarterIndex]?.id;
+      if (newRoundStarterPlayerId) {
+        void updateCurrentTurn(sessionId, newRoundStarterPlayerId);
+      }
+    }
+  }, [gameState, persistGameState, isMultiplayer, sessionId]);
 
   // Watch for when both players are ready and trigger next round
   // Guard against idempotency: only fire if readyConfirmationActive is false (modal closed by both players)
