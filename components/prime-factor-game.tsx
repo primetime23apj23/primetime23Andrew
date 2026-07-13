@@ -66,6 +66,7 @@ const createInitialState = (targetScore: number): GameState => ({
   gameStarterIndex: 0, // Track who started the game (set during setup)
   roundStarterIndex: 0,
   player1HasMoved: false,
+  player2HasMoved: false,
   selectedDice: [],
   message: "Set up your game and roll the dice to start!",
   targetScore,
@@ -797,6 +798,7 @@ export function PrimeFactorGame({
           roundNumber: nextRoundNumber,
           roundStarterIndex: nextRoundStarterIndex,
           player1HasMoved: false,
+          player2HasMoved: false,
           phase: "rolling",
           currentPlayer: nextRoundStarterIndex,
           selectedDice: [],
@@ -1734,6 +1736,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             players: newPlayers,
             currentPlayer: (currentPlayerIndex + 1) % gameState.players.length,
             player1HasMoved: currentPlayerIndex === 0 ? true : gameState.player1HasMoved,
+            player2HasMoved: currentPlayerIndex === 1 ? true : gameState.player2HasMoved,
             selectedDice: [],
             message: `Claimed space ${selectedSpace.number}! ${newPlayers[(currentPlayerIndex + 1) % gameState.players.length].name}'s turn.`,
           };
@@ -2093,6 +2096,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       roundNumber: nextRoundNumber,
       roundStarterIndex: nextRoundStarterIndex,
       player1HasMoved: false,
+      player2HasMoved: false,
       phase: "rolling" as const, // Set to rolling so players need to roll first
       currentPlayer: nextRoundStarterIndex,
       selectedDice: [],
@@ -2373,8 +2377,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             </div>
 
-            {/* Player 1 Dice */}
-            {diceRolled && (
+            {/* Player 1 Dice - Hide when P2 is round starter on first move, always show on P1's turn */}
+            {diceRolled &&
+              (gameState.currentPlayer === 0 || !(gameState.roundStarterIndex === 1 && !gameState.player2HasMoved)) && (
               <div className={`${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
                   dice={player1Dice}

@@ -482,6 +482,7 @@ export interface GameState {
   gameStarterIndex?: number; // Track who started the game (never changes) - used to deterministically calculate round starters
   roundStarterIndex?: number; // Track who starts each round (alternates from gameStarterIndex)
   player1HasMoved?: boolean; // Track if player 1 has made a move in current round
+  player2HasMoved?: boolean; // Track if player 2 has made a move in current round
   selectedDice: string[];
   message: string;
   targetScore: number;
