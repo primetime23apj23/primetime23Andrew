@@ -2448,7 +2448,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             </div>
 
             {/* Player 2 Dice - Hide when P1 is round starter on first move, always show on P2's turn */}
-            {diceRolled &&
+            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) &&
               (gameState.currentPlayer === 1 || !(gameState.roundStarterIndex === 0 && !gameState.player1HasMoved)) && (
               <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
