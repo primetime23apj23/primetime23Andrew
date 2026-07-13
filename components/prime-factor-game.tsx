@@ -2377,9 +2377,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             </div>
 
-            {/* Player 1 Dice - Show when it's P1's turn or opponent (P2) has already moved this round */}
+            {/* Player 1 Dice - Hide when P2 is round starter on first move, always show on P1's turn */}
             {diceRolled &&
-              (gameState.currentPlayer === 0 || gameState.player2HasMoved) && (
+              (gameState.currentPlayer === 0 || !(gameState.roundStarterIndex === 1 && !gameState.player2HasMoved)) && (
               <div className={`${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
                   dice={player1Dice}
@@ -2447,9 +2447,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             </div>
 
-            {/* Player 2 Dice - Show when it's P2's turn or opponent (P1) has already moved this round */}
-            {diceRolled &&
-              (gameState.currentPlayer === 1 || gameState.player1HasMoved) && (
+            {/* Player 2 Dice - Hide when P1 is round starter on first move, always show on P2's turn */}
+            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) &&
+              (gameState.currentPlayer === 1 || !(gameState.roundStarterIndex === 0 && !gameState.player1HasMoved)) && (
               <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
                   dice={player2Dice}
