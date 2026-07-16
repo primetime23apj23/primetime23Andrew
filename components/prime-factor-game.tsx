@@ -30,6 +30,7 @@ import {
   PLAYER_COLORS,
 } from "@/lib/game-utils";
 import { BonusBreakdownPanel } from "./bonus-breakdown";
+import { FactorizationBox } from "./factorization-box";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
 import { playCapturSound, playVictorySound, playOpponentMoveSound, playFireworksSound } from "@/lib/sound-effects";
@@ -169,6 +170,10 @@ export function PrimeFactorGame({
   const [isTrainCelebrating, setIsTrainCelebrating] = useState(false);
   const [celebrationNumbers, setCelebrationNumbers] = useState<number[]>([]);
   const [lastClaimedSpace, setLastClaimedSpace] = useState<number | null>(null);
+  // Most recent captured square per player, keyed so the balloon animation replays each time
+  const [lastCapturePerPlayer, setLastCapturePerPlayer] = useState<
+    Array<{ number: number; key: number } | null>
+  >([null, null]);
   const boardRef = useRef<HTMLDivElement>(null);
   const trackBoardRef = useRef<HTMLDivElement>(null);
   const botTurnScheduledRef = useRef(false);
@@ -1763,6 +1768,17 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     // Track the last claimed space for highlighting
     setLastClaimedSpace(selectedSpace.number);
+
+    // Record most recent capture for the claiming player (drives the factorization box)
+    const capturedNumber = selectedSpace.number;
+    setLastCapturePerPlayer((prev) => {
+      const next = [...prev];
+      next[currentPlayerIndex] = {
+        number: capturedNumber,
+        key: (prev[currentPlayerIndex]?.key ?? 0) + 1,
+      };
+      return next;
+    });
     
     // Reset manual selection flag after claiming
     manualSelectionRef.current = false;
@@ -2364,8 +2380,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
         {/* Main Game Area - Board with scores and bonuses on sides */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Left side - Player 1 Score & Bonus & Dice */}
-          <div className="flex flex-col gap-4 lg:w-64">
-            <div className="border rounded-lg p-4 bg-card">
+          <div className="flex flex-col gap-4 lg:w-80">
+            <div className="flex flex-row gap-2 items-stretch">
+              <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
               <h3 className="font-semibold text-sm mb-3">{gameState.players[0].name}</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
@@ -2383,6 +2400,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   </div>
                 </div>
               </div>
+              </div>
+              <FactorizationBox capture={lastCapturePerPlayer[0]} />
             </div>
 
             {/* Player 1 Dice - Hide when P2 is round starter on first move, always show on P1's turn */}
@@ -2434,8 +2453,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
           </div>
 
           {/* Right side - Player 2 Score & Bonus & Dice */}
-          <div className="flex flex-col gap-4 lg:w-64">
-            <div className="border rounded-lg p-4 bg-card">
+          <div className="flex flex-col gap-4 lg:w-80">
+            <div className="flex flex-row gap-2 items-stretch">
+              <FactorizationBox capture={lastCapturePerPlayer[1]} />
+              <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
               <h3 className="font-semibold text-sm mb-3">{gameState.players[1].name}</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
@@ -2452,6 +2473,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                     <span>{gameState.players[1].score + gameState.players[1].bonusPoints}</span>
                   </div>
                 </div>
+              </div>
               </div>
             </div>
 
