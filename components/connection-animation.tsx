@@ -151,21 +151,28 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
     const interval = setInterval(() => {
       setAnimationStates((prev) => {
         const next = new Map(prev);
-        let allDone = true;
 
+        // Animate tracks sequentially: only advance the first track that
+        // isn't finished yet, so each connection plays one after another.
+        let activeTrack = null;
         for (const track of animatingTracks) {
           const state = next.get(track.id);
-          if (!state || state.done) continue;
-
-          const newProgress = Math.min(state.progress + 0.006, 1);
-          const done = newProgress >= 1;
-          next.set(track.id, { progress: newProgress, done });
-          if (!done) allDone = false;
+          if (!state || !state.done) {
+            activeTrack = track;
+            break;
+          }
         }
 
-        if (allDone) {
+        if (!activeTrack) {
           clearInterval(interval);
+          return next;
         }
+
+        const state = next.get(activeTrack.id) ?? { progress: 0, done: false };
+        // ~3 seconds per connection (16ms tick over a 3000ms duration)
+        const newProgress = Math.min(state.progress + 16 / 3000, 1);
+        const done = newProgress >= 1;
+        next.set(activeTrack.id, { progress: newProgress, done });
 
         return next;
       });
@@ -245,7 +252,7 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
 
         const state = animationStates.get(track.id);
         const progress = state?.progress ?? (track.animating ? 0 : 1);
-        const showTrain = track.animating && progress < 1;
+        const showTrain = track.animating && progress > 0 && progress < 1;
 
         const pathPoints = centers.map((c) => `${c.x},${c.y}`).join(" ");
 
