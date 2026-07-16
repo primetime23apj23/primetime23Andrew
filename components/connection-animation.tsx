@@ -71,22 +71,25 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
     );
   }
 
-  // Smoke puffs
-  const smokeCount = 3;
+  // Smoke puffs - emerge from the top of the smokestack (~x=-7.5, y=-15) and
+  // rise up-and-back so they clearly sit in front of the engine.
+  const smokeCount = 4;
   const smokes = [];
   for (let i = 0; i < smokeCount; i++) {
-    const age = (progress * 15 + i * 1.5) % 4;
-    const smokeX = -12 - age * 4;
-    const smokeY = -8 - age * 3;
-    const smokeR = 3 + age * 2;
+    const age = (progress * 15 + i * 1.2) % 4;
+    const smokeX = -7.5 - age * 3;
+    const smokeY = -15 - age * 4;
+    const smokeR = 2.5 + age * 2.2;
     smokes.push(
       <circle
         key={`smoke-${i}`}
         cx={smokeX}
         cy={smokeY}
         r={smokeR}
-        fill="#9ca3af"
-        opacity={Math.max(0, 0.5 - age * 0.12)}
+        fill="#d1d5db"
+        stroke="#9ca3af"
+        strokeWidth="0.5"
+        opacity={Math.max(0, 0.85 - age * 0.2)}
       />
     );
   }
