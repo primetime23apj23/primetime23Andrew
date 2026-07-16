@@ -131,3 +131,33 @@
 .dark .game-setup-bg {
   background: radial-gradient(circle at top, rgba(59, 130, 246, 0.2), transparent 30%), linear-gradient(180deg, #0f172a 0%, #111827 45%, #030712 100%);
 }
+
+/* Balloon animation for the most-recent factorization box.
+   It inflates large, wobbles slightly, then shrinks down into place. */
+@keyframes balloon-minimize {
+  0% {
+    transform: scale(2.4) translateY(-8px);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  35% {
+    transform: scale(2.1) translateY(0);
+  }
+  55% {
+    transform: scale(1.6) rotate(-1.5deg);
+  }
+  75% {
+    transform: scale(1.15) rotate(1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-balloon-minimize {
+  animation: balloon-minimize 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: center center;
+}

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import type { BoardSpace } from "@/lib/game-utils";
 import { PLAYER_COLORS } from "@/lib/game-utils";
 import { ConnectionAnimation, type CompletedTrack } from "./connection-animation";
+import { getDiceSkinImage, type DiceSkin } from "@/components/dice-skin-settings";
 
 interface GameBoardProps {
   board: BoardSpace[];
@@ -17,6 +18,7 @@ interface GameBoardProps {
   boardRef?: React.RefObject<HTMLDivElement | null>;
   lastClaimedSpace?: number | null;
   opponentSelectedSpace?: number | null;
+  skins?: DiceSkin[] | null;
 }
 
 export function GameBoard({
@@ -28,6 +30,7 @@ export function GameBoard({
   boardRef,
   lastClaimedSpace = null,
   opponentSelectedSpace = null,
+  skins = null,
 }: GameBoardProps) {
   const internalRef = useRef<HTMLDivElement>(null);
   const gridRef = boardRef ?? internalRef;
@@ -68,6 +71,7 @@ export function GameBoard({
                   isValidMove={validMoves.includes(space?.number ?? -1)}
                   isLastClaimed={lastClaimedSpace === space?.number}
                   isOpponentSelected={opponentSelectedSpace === space?.number}
+                  skins={skins}
                 />
               ))
             )}
@@ -89,6 +93,7 @@ interface BoardSpaceCellProps {
   isValidMove: boolean;
   isLastClaimed?: boolean;
   isOpponentSelected?: boolean;
+  skins?: DiceSkin[] | null;
 }
 
 function BoardSpaceCell({
@@ -98,6 +103,7 @@ function BoardSpaceCell({
   isValidMove,
   isLastClaimed = false,
   isOpponentSelected = false,
+  skins = null,
 }: BoardSpaceCellProps) {
   if (!space) {
     return <div className="w-full h-full bg-white dark:bg-zinc-900" />;
@@ -128,15 +134,25 @@ function BoardSpaceCell({
 
   // Prime numbers - never claimed, just display
   if (space.isPrime) {
+    const primeSkin = getDiceSkinImage(space.number, skins);
     return (
       <div
         data-space={space.number}
         className="w-full h-full flex flex-col items-center justify-center p-0.5 bg-white dark:bg-zinc-900 cursor-default"
       >
-        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-400 dark:border-red-500">
-          <span className="leading-none text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">
-            {space.number}
-          </span>
+        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-400 dark:border-red-500 overflow-hidden">
+          {primeSkin ? (
+            <img
+              src={primeSkin || "/placeholder.svg"}
+              alt={`${space.number}`}
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+          ) : (
+            <span className="leading-none text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">
+              {space.number}
+            </span>
+          )}
         </div>
       </div>
     );
@@ -176,7 +192,7 @@ function BoardSpaceCell({
         space.isPrime && "cursor-default",
         space.owner !== null && "cursor-default",
         isHighlighted && "ring-2 ring-chart-1",
-        isValidMove && !space.owner && "ring-2 ring-green-500",
+        isValidMove && !space.owner && "bg-green-50 dark:bg-green-950 shadow-[inset_0_0_12px_2px_rgba(34,197,94,0.55)] animate-pulse",
         isOpponentSelected && !space.owner && "ring-2 ring-dashed ring-purple-500"
       )}
       style={!space.isPrime && ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
@@ -186,10 +202,13 @@ function BoardSpaceCell({
         <div className="flex items-center justify-center shrink-0">
           <span
             className={cn(
-              "leading-none",
+              "leading-none transition-colors",
               space.factorization && space.factorization.split(' × ').length > 3
-              ? "text-[7px] sm:text-xs font-bold text-foreground"
-              : "text-[10px] sm:text-sm font-bold text-foreground"
+              ? "text-[7px] sm:text-xs font-bold"
+              : "text-[10px] sm:text-sm font-bold",
+              isValidMove && !space.owner
+                ? "text-green-600 dark:text-green-400 [text-shadow:0_0_6px_rgba(34,197,94,0.9)]"
+                : "text-foreground"
             )}
           >
             {space.number}
@@ -211,19 +230,38 @@ function BoardSpaceCell({
             if (space.number === 60) {
               factors = ['2', '2', '3', '5'];
             }
-            return factors.map((factor, idx) => (
+            return factors.map((factor, idx) => {
+            const factorSkin = getDiceSkinImage(factor, skins);
+            if (factorSkin) {
+              return (
+                <span
+                  key={idx}
+                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-md overflow-hidden flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
+                >
+                  <img
+                    src={factorSkin || "/placeholder.svg"}
+                    alt={factor}
+                    className="w-full h-full object-cover"
+                    draggable={false}
+                  />
+                </span>
+              );
+            }
+            return (
             <span 
               key={idx}
               className={cn(
                 "w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-[12px] font-black text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
-                factor === "2" || factor === "31"
+                factor === "2"
+                  ? "bg-green-100 dark:bg-green-900 shadow-[0_0_8px_2px_rgba(34,197,94,0.7)]"
+                  : factor === "31"
                   ? "bg-green-100 dark:bg-green-900"
-                  :                   factor === "3"
-                  ? "bg-rose-100 dark:bg-rose-900"
+                  : factor === "3"
+                  ? "bg-amber-200 dark:bg-amber-800 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]"
                   : factor === "5"
-                  ? "bg-sky-100 dark:bg-sky-900"
+                  ? "bg-amber-200 dark:bg-amber-800 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]"
                   : factor === "7"
-                  ? "bg-amber-100 dark:bg-amber-900"
+                  ? "bg-amber-100 dark:bg-amber-900 shadow-[0_0_8px_2px_rgba(245,158,11,0.6)]"
                   : factor === "11"
                   ? "bg-orange-100 dark:bg-orange-900"
                   : factor === "13"
@@ -243,13 +281,14 @@ function BoardSpaceCell({
                   : factor === "43"
                   ? "bg-pink-100 dark:bg-pink-900"
                   : factor === "47"
-                  ? "bg-amber-200 dark:bg-amber-800"
+                  ? "bg-red-100 dark:bg-red-900"
                   : "bg-white dark:bg-zinc-900"
               )}
             >
               {factor}
             </span>
-            ));
+            );
+            });
             })()}
           </div>
         </div>

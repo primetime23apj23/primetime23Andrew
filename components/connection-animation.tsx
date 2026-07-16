@@ -96,9 +96,7 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
       <g transform={facingLeft ? 'scaleX(-1)' : ''} style={{ transformOrigin: '0 0' }}>
         {/* Firework sparks */}
         {sparks}
-      {/* Smoke puffs */}
-      {smokes}
-      
+
       {/* Train body (engine) */}
       <rect x="-14" y="-8" width="28" height="16" rx="4" fill="#e53e3e" stroke="#c53030" strokeWidth="1.5" />
       {/* Cabin */}
@@ -124,6 +122,9 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
           stroke="#a0aec0" strokeWidth="1.5" 
           transform={`translate(0, ${Math.sin(progress * 40) * 1.5})`}
         />
+
+        {/* Smoke puffs - rendered last so they appear in front of the train */}
+        {smokes}
       </g>
     </g>
   );
@@ -151,21 +152,28 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
     const interval = setInterval(() => {
       setAnimationStates((prev) => {
         const next = new Map(prev);
-        let allDone = true;
 
+        // Animate tracks sequentially: only advance the first track that
+        // isn't finished yet, so each connection plays one after another.
+        let activeTrack = null;
         for (const track of animatingTracks) {
           const state = next.get(track.id);
-          if (!state || state.done) continue;
-
-          const newProgress = Math.min(state.progress + 0.006, 1);
-          const done = newProgress >= 1;
-          next.set(track.id, { progress: newProgress, done });
-          if (!done) allDone = false;
+          if (!state || !state.done) {
+            activeTrack = track;
+            break;
+          }
         }
 
-        if (allDone) {
+        if (!activeTrack) {
           clearInterval(interval);
+          return next;
         }
+
+        const state = next.get(activeTrack.id) ?? { progress: 0, done: false };
+        // ~3 seconds per connection (16ms tick over a 3000ms duration)
+        const newProgress = Math.min(state.progress + 16 / 3000, 1);
+        const done = newProgress >= 1;
+        next.set(activeTrack.id, { progress: newProgress, done });
 
         return next;
       });
@@ -245,7 +253,7 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
 
         const state = animationStates.get(track.id);
         const progress = state?.progress ?? (track.animating ? 0 : 1);
-        const showTrain = track.animating && progress < 1;
+        const showTrain = track.animating && progress > 0 && progress < 1;
 
         const pathPoints = centers.map((c) => `${c.x},${c.y}`).join(" ");
 

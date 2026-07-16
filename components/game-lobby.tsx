@@ -77,8 +77,8 @@ export function GameLobby({
                 onClick={() => onSelectLobby(lobby.id)}
                 className="w-full p-3 text-left rounded-lg border border-border hover:bg-accent transition-colors"
               >
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-3">
+                  <div className="min-w-0">
                     <p className="font-medium text-sm truncate">
                       {lobby.player_1_name || "Player"}
                     </p>
@@ -86,8 +86,8 @@ export function GameLobby({
                       Target: {lobby.target_score || 37} points
                     </p>
                   </div>
-                  <span className="ml-2 text-xs px-3 py-1 rounded bg-primary text-primary-foreground">
-                    Join
+                  <span className="text-xs px-3 py-1 rounded bg-primary text-primary-foreground whitespace-nowrap">
+                    Join game
                   </span>
                 </div>
               </button>
