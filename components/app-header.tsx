@@ -75,9 +75,9 @@ export function AppHeader({
               <span>Patented by</span>
               <span className="mx-1 font-semibold text-foreground">Andrew Paul Jaffe</span>
             </div>
-            <div className="flex items-center gap-2">
-              <PenTool className="h-5 w-5 text-primary" aria-hidden="true" />
-              <span className="font-semibold text-muted-foreground">Sylinx Labs</span>
+            <div className="flex items-center gap-1.5">
+              <PenTool className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+              <span className="text-sm font-semibold text-muted-foreground">Sylinx Labs</span>
             </div>
           </div>
 
