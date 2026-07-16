@@ -215,7 +215,7 @@ function DieComponent({
       className={cn(
         "w-12 h-12 sm:w-14 sm:h-14 rounded-lg font-bold text-lg sm:text-xl",
         "flex items-center justify-center transition-all duration-200",
-        "focus:outline-none focus:ring-2 focus:ring-ring",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         "shadow-md hover:shadow-lg overflow-hidden relative border",
         "user-select-none",
         die.used && "opacity-30 cursor-not-allowed",
