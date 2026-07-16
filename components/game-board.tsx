@@ -216,14 +216,16 @@ function BoardSpaceCell({
               key={idx}
               className={cn(
                 "w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-[12px] font-black text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
-                factor === "2" || factor === "31"
+                factor === "2"
+                  ? "bg-green-100 dark:bg-green-900 shadow-[0_0_8px_2px_rgba(34,197,94,0.7)]"
+                  : factor === "31"
                   ? "bg-green-100 dark:bg-green-900"
-                  :                   factor === "3"
-                  ? "bg-amber-200 dark:bg-amber-800"
+                  : factor === "3"
+                  ? "bg-amber-200 dark:bg-amber-800 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]"
                   : factor === "5"
-                  ? "bg-amber-200 dark:bg-amber-800"
+                  ? "bg-amber-200 dark:bg-amber-800 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]"
                   : factor === "7"
-                  ? "bg-amber-100 dark:bg-amber-900"
+                  ? "bg-amber-100 dark:bg-amber-900 shadow-[0_0_8px_2px_rgba(245,158,11,0.6)]"
                   : factor === "11"
                   ? "bg-orange-100 dark:bg-orange-900"
                   : factor === "13"
