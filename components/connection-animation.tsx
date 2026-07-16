@@ -71,14 +71,14 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
     );
   }
 
-  // Smoke puffs - emerge from the top of the smokestack (~x=-7.5, y=-15) and
-  // rise up-and-back so they clearly sit in front of the engine.
+  // Smoke puffs - emerge from the top of the smokestack above the window
+  // (~x=8.5, y=-20) and rise straight up so they clearly sit in front.
   const smokeCount = 4;
   const smokes = [];
   for (let i = 0; i < smokeCount; i++) {
     const age = (progress * 15 + i * 1.2) % 4;
-    const smokeX = -7.5 - age * 3;
-    const smokeY = -15 - age * 4;
+    const smokeX = 8.5 + age * 1.5;
+    const smokeY = -20 - age * 4;
     const smokeR = 2.5 + age * 2.2;
     smokes.push(
       <circle
@@ -106,9 +106,6 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
       <rect x="4" y="-12" width="10" height="12" rx="2" fill="#c53030" stroke="#9b2c2c" strokeWidth="1" />
       {/* Cabin window */}
       <rect x="6" y="-10" width="6" height="5" rx="1" fill="#bee3f8" opacity="0.9" />
-      {/* Smokestack */}
-      <rect x="-10" y="-14" width="5" height="6" rx="1" fill="#4a5568" />
-      <ellipse cx="-7.5" cy="-14" rx="4" ry="2" fill="#4a5568" />
       {/* Front bumper */}
       <rect x="-16" y="-4" width="4" height="8" rx="2" fill="#ecc94b" />
       {/* Headlight */}
@@ -125,6 +122,11 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
           stroke="#a0aec0" strokeWidth="1.5" 
           transform={`translate(0, ${Math.sin(progress * 40) * 1.5})`}
         />
+
+        {/* Smokestack (chimney) - positioned above the cabin window and drawn in
+            front of the body so the black chimney sits on top. */}
+        <rect x="6" y="-19" width="5" height="7" rx="1" fill="#2d3748" stroke="#1a202c" strokeWidth="0.75" />
+        <ellipse cx="8.5" cy="-19" rx="4" ry="2" fill="#1a202c" />
 
         {/* Smoke puffs - rendered last so they appear in front of the train */}
         {smokes}

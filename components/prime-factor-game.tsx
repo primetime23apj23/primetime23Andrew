@@ -181,6 +181,10 @@ export function PrimeFactorGame({
   const trackBoardRef = useRef<HTMLDivElement>(null);
   const botTurnScheduledRef = useRef(false);
   const gameStateRef = useRef<GameState>(gameState);
+  // Fresh refs read inside the bot timer so bot scheduling does not depend on
+  // volatile values (player2Dice / botDifficulty) that change mid-turn.
+  const player2DiceRef = useRef<Die[]>(player2Dice);
+  const botDifficultyRef = useRef<BotDifficulty>(botDifficulty);
   const gameStateVersionRef = useRef<number>(-1);
   const previousOpponentBonusCountRef = useRef<number>(0);
   const manualSelectionRef = useRef<boolean>(false);
@@ -358,6 +362,15 @@ export function PrimeFactorGame({
   useEffect(() => {
     gameStateRef.current = gameState;
   }, [gameState]);
+
+  // Keep bot-related refs fresh so the bot timer reads current values without
+  // re-subscribing the bot effect to these volatile dependencies.
+  useEffect(() => {
+    player2DiceRef.current = player2Dice;
+  }, [player2Dice]);
+  useEffect(() => {
+    botDifficultyRef.current = botDifficulty;
+  }, [botDifficulty]);
 
   // Calculate valid moves based on selected dice
   const validMoves = useMemo(() => {
@@ -1971,7 +1984,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
         return;
       }
 
-      const botMove = getBotMoveForMultiplication(current.board, player2Dice, botDifficulty);
+      // Read fresh dice / difficulty from refs (not stale closure values)
+      const botDice = player2DiceRef.current;
+      const botMove = getBotMoveForMultiplication(current.board, botDice, botDifficultyRef.current);
 
       if (!botMove) {
         // Bot has no moves — end its turn and release lock
@@ -1994,7 +2009,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       if (!space) { botTurnScheduledRef.current = false; return; }
 
       const factors = [...space.factors];
-      const selectedDieObjects = player2Dice.filter(d => botMove.diceIds.includes(d.id));
+      const selectedDieObjects = botDice.filter(d => botMove.diceIds.includes(d.id));
       const diceToRemove: string[] = [];
       for (const factor of factors) {
         const exact = selectedDieObjects.find(d => !diceToRemove.includes(d.id) && d.value === factor);
@@ -2102,7 +2117,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
     // Only clear the timer itself
     return () => clearTimeout(timer);
 
-  }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer, diceRolled, player2Dice]);
+    // NOTE: player2Dice / diceRolled are intentionally NOT dependencies. They can
+    // change during the bot's 1500ms "thinking" delay, which would tear down the
+    // timer while the lock ref stays set, leaving the bot stuck (it never moves).
+    // The timer reads fresh dice from player2DiceRef instead.
+  }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer]);
 
   // Start new round - show confirmation modal
   const handleReadyForNextRound = useCallback(() => {
