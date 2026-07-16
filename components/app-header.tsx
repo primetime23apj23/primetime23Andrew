@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePlayerProfile } from "@/hooks/use-player-profile";
 import { AuthDialog } from "./auth-dialog";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, HelpCircle, X } from "lucide-react";
+import { LogOut, User, HelpCircle, X, PenTool } from "lucide-react";
 import { supabase } from "@/lib/supabase-multiplayer";
 
 const headerLog = (...args: any[]) => console.debug("[AppHeader]", ...args);
@@ -74,6 +74,10 @@ export function AppHeader({
             <div className="text-xs text-muted-foreground">
               <span>Patented by</span>
               <span className="mx-1 font-semibold text-foreground">Andrew Paul Jaffe</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <PenTool className="h-5 w-5 text-primary" aria-hidden="true" />
+              <span className="font-semibold text-muted-foreground">Sylinx Labs</span>
             </div>
           </div>
 
