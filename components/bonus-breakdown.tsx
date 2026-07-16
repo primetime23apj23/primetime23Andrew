@@ -56,7 +56,7 @@ export function BonusBreakdownPanel({ history }: BonusBreakdownProps) {
       {!hidden && (
         <ScrollArea className="h-40">
           <div className="space-y-3 pr-3">
-            {bonusHistory.map((entry, idx) => (
+            {[...bonusHistory].reverse().map((entry, idx) => (
               <div
                 key={`${entry.space}-${idx}`}
                 className="bg-muted/50 rounded-lg p-2 text-xs"
