@@ -192,7 +192,7 @@ function BoardSpaceCell({
         space.isPrime && "cursor-default",
         space.owner !== null && "cursor-default",
         isHighlighted && "ring-2 ring-chart-1",
-        isValidMove && !space.owner && "ring-2 ring-green-500",
+        isValidMove && !space.owner && "bg-green-50 dark:bg-green-950 shadow-[inset_0_0_12px_2px_rgba(34,197,94,0.55)] animate-pulse",
         isOpponentSelected && !space.owner && "ring-2 ring-dashed ring-purple-500"
       )}
       style={!space.isPrime && ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
@@ -202,10 +202,13 @@ function BoardSpaceCell({
         <div className="flex items-center justify-center shrink-0">
           <span
             className={cn(
-              "leading-none",
+              "leading-none transition-colors",
               space.factorization && space.factorization.split(' × ').length > 3
-              ? "text-[7px] sm:text-xs font-bold text-foreground"
-              : "text-[10px] sm:text-sm font-bold text-foreground"
+              ? "text-[7px] sm:text-xs font-bold"
+              : "text-[10px] sm:text-sm font-bold",
+              isValidMove && !space.owner
+                ? "text-green-600 dark:text-green-400 [text-shadow:0_0_6px_rgba(34,197,94,0.9)]"
+                : "text-foreground"
             )}
           >
             {space.number}
