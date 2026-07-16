@@ -2369,7 +2369,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
               <h3 className="font-semibold text-sm mb-3">{gameState.players[0].name}</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Score:</span>
+                  <span className="text-muted-foreground">Captured Squares:</span>
                   <span className="font-bold">{gameState.players[0].score}</span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -2378,7 +2378,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex justify-between text-sm font-semibold">
-                    <span>Total:</span>
+                    <span>Total Score:</span>
                     <span>{gameState.players[0].score + gameState.players[0].bonusPoints}</span>
                   </div>
                 </div>
@@ -2439,7 +2439,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
               <h3 className="font-semibold text-sm mb-3">{gameState.players[1].name}</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Score:</span>
+                  <span className="text-muted-foreground">Captured Squares:</span>
                   <span className="font-bold">{gameState.players[1].score}</span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -2448,7 +2448,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex justify-between text-sm font-semibold">
-                    <span>Total:</span>
+                    <span>Total Score:</span>
                     <span>{gameState.players[1].score + gameState.players[1].bonusPoints}</span>
                   </div>
                 </div>
