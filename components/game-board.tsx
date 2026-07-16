@@ -219,7 +219,7 @@ function BoardSpaceCell({
                 factor === "2" || factor === "31"
                   ? "bg-green-100 dark:bg-green-900"
                   :                   factor === "3"
-                  ? "bg-rose-100 dark:bg-rose-900"
+                  ? "bg-amber-200 dark:bg-amber-800"
                   : factor === "5"
                   ? "bg-sky-100 dark:bg-sky-900"
                   : factor === "7"
@@ -243,7 +243,7 @@ function BoardSpaceCell({
                   : factor === "43"
                   ? "bg-pink-100 dark:bg-pink-900"
                   : factor === "47"
-                  ? "bg-amber-200 dark:bg-amber-800"
+                  ? "bg-rose-100 dark:bg-rose-900"
                   : "bg-white dark:bg-zinc-900"
               )}
             >
