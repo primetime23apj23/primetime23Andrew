@@ -1782,6 +1782,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
     if (breakdown.length > 0) {
       setBonusHistory(nextBonusHistory);
       setCompletedTracks(nextCompletedTracks);
+      // Tracks animate sequentially (~3s each), so wait for all of them to finish
+      // before finalizing. A fixed delay would cut off later tracks mid-draw.
+      const finalizeDelay = newTracks.length * 3000 + 500;
       setTimeout(() => {
         setCompletedTracks((prev) =>
           prev.map((t) =>
@@ -1790,7 +1793,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
               : t
           )
         );
-      }, 3500);
+      }, finalizeDelay);
     }
 
     // Track the last claimed space for highlighting
@@ -2057,6 +2060,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
           
           setCompletedTracks((tracks) => [...tracks, ...newTracks]);
           
+          // Tracks animate sequentially (~3s each); wait for all before finalizing.
+          const botFinalizeDelay = newTracks.length * 3000 + 500;
           setTimeout(() => {
             setCompletedTracks((tracks) =>
               tracks.map((t) =>
@@ -2065,7 +2070,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   : t
               )
             );
-          }, 3500);
+          }, botFinalizeDelay);
         }
 
         // Switch to player 0 and release lock AFTER state is applied

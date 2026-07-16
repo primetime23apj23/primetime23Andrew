@@ -254,7 +254,10 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
         }
 
         const state = animationStates.get(track.id);
-        const progress = state?.progress ?? (track.animating ? 0 : 1);
+        // While animating, use the live animation progress (0 until this track's
+        // turn in the sequence). Once finalized (animating=false), always render
+        // fully drawn so a track is never frozen partway / cut off.
+        const progress = track.animating ? (state?.progress ?? 0) : 1;
         const showTrain = track.animating && progress > 0 && progress < 1;
 
         const pathPoints = centers.map((c) => `${c.x},${c.y}`).join(" ");
