@@ -75,7 +75,7 @@ export function GameLobby({
               <button
                 key={lobby.id}
                 onClick={() => onSelectLobby(lobby.id)}
-                className="w-full p-3 text-left rounded-lg border border-border hover:bg-accent transition-colors"
+                className="w-fit max-w-full p-3 text-left rounded-lg border border-border hover:bg-accent transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="min-w-0">
