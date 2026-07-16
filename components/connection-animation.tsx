@@ -137,39 +137,36 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
     const animatingTracks = tracks.filter((t) => t.animating);
     if (animatingTracks.length === 0) return;
 
-    for (const track of animatingTracks) {
-      if (animationStates.has(track.id) && animationStates.get(track.id)?.done) continue;
-
-      if (!animationStates.has(track.id)) {
-        setAnimationStates((prev) => {
-          const next = new Map(prev);
-          next.set(track.id, { progress: 0, done: false });
-          return next;
-        });
-      }
-    }
-
-    const interval = setInterval(() => {
+    // Single stable interval per `tracks` value. All state is derived inside the
+    // functional updater so we do NOT depend on `animationStates` (which would
+    // tear down and recreate the interval every tick and stall progress).
+    let interval: ReturnType<typeof setInterval> | null = null;
+    interval = setInterval(() => {
       setAnimationStates((prev) => {
         const next = new Map(prev);
 
-        // Animate tracks sequentially: only advance the first track that
-        // isn't finished yet, so each connection plays one after another.
+        // Animate tracks sequentially: advance the first track that isn't
+        // finished yet, so each connection plays one after another. Initialize
+        // missing entries here so late-added tracks still animate.
         let activeTrack = null;
         for (const track of animatingTracks) {
-          const state = next.get(track.id);
-          if (!state || !state.done) {
+          if (!next.has(track.id)) {
+            next.set(track.id, { progress: 0, done: false });
+          }
+          if (!next.get(track.id)!.done) {
             activeTrack = track;
             break;
           }
         }
 
         if (!activeTrack) {
-          clearInterval(interval);
-          return next;
+          // All tracks finished: stop the interval and keep the same state
+          // reference so no further re-renders are triggered.
+          if (interval) clearInterval(interval);
+          return prev;
         }
 
-        const state = next.get(activeTrack.id) ?? { progress: 0, done: false };
+        const state = next.get(activeTrack.id)!;
         // ~3 seconds per connection (16ms tick over a 3000ms duration)
         const newProgress = Math.min(state.progress + 16 / 3000, 1);
         const done = newProgress >= 1;
@@ -179,8 +176,10 @@ export function ConnectionAnimation({ tracks, boardRef }: ConnectionAnimationPro
       });
     }, 16);
 
-    return () => clearInterval(interval);
-  }, [tracks, animationStates]);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [tracks]);
 
   if (!boardRef.current || tracks.length === 0) return null;
 
