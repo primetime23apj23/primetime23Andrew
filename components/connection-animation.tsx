@@ -96,9 +96,7 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
       <g transform={facingLeft ? 'scaleX(-1)' : ''} style={{ transformOrigin: '0 0' }}>
         {/* Firework sparks */}
         {sparks}
-      {/* Smoke puffs */}
-      {smokes}
-      
+
       {/* Train body (engine) */}
       <rect x="-14" y="-8" width="28" height="16" rx="4" fill="#e53e3e" stroke="#c53030" strokeWidth="1.5" />
       {/* Cabin */}
@@ -124,6 +122,9 @@ function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle:
           stroke="#a0aec0" strokeWidth="1.5" 
           transform={`translate(0, ${Math.sin(progress * 40) * 1.5})`}
         />
+
+        {/* Smoke puffs - rendered last so they appear in front of the train */}
+        {smokes}
       </g>
     </g>
   );
