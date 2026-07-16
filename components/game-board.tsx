@@ -259,7 +259,7 @@ function BoardSpaceCell({
                   : factor === "3"
                   ? "bg-amber-200 dark:bg-amber-800 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]"
                   : factor === "5"
-                  ? "bg-amber-200 dark:bg-amber-800 shadow-[0_0_8px_2px_rgba(245,158,11,0.7)]"
+                  ? "bg-red-200 dark:bg-red-800 shadow-[0_0_8px_2px_rgba(239,68,68,0.7)]"
                   : factor === "7"
                   ? "bg-amber-100 dark:bg-amber-900 shadow-[0_0_8px_2px_rgba(245,158,11,0.6)]"
                   : factor === "11"
