@@ -31,6 +31,7 @@ import {
 } from "@/lib/game-utils";
 import { BonusBreakdownPanel } from "./bonus-breakdown";
 import { FactorizationBox } from "./factorization-box";
+import { DiceSkinSettings, DEFAULT_SKINS, type DiceSkin } from "./dice-skin-settings";
 import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
 import { playCapturSound, playVictorySound, playOpponentMoveSound, playFireworksSound } from "@/lib/sound-effects";
@@ -174,6 +175,8 @@ export function PrimeFactorGame({
   const [lastCapturePerPlayer, setLastCapturePerPlayer] = useState<
     Array<{ number: number; key: number } | null>
   >([null, null]);
+  // Local-only dice/board skins uploaded by the player on this device
+  const [diceSkins, setDiceSkins] = useState<DiceSkin[]>(DEFAULT_SKINS);
   const boardRef = useRef<HTMLDivElement>(null);
   const trackBoardRef = useRef<HTMLDivElement>(null);
   const botTurnScheduledRef = useRef(false);
@@ -184,6 +187,30 @@ export function PrimeFactorGame({
   const autoSkipInProgressRef = useRef<boolean>(false);
   const lastAppliedVersionRef = useRef<number>(-1);
   const skipHappenedThisRoundRef = useRef<boolean>(false);
+
+  // Load locally-saved dice skins on mount (client-only)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("primetime-dice-skins");
+      if (saved) {
+        const parsed = JSON.parse(saved) as DiceSkin[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDiceSkins(parsed);
+        }
+      }
+    } catch {
+      // Ignore malformed/quota errors and fall back to defaults
+    }
+  }, []);
+
+  const handleDiceSkinsChange = useCallback((next: DiceSkin[]) => {
+    setDiceSkins(next);
+    try {
+      localStorage.setItem("primetime-dice-skins", JSON.stringify(next));
+    } catch {
+      // Ignore storage quota errors (large images) - skins still apply this session
+    }
+  }, []);
 
   // Local player id
   useEffect(() => {
@@ -2375,8 +2402,12 @@ const channel = subscribeToSession(sessionCode, (session) => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-7xl mx-auto space-y-4">
+  <div className="min-h-screen bg-background p-4">
+  <div className="max-w-7xl mx-auto space-y-4">
+        {/* Top bar - local customization */}
+        <div className="flex justify-end">
+          <DiceSkinSettings skins={diceSkins} onSkinsChange={handleDiceSkinsChange} />
+        </div>
         {/* Main Game Area - Board with scores and bonuses on sides */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Left side - Player 1 Score & Bonus & Dice */}
@@ -2423,6 +2454,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   canClaim={canClaimSpace}
                   onClaim={handleClaim}
                   onCancel={handleCancel}
+                  skins={!isMultiplayer || localPlayerIndex === 0 ? diceSkins : null}
                 />
               </div>
             )}
@@ -2446,6 +2478,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 validMoves={allHighlightedMoves}
                 lastClaimedSpace={lastClaimedSpace}
                 opponentSelectedSpace={isMultiplayer ? opponentSelectedSpace : null}
+                skins={diceSkins}
               />
             </div>
 
@@ -2497,6 +2530,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   canClaim={canClaimSpace}
                   onClaim={handleClaim}
                   onCancel={handleCancel}
+                  skins={!isMultiplayer || localPlayerIndex === 1 ? diceSkins : null}
                 />
               </div>
             )}

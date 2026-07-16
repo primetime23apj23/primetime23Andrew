@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import type { BoardSpace } from "@/lib/game-utils";
 import { PLAYER_COLORS } from "@/lib/game-utils";
 import { ConnectionAnimation, type CompletedTrack } from "./connection-animation";
+import { getDiceSkinImage, type DiceSkin } from "@/components/dice-skin-settings";
 
 interface GameBoardProps {
   board: BoardSpace[];
@@ -17,6 +18,7 @@ interface GameBoardProps {
   boardRef?: React.RefObject<HTMLDivElement | null>;
   lastClaimedSpace?: number | null;
   opponentSelectedSpace?: number | null;
+  skins?: DiceSkin[] | null;
 }
 
 export function GameBoard({
@@ -28,6 +30,7 @@ export function GameBoard({
   boardRef,
   lastClaimedSpace = null,
   opponentSelectedSpace = null,
+  skins = null,
 }: GameBoardProps) {
   const internalRef = useRef<HTMLDivElement>(null);
   const gridRef = boardRef ?? internalRef;
@@ -68,6 +71,7 @@ export function GameBoard({
                   isValidMove={validMoves.includes(space?.number ?? -1)}
                   isLastClaimed={lastClaimedSpace === space?.number}
                   isOpponentSelected={opponentSelectedSpace === space?.number}
+                  skins={skins}
                 />
               ))
             )}
@@ -89,6 +93,7 @@ interface BoardSpaceCellProps {
   isValidMove: boolean;
   isLastClaimed?: boolean;
   isOpponentSelected?: boolean;
+  skins?: DiceSkin[] | null;
 }
 
 function BoardSpaceCell({
@@ -98,6 +103,7 @@ function BoardSpaceCell({
   isValidMove,
   isLastClaimed = false,
   isOpponentSelected = false,
+  skins = null,
 }: BoardSpaceCellProps) {
   if (!space) {
     return <div className="w-full h-full bg-white dark:bg-zinc-900" />;
@@ -128,15 +134,25 @@ function BoardSpaceCell({
 
   // Prime numbers - never claimed, just display
   if (space.isPrime) {
+    const primeSkin = getDiceSkinImage(space.number, skins);
     return (
       <div
         data-space={space.number}
         className="w-full h-full flex flex-col items-center justify-center p-0.5 bg-white dark:bg-zinc-900 cursor-default"
       >
-        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-400 dark:border-red-500">
-          <span className="leading-none text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">
-            {space.number}
-          </span>
+        <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-400 dark:border-red-500 overflow-hidden">
+          {primeSkin ? (
+            <img
+              src={primeSkin || "/placeholder.svg"}
+              alt={`${space.number}`}
+              className="w-full h-full object-cover"
+              draggable={false}
+            />
+          ) : (
+            <span className="leading-none text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">
+              {space.number}
+            </span>
+          )}
         </div>
       </div>
     );
@@ -211,7 +227,24 @@ function BoardSpaceCell({
             if (space.number === 60) {
               factors = ['2', '2', '3', '5'];
             }
-            return factors.map((factor, idx) => (
+            return factors.map((factor, idx) => {
+            const factorSkin = getDiceSkinImage(factor, skins);
+            if (factorSkin) {
+              return (
+                <span
+                  key={idx}
+                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-md overflow-hidden flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
+                >
+                  <img
+                    src={factorSkin || "/placeholder.svg"}
+                    alt={factor}
+                    className="w-full h-full object-cover"
+                    draggable={false}
+                  />
+                </span>
+              );
+            }
+            return (
             <span 
               key={idx}
               className={cn(
@@ -251,7 +284,8 @@ function BoardSpaceCell({
             >
               {factor}
             </span>
-            ));
+            );
+            });
             })()}
           </div>
         </div>

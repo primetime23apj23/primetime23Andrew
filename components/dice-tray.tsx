@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import type { Die } from "@/lib/game-utils";
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
+import { getDiceSkinImage, type DiceSkin } from "@/components/dice-skin-settings";
 
 interface DiceTrayProps {
   dice: Die[];
@@ -20,6 +21,7 @@ interface DiceTrayProps {
   canClaim?: boolean;
   onClaim?: () => void;
   onCancel?: () => void;
+  skins?: DiceSkin[] | null;
 }
 
 export function DiceTray({
@@ -34,6 +36,7 @@ export function DiceTray({
   canClaim = false,
   onClaim,
   onCancel,
+  skins = null,
 }: DiceTrayProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -115,6 +118,7 @@ export function DiceTray({
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, die.id)}
               onDragEnd={handleDragEnd}
+              skinImage={getDiceSkinImage(die.value, skins)}
             />
           ))
         )}
@@ -156,6 +160,7 @@ interface DieComponentProps {
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
   onDragEnd: () => void;
+  skinImage?: string | null;
 }
 
 function DieComponent({ 
@@ -170,6 +175,7 @@ function DieComponent({
   onDragLeave,
   onDrop,
   onDragEnd,
+  skinImage = null,
 }: DieComponentProps) {
   const isWild = die.value === "W";
   
@@ -230,7 +236,14 @@ function DieComponent({
         }
       }}
     >
-      {die.value === "W" ? (
+      {skinImage ? (
+        <img
+          src={skinImage || "/placeholder.svg"}
+          alt={die.value === "W" ? "Wild die" : `Die showing ${die.value}`}
+          className="absolute inset-0 w-full h-full object-cover"
+          draggable={false}
+        />
+      ) : die.value === "W" ? (
         <div className="flex flex-col items-center justify-center gap-0.5">
           <span className="text-xs sm:text-sm font-semibold leading-none">Any</span>
           <span className="text-xs leading-none">Prime</span>
