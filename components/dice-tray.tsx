@@ -230,7 +230,7 @@ function DieComponent({
         isDragging && "opacity-50 scale-95 cursor-grabbing",
         isDragOver && "ring-2 ring-blue-500 scale-105",
         isSelected
-          ? "ring-2 ring-blue-400 dark:ring-blue-300 ring-offset-2 scale-110"
+          ? "ring-2 ring-chart-1 ring-offset-2 scale-110"
           : "",
         getColorClasses()
       )}
