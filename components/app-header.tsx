@@ -76,13 +76,15 @@ export function AppHeader({
           {/* Left: Title and Patent */}
           <div className="flex items-center gap-6">
             <div className="font-bold text-lg">{title}</div>
-            <div className="text-xs text-muted-foreground">
-              <span>Patented by</span>
-              <span className="mx-1 font-semibold text-foreground">Andrew Paul Jaffe</span>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              <span>Brought to you by</span>
-              <span className="ml-1 font-bold text-foreground">Sylinx Labs</span>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div>
+                <span>Patented by</span>
+                <span className="mx-1 font-semibold text-foreground">Andrew Paul Jaffe</span>
+              </div>
+              <div>
+                <span>Brought to you by</span>
+                <span className="ml-1 font-semibold text-foreground">Sylinx Labs</span>
+              </div>
             </div>
           </div>
 
