@@ -6,6 +6,7 @@ import { AuthDialog } from "./auth-dialog";
 import { Button } from "@/components/ui/button";
 import { LogOut, User, HelpCircle, X, PenTool } from "lucide-react";
 import { supabase } from "@/lib/supabase-multiplayer";
+import { DiceSkinSettings, type DiceSkin } from "./dice-skin-settings";
 
 const headerLog = (...args: any[]) => console.debug("[AppHeader]", ...args);
 
@@ -14,6 +15,8 @@ interface AppHeaderProps {
   onShowRules?: () => void;
   onShowTutorial?: () => void;
   onExitGame?: () => void;
+  diceSkins?: DiceSkin[];
+  onDiceSkinsChange?: (skins: DiceSkin[]) => void;
 }
 
 export function AppHeader({ 
@@ -21,6 +24,8 @@ export function AppHeader({
   onShowRules,
   onShowTutorial,
   onExitGame,
+  diceSkins,
+  onDiceSkinsChange,
 }: AppHeaderProps) {
   const { user, isAuthenticated, loading } = usePlayerProfile();
   const [showAuth, setShowAuth] = useState(false);
@@ -120,6 +125,9 @@ export function AppHeader({
 
           {/* Right: User and Auth */}
           <div className="flex items-center gap-3">
+            {diceSkins && onDiceSkinsChange && (
+              <DiceSkinSettings skins={diceSkins} onSkinsChange={onDiceSkinsChange} />
+            )}
             {(isAuthenticated && user) || (userId && playerName) ? (
               <>
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10">
