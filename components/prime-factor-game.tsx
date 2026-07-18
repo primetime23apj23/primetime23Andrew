@@ -2455,8 +2455,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
               <FactorizationBox capture={lastCapturePerPlayer[0]} />
             </div>
 
-            {/* Player 1 Dice - Hide when P2 is round starter on first move, always show on P1's turn */}
-            {diceRolled &&
+            {/* Player 1 Dice - Hide when P2 is round starter on first move, hide during rolling phase, always show on P1's turn */}
+            {diceRolled && gameState.phase !== "rolling" &&
               (gameState.currentPlayer === 0 || !(gameState.roundStarterIndex === 1 && !gameState.player2HasMoved)) && (
               <div className={`${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
@@ -2560,8 +2560,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             </div>
 
-            {/* Player 2 Dice - Hide when P1 is round starter on first move, always show on P2's turn */}
-            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) &&
+            {/* Player 2 Dice - Hide when P1 is round starter on first move, hide during rolling phase, always show on P2's turn */}
+            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && gameState.phase !== "rolling" &&
               (gameState.currentPlayer === 1 || !(gameState.roundStarterIndex === 0 && !gameState.player1HasMoved)) && (
               <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
