@@ -134,7 +134,7 @@ export function AppHeader({
         {/* Second row: game controls */}
         {(onShowRules || onShowTutorial || onExitGame) && (
           <div className="border-t bg-muted/30">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-2">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-center gap-2">
               {onShowRules && (
                 <Button variant="ghost" size="sm" onClick={onShowRules} className="gap-2">
                   <HelpCircle className="w-4 h-4" />
