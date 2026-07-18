@@ -230,13 +230,21 @@ function BoardSpaceCell({
             if (space.number === 60) {
               factors = ['2', '2', '3', '5'];
             }
+            // Shrink tiles when there are many factors so they all fit in the cell
+            const sizeClass =
+              factors.length >= 5
+                ? "w-3 h-3 sm:w-3.5 sm:h-3.5 text-[7px] sm:text-[8px]"
+                : "w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-[12px]";
             return factors.map((factor, idx) => {
             const factorSkin = getDiceSkinImage(factor, skins);
             if (factorSkin) {
               return (
                 <span
                   key={idx}
-                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-md overflow-hidden flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
+                  className={cn(
+                    sizeClass,
+                    "rounded-md overflow-hidden flex items-center justify-center border border-yellow-500 dark:border-yellow-400"
+                  )}
                 >
                   <img
                     src={factorSkin || "/placeholder.svg"}
@@ -251,7 +259,8 @@ function BoardSpaceCell({
             <span 
               key={idx}
               className={cn(
-                "w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-[12px] font-black text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
+                sizeClass,
+                "font-black text-foreground rounded-md flex items-center justify-center border border-yellow-500 dark:border-yellow-400",
                 factor === "2"
                   ? "bg-green-100 dark:bg-green-900 shadow-[inset_0_0_2px_0_rgba(22,163,74,0.9)]"
                   : factor === "31"
