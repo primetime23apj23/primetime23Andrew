@@ -90,9 +90,16 @@ export function DiceTray({
 
   return (
     <div className="bg-card border rounded-lg p-4">
-      <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-        {playerName}&apos;s Dice ({dice.length} remaining){!hideValues && " - Click to select or deselect, drag to reorder"}
-      </h3>
+      <div className="mb-3">
+        <h3 className="text-sm font-semibold text-muted-foreground">
+          {playerName}&apos;s Dice ({dice.length} remaining)
+        </h3>
+        {!hideValues && (
+          <p className="text-xs text-muted-foreground/80 mt-0.5">
+            Click to select (deselect) remove, drag to reorder
+          </p>
+        )}
+      </div>
       <div className="flex flex-wrap gap-2 justify-center">
         {hideValues ? (
           dice.map((die) => (

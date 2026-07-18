@@ -2428,10 +2428,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
   return (
   <div className="min-h-screen bg-background p-4">
   <div className="max-w-7xl mx-auto space-y-4">
-        {/* Top bar - local customization */}
-        <div className="flex justify-end">
-          <DiceSkinSettings skins={diceSkins} onSkinsChange={handleDiceSkinsChange} />
-        </div>
         {/* Main Game Area - Board with scores and bonuses on sides */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Left side - Player 1 Score & Bonus & Dice */}
