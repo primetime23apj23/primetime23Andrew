@@ -2487,7 +2487,37 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
           {/* Center - Game Board and Space Detail */}
           <div className="flex-1 flex flex-col gap-4">
-            {/* Top: Game Board centered */}
+            {/* Controls above the board - Timer and Game Controls */}
+            <div className="flex flex-col items-center gap-4">
+              {timerMode !== "disabled" && (
+                <GameTimer
+                  initialSeconds={getTimerSeconds()}
+                  onTimeUp={handleTimeUp}
+                  isActive={gameState.phase === "playing"}
+                  currentPlayer={gameState.currentPlayer}
+                  playerColors={PLAYER_COLORS}
+                />
+              )}
+
+              <GameControls
+                phase={gameState.phase}
+                canRoll={!diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn}
+                canEndTurn={gameState.phase === "playing" && gameState.phase !== "gameOver" && isLocalPlayersTurn}
+                hasValidMoves={hasAnyValidMove}
+                onRoll={handleRoll}
+                onEndTurn={handleEndTurn}
+                onNewRound={handleNewRound}
+                onReadyForNextRound={handleReadyForNextRound}
+                onNewGame={handleNewGame}
+                message={gameState.message}
+                player1Ready={gameState.player1Ready}
+                player2Ready={gameState.player2Ready}
+                isMultiplayer={isMultiplayer}
+                roundNumber={gameState.roundNumber}
+              />
+            </div>
+
+            {/* Game Board centered */}
             <div>
               <GameBoard
                 board={gameState.board}
@@ -2560,36 +2590,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
               <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[1].name)} />
             </div>
           </div>
-        </div>
-
-        {/* Bottom Controls - Timer and Game Controls */}
-        <div className="flex flex-col items-center gap-4">
-          {timerMode !== "disabled" && (
-            <GameTimer
-              initialSeconds={getTimerSeconds()}
-              onTimeUp={handleTimeUp}
-              isActive={gameState.phase === "playing"}
-              currentPlayer={gameState.currentPlayer}
-              playerColors={PLAYER_COLORS}
-            />
-          )}
-          
-          <GameControls
-            phase={gameState.phase}
-            canRoll={!diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn}
-            canEndTurn={gameState.phase === "playing" && gameState.phase !== "gameOver" && isLocalPlayersTurn}
-            hasValidMoves={hasAnyValidMove}
-            onRoll={handleRoll}
-            onEndTurn={handleEndTurn}
-            onNewRound={handleNewRound}
-            onReadyForNextRound={handleReadyForNextRound}
-            onNewGame={handleNewGame}
-            message={gameState.message}
-            player1Ready={gameState.player1Ready}
-            player2Ready={gameState.player2Ready}
-            isMultiplayer={isMultiplayer}
-            roundNumber={gameState.roundNumber}
-          />
         </div>
 
         {/* Ready for Next Round Confirmation Modal */}
