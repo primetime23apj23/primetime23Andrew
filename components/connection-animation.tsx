@@ -44,91 +44,127 @@ function getCellCenter(boardEl: HTMLElement, spaceNumber: number): { x: number; 
   };
 }
 
-// Choo choo train SVG component
+// Choo choo train SVG component — friendly flat-illustration steam engine
+// modeled on a children's storybook locomotive: red engine with a rounded cab,
+// a conductor in a blue cap, a black funnel puffing white steam, big spoked
+// driving wheels, and a lime-green carriage trailing behind.
 function ChooChooTrain({ x, y, angle, progress }: { x: number; y: number; angle: number; progress: number }) {
-  // Keep train facing right for all animations
-  const facingLeft = false;
-  
-  // Firework sparks that trail behind
-  const sparks = [];
-  const sparkCount = 6;
-  for (let i = 0; i < sparkCount; i++) {
-    const sparkAngle = (i / sparkCount) * Math.PI * 2 + progress * 20;
-    const sparkDist = 8 + Math.sin(progress * 30 + i * 2) * 6;
-    const sx = Math.cos(sparkAngle) * sparkDist - 18;
-    const sy = Math.sin(sparkAngle) * sparkDist;
-    const sparkSize = 1.5 + Math.sin(progress * 25 + i) * 1;
-    const colors = ["#ff6b6b", "#ffd93d", "#6bcb77", "#4d96ff", "#ff6bd6", "#ffaa5c"];
-    sparks.push(
-      <circle
-        key={`spark-${i}`}
-        cx={sx}
-        cy={sy}
-        r={sparkSize}
-        fill={colors[i % colors.length]}
-        opacity={0.6 + Math.sin(progress * 20 + i * 3) * 0.4}
-      />
-    );
-  }
+  // Wheels spin as the train travels; a gentle bob mimics the chug of the engine.
+  const wheelAngle = progress * 2200;
+  const bob = Math.sin(progress * 45) * 0.6;
 
-  // Smoke puffs - emerge from the top of the smokestack above the window
-  // (~x=8.5, y=-20) and rise straight up so they clearly sit in front.
-  const smokeCount = 4;
+  // Fluffy white steam puffs rising from the funnel at the front (~x=15, y=-11).
+  const smokeCount = 5;
   const smokes = [];
   for (let i = 0; i < smokeCount; i++) {
-    const age = (progress * 15 + i * 1.2) % 4;
-    const smokeX = 8.5 + age * 1.5;
-    const smokeY = -20 - age * 4;
-    const smokeR = 2.5 + age * 2.2;
+    const age = (progress * 14 + i * 1.1) % 5.5;
+    const smokeX = 15 + age * 1.3;
+    const smokeY = -13 - age * 4.2;
+    const smokeR = 2.2 + age * 2;
     smokes.push(
       <circle
         key={`smoke-${i}`}
         cx={smokeX}
         cy={smokeY}
         r={smokeR}
-        fill="#d1d5db"
-        stroke="#9ca3af"
+        fill="#f8fafc"
+        stroke="#cbd5e1"
         strokeWidth="0.5"
-        opacity={Math.max(0, 0.85 - age * 0.2)}
+        opacity={Math.max(0, 0.9 - age * 0.14)}
       />
     );
   }
 
-  return (
-    <g transform={`translate(${x}, ${y}) rotate(${angle})`} style={{ transformOrigin: '0 0' }}>
-      <g transform={facingLeft ? 'scaleX(-1)' : ''} style={{ transformOrigin: '0 0' }}>
-        {/* Firework sparks */}
-        {sparks}
+  // A single spoked wheel (big driving wheel) centered at (cx, cy).
+  const drivingWheel = (cx: number, cy: number, r: number, key: string) => (
+    <g key={key}>
+      <circle cx={cx} cy={cy} r={r} fill="#1f2937" stroke="#0f172a" strokeWidth="1" />
+      <circle cx={cx} cy={cy} r={r * 0.55} fill="#6b7280" />
+      <g transform={`rotate(${wheelAngle} ${cx} ${cy})`}>
+        {[0, 45, 90, 135].map((deg) => {
+          const rad = (deg * Math.PI) / 180;
+          return (
+            <line
+              key={`${key}-spoke-${deg}`}
+              x1={cx - Math.cos(rad) * r * 0.5}
+              y1={cy - Math.sin(rad) * r * 0.5}
+              x2={cx + Math.cos(rad) * r * 0.5}
+              y2={cy + Math.sin(rad) * r * 0.5}
+              stroke="#374151"
+              strokeWidth="1.1"
+            />
+          );
+        })}
+      </g>
+      <circle cx={cx} cy={cy} r={r * 0.16} fill="#1f2937" />
+    </g>
+  );
 
-      {/* Train body (engine) */}
-      <rect x="-14" y="-8" width="28" height="16" rx="4" fill="#e53e3e" stroke="#c53030" strokeWidth="1.5" />
-      {/* Cabin */}
-      <rect x="4" y="-12" width="10" height="12" rx="2" fill="#c53030" stroke="#9b2c2c" strokeWidth="1" />
-      {/* Cabin window */}
-      <rect x="6" y="-10" width="6" height="5" rx="1" fill="#bee3f8" opacity="0.9" />
-      {/* Front bumper */}
-      <rect x="-16" y="-4" width="4" height="8" rx="2" fill="#ecc94b" />
-      {/* Headlight */}
-      <circle cx="-16" cy="0" r="2.5" fill="#fefcbf" stroke="#ecc94b" strokeWidth="0.5" />
-      {/* Wheels */}
-      <circle cx="-8" cy="8" r="4" fill="#2d3748" stroke="#1a202c" strokeWidth="1" />
-      <circle cx="-8" cy="8" r="1.5" fill="#718096" />
-      <circle cx="4" cy="8" r="4" fill="#2d3748" stroke="#1a202c" strokeWidth="1" />
-      <circle cx="4" cy="8" r="1.5" fill="#718096" />
-        {/* Connecting rod animation */}
-        <line 
-          x1="-8" y1="8" 
-          x2="4" y2="8" 
-          stroke="#a0aec0" strokeWidth="1.5" 
-          transform={`translate(0, ${Math.sin(progress * 40) * 1.5})`}
+  return (
+    <g transform={`translate(${x}, ${y}) rotate(${angle})`} style={{ transformOrigin: "0 0" }}>
+      <g transform={`translate(0, ${bob})`}>
+        {/* ---- Green carriage trailing behind (drawn first, sits at the back) ---- */}
+        <g>
+          {/* coupling bar */}
+          <rect x="-22" y="2" width="8" height="2.5" rx="1.25" fill="#111827" />
+          {/* carriage body */}
+          <rect x="-38" y="-11" width="18" height="18" rx="3" fill="#9acd32" stroke="#7ba428" strokeWidth="1.5" />
+          {/* carriage window */}
+          <rect x="-35" y="-8" width="12" height="9" rx="1.5" fill="#eefdf3" stroke="#7ba428" strokeWidth="1" />
+          <circle cx="-29" cy="-3.5" r="2.4" fill="#c7e89a" />
+          {/* carriage wheels */}
+          {drivingWheel(-33, 9, 3.6, "car-w1")}
+          {drivingWheel(-24, 9, 3.6, "car-w2")}
+        </g>
+
+        {/* ---- Locomotive ---- */}
+        {/* boiler (front cylinder) */}
+        <rect x="-2" y="-7" width="20" height="14" rx="6" fill="#e23b2e" stroke="#b52d22" strokeWidth="1.5" />
+        {/* smokebox front cap */}
+        <circle cx="18" cy="0" r="7" fill="#c9302a" stroke="#b52d22" strokeWidth="1.5" />
+        {/* front buffer beam */}
+        <rect x="20" y="-6" width="3" height="12" rx="1.5" fill="#1f2937" />
+
+        {/* cab (rear, taller) */}
+        <path
+          d="M -18 7 L -18 -8 Q -18 -13 -13 -13 L 0 -13 Q 3 -13 3 -8 L 3 7 Z"
+          fill="#e23b2e"
+          stroke="#b52d22"
+          strokeWidth="1.5"
+        />
+        {/* cab roof */}
+        <rect x="-20" y="-15" width="25" height="3.5" rx="1.75" fill="#1f2937" />
+
+        {/* cab window with conductor */}
+        <rect x="-15" y="-11" width="15" height="11" rx="1.5" fill="#bfe3ec" stroke="#7ba0a8" strokeWidth="0.75" />
+        {/* conductor: face + blue cap */}
+        <circle cx="-7.5" cy="-4" r="3.4" fill="#f2c9a0" />
+        <path d="M -11.4 -5.6 Q -7.5 -9 -3.6 -5.6 L -3.6 -5 L -11.4 -5 Z" fill="#2f5aa8" />
+        <rect x="-12" y="-5.4" width="9" height="1.6" rx="0.8" fill="#24478a" />
+
+        {/* funnel (smokestack) at the front */}
+        <path d="M 12 -7 L 18 -7 L 16.5 -15 L 13.5 -15 Z" fill="#1f2937" />
+        <ellipse cx="15" cy="-15" rx="2.6" ry="1" fill="#0f172a" />
+        {/* dome */}
+        <path d="M 3 -7 Q 6 -12 9 -7 Z" fill="#f2b705" />
+
+        {/* frame / footplate */}
+        <rect x="-18" y="6" width="41" height="3" rx="1.5" fill="#1f2937" />
+
+        {/* wheels: two big driving wheels + connecting rod */}
+        {drivingWheel(-9, 9, 6, "loco-w1")}
+        {drivingWheel(9, 9, 6, "loco-w2")}
+        <line
+          x1={-9 + Math.cos((wheelAngle * Math.PI) / 180) * 3}
+          y1={9 + Math.sin((wheelAngle * Math.PI) / 180) * 3}
+          x2={9 + Math.cos((wheelAngle * Math.PI) / 180) * 3}
+          y2={9 + Math.sin((wheelAngle * Math.PI) / 180) * 3}
+          stroke="#9ca3af"
+          strokeWidth="1.6"
+          strokeLinecap="round"
         />
 
-        {/* Smokestack (chimney) - positioned above the cabin window and drawn in
-            front of the body so the black chimney sits on top. */}
-        <rect x="6" y="-19" width="5" height="7" rx="1" fill="#2d3748" stroke="#1a202c" strokeWidth="0.75" />
-        <ellipse cx="8.5" cy="-19" rx="4" ry="2" fill="#1a202c" />
-
-        {/* Smoke puffs - rendered last so they appear in front of the train */}
+        {/* steam puffs rendered last so they float in front */}
         {smokes}
       </g>
     </g>
