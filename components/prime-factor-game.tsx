@@ -1846,7 +1846,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       ...gameState,
       phase: "playing" as const,
       selectedDice: [],
-      message: `${gameState.players[gameState.currentPlayer].name}, select dice to match a space's factorization!`,
+      message: `${gameState.players[gameState.currentPlayer].name}, select dice to match a space's factorization`,
     };
     
     setPlayer1Dice(sortDice(dice1));
