@@ -1257,20 +1257,16 @@ export function PrimeFactorGame({
   // Subscribe to opponent selections for real-time visibility
   useEffect(() => {
     if (!isMultiplayer || !sessionId || !opponentPlayerId || gameState.phase !== "playing") {
-      console.log('[v0] Subscription disabled:', { isMultiplayer, sessionId, opponentPlayerId, phase: gameState.phase });
       setOpponentSelectedDice([]);
       setOpponentSelectedSquares([]);
       return;
     }
-
-    console.log('[v0] Setting up opponent selection subscription:', { sessionId, opponentPlayerId });
 
     let cancelled = false;
 
     const pollInterval = setInterval(() => {
       getOpponentSelections(sessionId, opponentPlayerId).then((selections) => {
         if (!cancelled) {
-          console.log('[v0] Updating opponent selections:', selections);
           setOpponentSelectedDice(selections.diceSelections);
           setOpponentSelectedSquares(selections.squareSelections);
         }
