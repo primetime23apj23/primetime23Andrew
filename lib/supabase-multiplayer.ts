@@ -542,6 +542,7 @@ export async function saveOpponentSelection(
   selectionValue: string
 ): Promise<boolean> {
   try {
+    console.log('[v0] saveOpponentSelection called:', { sessionId, playerId, selectionType, selectionValue });
     const response = await fetch('/api/opponent-selections', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -549,13 +550,14 @@ export async function saveOpponentSelection(
     });
 
     if (!response.ok) {
-      console.warn('Save opponent selection failed:', response.status);
+      console.warn('[v0] Save opponent selection failed:', response.status);
       return false;
     }
 
+    console.log('[v0] Selection saved successfully');
     return true;
   } catch (error) {
-    console.error('Error saving opponent selection:', error);
+    console.error('[v0] Error saving opponent selection:', error);
     return false;
   }
 }
@@ -568,17 +570,19 @@ export async function getOpponentSelections(
   opponentPlayerId: string
 ): Promise<{ diceSelections: string[]; squareSelections: string[] }> {
   try {
+    console.log('[v0] getOpponentSelections called:', { sessionId, opponentPlayerId });
     const response = await fetch(`/api/opponent-selections?sessionId=${encodeURIComponent(sessionId)}&opponentId=${encodeURIComponent(opponentPlayerId)}`);
     
     if (!response.ok) {
-      console.warn('Get opponent selections failed:', response.status);
+      console.warn('[v0] Get opponent selections failed:', response.status);
       return { diceSelections: [], squareSelections: [] };
     }
 
     const data = await response.json();
+    console.log('[v0] Received opponent selections:', data);
     return data;
   } catch (error) {
-    console.error('Error fetching opponent selections:', error);
+    console.error('[v0] Error fetching opponent selections:', error);
     return { diceSelections: [], squareSelections: [] };
   }
 }

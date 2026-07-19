@@ -1243,16 +1243,20 @@ export function PrimeFactorGame({
   // Subscribe to opponent selections for real-time visibility
   useEffect(() => {
     if (!isMultiplayer || !sessionId || !opponentPlayerId || gameState.phase !== "playing") {
+      console.log('[v0] Subscription disabled:', { isMultiplayer, sessionId, opponentPlayerId, phase: gameState.phase });
       setOpponentSelectedDice([]);
       setOpponentSelectedSquares([]);
       return;
     }
+
+    console.log('[v0] Setting up opponent selection subscription:', { sessionId, opponentPlayerId });
 
     let cancelled = false;
 
     const pollInterval = setInterval(() => {
       getOpponentSelections(sessionId, opponentPlayerId).then((selections) => {
         if (!cancelled) {
+          console.log('[v0] Updating opponent selections:', selections);
           setOpponentSelectedDice(selections.diceSelections);
           setOpponentSelectedSquares(selections.squareSelections);
         }
@@ -1272,6 +1276,18 @@ export function PrimeFactorGame({
       channel.unsubscribe();
     };
   }, [isMultiplayer, sessionId, opponentPlayerId, gameState.phase]);
+
+  // Automatically set opponent player ID based on local player ID
+  useEffect(() => {
+    if (!isMultiplayer || !sessionLocalPlayerId || !sessionPlayer1Id || !sessionPlayer2Id) {
+      console.log('[v0] Not setting opponent ID:', { isMultiplayer, sessionLocalPlayerId, sessionPlayer1Id, sessionPlayer2Id });
+      return;
+    }
+
+    const newOpponentId = sessionLocalPlayerId === sessionPlayer1Id ? sessionPlayer2Id : sessionPlayer1Id;
+    console.log('[v0] Setting opponent ID:', { sessionLocalPlayerId, newOpponentId, sessionPlayer1Id, sessionPlayer2Id });
+    setOpponentPlayerId(newOpponentId);
+  }, [isMultiplayer, sessionLocalPlayerId, sessionPlayer1Id, sessionPlayer2Id]);
 
   // Set current turn when game starts in multiplayer
   useEffect(() => {

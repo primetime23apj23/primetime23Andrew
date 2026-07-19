@@ -16,8 +16,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { sessionId, playerId, selectionType, selectionValue } = body;
+    console.log('[v0] POST opponent selection:', { sessionId, playerId, selectionType, selectionValue });
 
     if (!sessionId || !playerId || !selectionType || !selectionValue) {
+      console.log('[v0] Missing required fields');
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -42,11 +44,15 @@ export async function POST(request: NextRequest) {
         selection_value: selectionValue,
       });
 
-    if (error) throw error;
+    if (error) {
+      console.error('[v0] Supabase insert error:', error);
+      throw error;
+    }
 
+    console.log('[v0] Selection saved successfully');
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error saving opponent selection:', error);
+    console.error('[v0] Error saving opponent selection:', error);
     return NextResponse.json(
       { error: 'Failed to save selection' },
       { status: 500 }
@@ -62,8 +68,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get('sessionId');
     const opponentId = searchParams.get('opponentId');
+    console.log('[v0] GET opponent selections:', { sessionId, opponentId });
 
     if (!sessionId || !opponentId) {
+      console.log('[v0] Missing query parameters');
       return NextResponse.json(
         { error: 'Missing required query parameters' },
         { status: 400 }
@@ -84,7 +92,12 @@ export async function GET(request: NextRequest) {
       .eq('session_id', sessionId)
       .eq('player_id', opponentId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('[v0] Supabase fetch error:', error);
+      throw error;
+    }
+
+    console.log('[v0] Fetched selections:', { data });
 
     const diceSelections = (data || [])
       .filter((d) => d.selection_type === 'dice')
@@ -94,12 +107,14 @@ export async function GET(request: NextRequest) {
       .filter((d) => d.selection_type === 'square')
       .map((d) => d.selection_value);
 
+    console.log('[v0] Returning selections:', { diceSelections, squareSelections });
+
     return NextResponse.json({
       diceSelections,
       squareSelections,
     });
   } catch (error) {
-    console.error('Error fetching opponent selections:', error);
+    console.error('[v0] Error fetching opponent selections:', error);
     return NextResponse.json(
       { error: 'Failed to fetch selections' },
       { status: 500 }
