@@ -688,7 +688,6 @@ export function PrimeFactorGame({
         // Broadcast the auto-selected dice to opponent in multiplayer mode
         if (isMultiplayer && sessionId && sessionLocalPlayerId) {
           // First, clear all previously selected dice from opponent's view
-          // by removing old selections
           gameState.selectedDice.forEach((oldDieId) => {
             const oldDieIndex = currentPlayerDice.findIndex((d) => d.id === oldDieId);
             if (oldDieIndex >= 0) {
@@ -698,9 +697,9 @@ export function PrimeFactorGame({
             }
           });
           
-          // Then broadcast the new auto-selected dice
-          match.forEach((matchedDie) => {
-            const dieIndex = currentPlayerDice.findIndex((d) => d.id === matchedDie.id);
+          // Then broadcast the new auto-selected dice using the matched IDs
+          matchedDiceIds.forEach((dieId) => {
+            const dieIndex = currentPlayerDice.findIndex((d) => d.id === dieId);
             if (dieIndex >= 0) {
               saveOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', String(dieIndex)).catch(error =>
                 console.error('[v0] Failed to broadcast auto-selected dice:', error)
@@ -1326,6 +1325,7 @@ export function PrimeFactorGame({
     const pollInterval = setInterval(() => {
       getOpponentSelections(sessionId, opponentPlayerId).then((selections) => {
         if (!cancelled) {
+          console.log('[v0] Received opponent selections:', selections);
           setOpponentSelectedDice(selections.diceSelections);
           setOpponentSelectedSquares(selections.squareSelections);
         }
