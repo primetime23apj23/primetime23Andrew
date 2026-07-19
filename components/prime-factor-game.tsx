@@ -2124,21 +2124,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
       return next;
     });
     
-    // Sync last capture through gameState for multiplayer
-    if (isMultiplayer) {
-      setGameState((prev) => ({
-        ...prev,
-        lastCapturePerPlayer: [
-          prev.lastCapturePerPlayer?.[0] ?? null,
-          prev.lastCapturePerPlayer?.[1] ?? null,
-        ].map((capture, idx) => 
-          idx === currentPlayerIndex 
-            ? { space: capturedNumber, factors: selectedSpace.factors }
-            : capture
-        ),
-      }));
-    }
-    
     // Reset manual selection flag after claiming
     manualSelectionRef.current = false;
 
