@@ -866,7 +866,8 @@ export function PrimeFactorGame({
       return;
     }
     
-    const currentValidSet = new Set(possibleMoveHighlights);
+    // Broadcast the same combined set of highlights the local player sees
+    const currentValidSet = new Set([...validMoves, ...possibleMoveHighlights]);
     const previousValidSet = previousValidMovesRef.current;
     
     // Remove moves that are no longer valid
@@ -887,7 +888,7 @@ export function PrimeFactorGame({
     
     // Update the ref
     previousValidMovesRef.current = currentValidSet;
-  }, [possibleMoveHighlights, isMultiplayer, sessionId, sessionLocalPlayerId, gameState.phase]);
+  }, [validMoves, possibleMoveHighlights, isMultiplayer, sessionId, sessionLocalPlayerId, gameState.phase]);
 
   // Track previous auto-selected square to detect changes and update opponent
   const previousAutoSquareRef = useRef<number | null>(null);
@@ -1130,6 +1131,7 @@ export function PrimeFactorGame({
         readyConfirmationActive: nextState.readyConfirmationActive,
         readyConfirmationInitiator: nextState.readyConfirmationInitiator,
         readyConfirmationCountdown: nextState.readyConfirmationCountdown,
+        lastCapturePerPlayer: nextState.lastCapturePerPlayer,
         actionType,
         syncVersion: nextSyncVersion,
       }, nextState.roundNumber);

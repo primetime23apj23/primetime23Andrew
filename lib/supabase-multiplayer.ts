@@ -538,7 +538,7 @@ export async function updateCurrentTurn(
 export async function saveOpponentSelection(
   sessionId: string,
   playerId: string,
-  selectionType: 'dice' | 'square',
+  selectionType: 'dice' | 'square' | 'validMove',
   selectionValue: string
 ): Promise<boolean> {
   try {
@@ -565,19 +565,23 @@ export async function saveOpponentSelection(
 export async function getOpponentSelections(
   sessionId: string,
   opponentPlayerId: string
-): Promise<{ diceSelections: string[]; squareSelections: string[] }> {
+): Promise<{ diceSelections: string[]; squareSelections: string[]; validMoves: string[] }> {
   try {
     const response = await fetch(`/api/opponent-selections?sessionId=${encodeURIComponent(sessionId)}&opponentId=${encodeURIComponent(opponentPlayerId)}`);
     
     if (!response.ok) {
-      return { diceSelections: [], squareSelections: [] };
+      return { diceSelections: [], squareSelections: [], validMoves: [] };
     }
 
     const data = await response.json();
-    return data;
+    return {
+      diceSelections: data.diceSelections ?? [],
+      squareSelections: data.squareSelections ?? [],
+      validMoves: data.validMoves ?? [],
+    };
   } catch (error) {
     console.error('[v0] Error fetching opponent selections:', error);
-    return { diceSelections: [], squareSelections: [] };
+    return { diceSelections: [], squareSelections: [], validMoves: [] };
   }
 }
 
@@ -587,7 +591,7 @@ export async function getOpponentSelections(
 export async function removeOpponentSelection(
   sessionId: string,
   playerId: string,
-  selectionType: 'dice' | 'square',
+  selectionType: 'dice' | 'square' | 'validMove',
   selectionValue: string
 ): Promise<boolean> {
   try {
@@ -639,7 +643,7 @@ export async function clearOpponentSelections(
 export function subscribeToOpponentSelections(
   sessionId: string,
   opponentPlayerId: string,
-  callback: (selections: { diceSelections: string[]; squareSelections: string[] }) => void
+  callback: (selections: { diceSelections: string[]; squareSelections: string[]; validMoves: string[] }) => void
 ) {
   const channel = supabase.channel(`opponent_selections:${sessionId}:${opponentPlayerId}`);
 

@@ -46,11 +46,7 @@ export function FactorizationBox({ capture }: FactorizationBoxProps) {
             ))}
           </ul>
         </div>
-      ) : (
-        <p className="text-xs text-muted-foreground text-center my-auto">
-          No captures yet
-        </p>
-      )}
+      ) : null}
     </div>
   );
 }
