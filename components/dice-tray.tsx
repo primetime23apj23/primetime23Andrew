@@ -113,12 +113,12 @@ export function DiceTray({
             </div>
           ))
         ) : (
-          dice.map((die) => (
+          dice.map((die, index) => (
             <DieComponent
               key={die.id}
               die={die}
               isSelected={selectedDice.includes(die.id)}
-              isOpponentSelected={opponentSelectedDice.includes(die.id)}
+              isOpponentSelected={opponentSelectedDice.includes(String(index))}
               onClick={() => onDieClick(die)}
               disabled={disabled || die.used}
               isDragging={draggedId === die.id}
