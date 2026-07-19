@@ -588,6 +588,36 @@ export async function getOpponentSelections(
 }
 
 /**
+ * Remove a specific opponent selection (dice or square deselection)
+ */
+export async function removeOpponentSelection(
+  sessionId: string,
+  playerId: string,
+  selectionType: 'dice' | 'square',
+  selectionValue: string
+): Promise<boolean> {
+  try {
+    console.log('[v0] removeOpponentSelection called:', { sessionId, playerId, selectionType, selectionValue });
+    const response = await fetch('/api/opponent-selections', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, playerId, selectionType, selectionValue }),
+    });
+
+    if (!response.ok) {
+      console.warn('[v0] Remove opponent selection failed:', response.status);
+      return false;
+    }
+
+    console.log('[v0] Selection removed successfully');
+    return true;
+  } catch (error) {
+    console.error('[v0] Error removing opponent selection:', error);
+    return false;
+  }
+}
+
+/**
  * Clear opponent's selections (called when square is claimed)
  */
 export async function clearOpponentSelections(
@@ -595,6 +625,7 @@ export async function clearOpponentSelections(
   playerId: string
 ): Promise<boolean> {
   try {
+    console.log('[v0] clearOpponentSelections called:', { sessionId, playerId });
     const response = await fetch('/api/opponent-selections', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -602,13 +633,14 @@ export async function clearOpponentSelections(
     });
 
     if (!response.ok) {
-      console.warn('Clear opponent selections failed:', response.status);
+      console.warn('[v0] Clear opponent selections failed:', response.status);
       return false;
     }
 
+    console.log('[v0] All selections cleared');
     return true;
   } catch (error) {
-    console.error('Error clearing opponent selections:', error);
+    console.error('[v0] Error clearing opponent selections:', error);
     return false;
   }
 }

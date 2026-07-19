@@ -26,23 +26,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // First, clear any previous selections from this player to avoid duplicates
-    await supabase
+    // Check if this exact selection already exists
+    const { data: existingSelection } = await supabase
       .from('opponent_selections')
-      .delete()
+      .select('id')
       .eq('session_id', sessionId)
       .eq('player_id', playerId)
-      .eq('selection_type', selectionType);
+      .eq('selection_type', selectionType)
+      .eq('selection_value', selectionValue)
+      .single();
 
-    // Insert the new selection
-    const { error } = await supabase
-      .from('opponent_selections')
-      .insert({
-        session_id: sessionId,
-        player_id: playerId,
-        selection_type: selectionType,
-        selection_value: selectionValue,
-      });
+    // Only insert if it doesn't already exist
+    if (!existingSelection) {
+      const { error } = await supabase
+        .from('opponent_selections')
+        .insert({
+          session_id: sessionId,
+          player_id: playerId,
+          selection_type: selectionType,
+          selection_value: selectionValue,
+        });
+
+      if (error) {
+        console.error('[v0] Supabase insert error:', error);
+        throw error;
+      }
+    } else {
+      console.log('[v0] Selection already exists, not inserting duplicate');
+    }
 
     if (error) {
       console.error('[v0] Supabase insert error:', error);
@@ -123,12 +134,14 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * DELETE - Clear opponent's selections (when square is claimed)
+ * DELETE - Clear opponent's selections
+ * If selectionType and selectionValue provided: delete specific selection
+ * Otherwise: delete all selections for the player (when square is claimed)
  */
 export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId, playerId } = body;
+    const { sessionId, playerId, selectionType, selectionValue } = body;
 
     if (!sessionId || !playerId) {
       return NextResponse.json(
@@ -137,18 +150,29 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Delete all selections for this player in this session
-    const { error } = await supabase
+    let query = supabase
       .from('opponent_selections')
       .delete()
       .eq('session_id', sessionId)
       .eq('player_id', playerId);
 
+    // If specific selection is provided, delete only that one (deselection)
+    if (selectionType && selectionValue) {
+      query = query
+        .eq('selection_type', selectionType)
+        .eq('selection_value', selectionValue);
+      console.log('[v0] Deleting specific selection:', { sessionId, playerId, selectionType, selectionValue });
+    } else {
+      // Otherwise delete all selections (when square is claimed)
+      console.log('[v0] Deleting all selections for player:', { sessionId, playerId });
+    }
+
+    const { error } = await query;
     if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error clearing opponent selections:', error);
+    console.error('[v0] Error clearing opponent selections:', error);
     return NextResponse.json(
       { error: 'Failed to clear selections' },
       { status: 500 }
