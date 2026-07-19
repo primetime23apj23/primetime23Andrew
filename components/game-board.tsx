@@ -46,7 +46,7 @@ export function GameBoard({
   }
 
   return (
-    <div className="w-full max-w-[92vw] sm:max-w-3xl mx-auto flex flex-col gap-px sm:gap-2">
+    <div className="w-full max-w-[92vw] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto flex flex-col gap-px sm:gap-2">
       <div className="flex gap-px sm:gap-2">
         {/* Left vertical axis - Website credit */}
         <div className="flex items-center justify-center shrink-0">
