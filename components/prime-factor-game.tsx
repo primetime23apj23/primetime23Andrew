@@ -656,13 +656,19 @@ export function PrimeFactorGame({
     
     // Broadcast square selection to opponent in multiplayer mode
     if (isMultiplayer && sessionId && sessionLocalPlayerId) {
-      // First, clear any previous square selection
+      // First, clear any previous square selections (both manually selected and auto-selected)
       if (selectedSpace && selectedSpace.number !== space.number) {
         removeOpponentSelection(sessionId, sessionLocalPlayerId, 'square', String(selectedSpace.number)).catch(error =>
           console.error('[v0] Failed to clear old square selection:', error)
         );
       }
-      // Then broadcast the new square selection
+      // Also clear any auto-selected square that might still be in the database
+      if (previousAutoSquareRef.current !== null) {
+        removeOpponentSelection(sessionId, sessionLocalPlayerId, 'square', String(previousAutoSquareRef.current)).catch(error =>
+          console.error('[v0] Failed to clear old auto-selected square:', error)
+        );
+      }
+      // Then broadcast the new manually-selected square
       saveOpponentSelection(sessionId, sessionLocalPlayerId, 'square', String(space.number)).catch(error =>
         console.error('[v0] Failed to broadcast square selection:', error)
       );
