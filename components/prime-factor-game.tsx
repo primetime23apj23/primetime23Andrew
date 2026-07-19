@@ -366,6 +366,16 @@ export function PrimeFactorGame({
   const isLocalPlayersTurn =
     (!isMultiplayer && !botEnabled) || (localPlayerIndex !== null && localPlayerIndex === gameState.currentPlayer);
 
+  // Disambiguate seats in multiplayer (players may share the same display name)
+  // by marking the local player's seat with "(You)".
+  const getSeatDisplayName = (seatIndex: number) => {
+    const baseName = gameState.players[seatIndex]?.name ?? `Player ${seatIndex + 1}`;
+    if (isMultiplayer && localPlayerIndex === seatIndex) {
+      return `${baseName} (You)`;
+    }
+    return baseName;
+  };
+
   // Keep gameStateRef in sync for use in callbacks
   useEffect(() => {
     gameStateRef.current = gameState;
@@ -2791,7 +2801,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
             <div className="flex flex-row gap-2 items-stretch">
               <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
-              <h3 className="font-semibold text-sm mb-3">{gameState.players[0].name}</h3>
+              <h3 className="font-semibold text-sm mb-3">{getSeatDisplayName(0)}</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Captured Squares:</span>
@@ -2826,7 +2836,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                     gameState.currentPlayer !== 0 ||
                     (isMultiplayer && localPlayerIndex !== 0)
                   }
-                  playerName={gameState.players[0].name}
+                  playerName={getSeatDisplayName(0)}
                   showActions={gameState.currentPlayer === 0 && selectedSpace !== null && selectedDiceObjects.length > 0}
                   canClaim={canClaimSpace}
                   onClaim={handleClaim}
@@ -2869,7 +2879,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             <div className="flex flex-row gap-2 items-stretch">
               <FactorizationBox capture={lastCapturePerPlayer[1]} />
               <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
-              <h3 className="font-semibold text-sm mb-3">{gameState.players[1].name}</h3>
+              <h3 className="font-semibold text-sm mb-3">{getSeatDisplayName(1)}</h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Captured Squares:</span>
@@ -2903,7 +2913,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                     gameState.currentPlayer !== 1 ||
                     (isMultiplayer && localPlayerIndex !== 1)
                   }
-                  playerName={gameState.players[1].name}
+                  playerName={getSeatDisplayName(1)}
                   hideValues={false}
                   showActions={gameState.currentPlayer === 1 && selectedSpace !== null && selectedDiceObjects.length > 0}
                   canClaim={canClaimSpace}
