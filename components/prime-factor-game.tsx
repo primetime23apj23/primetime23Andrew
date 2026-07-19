@@ -2053,6 +2053,17 @@ const channel = subscribeToSession(sessionCode, (session) => {
       newPlayers[currentPlayerIndex].score +
       newPlayers[currentPlayerIndex].bonusPoints;
 
+    // Record most recent capture for the claiming player (drives the factorization box).
+    // Include it directly in nextGameState so it is persisted and synced to the opponent.
+    const nextLastCapturePerPlayer = [
+      gameState.lastCapturePerPlayer?.[0] ?? null,
+      gameState.lastCapturePerPlayer?.[1] ?? null,
+    ].map((capture, idx) =>
+      idx === currentPlayerIndex
+        ? { space: selectedSpace.number, factors: selectedSpace.factors }
+        : capture
+    );
+
     const nextGameState =
       totalScore >= gameState.targetScore
         ? {
@@ -2062,6 +2073,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             selectedDice: [],
             phase: "gameOver" as const,
             message: `${newPlayers[currentPlayerIndex].name} wins with ${totalScore} points!`,
+            lastCapturePerPlayer: nextLastCapturePerPlayer,
           }
         : {
             ...gameState,
@@ -2072,6 +2084,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             player2HasMoved: currentPlayerIndex === 1 ? true : gameState.player2HasMoved,
             selectedDice: [],
             message: `Claimed space ${selectedSpace.number}! ${newPlayers[(currentPlayerIndex + 1) % gameState.players.length].name}'s turn.`,
+            lastCapturePerPlayer: nextLastCapturePerPlayer,
           };
 
     if (currentPlayerIndex === 0) {
