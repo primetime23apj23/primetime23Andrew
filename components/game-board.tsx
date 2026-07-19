@@ -198,7 +198,7 @@ function BoardSpaceCell({
         space.owner !== null && "cursor-default",
         isHighlighted && "ring-2 ring-chart-1",
         isValidMove && !space.owner && "bg-green-50 dark:bg-green-950 shadow-[inset_0_0_12px_2px_rgba(34,197,94,0.55)] animate-pulse",
-        isOpponentValidMove && !space.owner && !isValidMove && "bg-blue-50 dark:bg-blue-950 shadow-[inset_0_0_8px_2px_rgba(59,130,246,0.4)]",
+        isOpponentValidMove && !space.owner && !isValidMove && "bg-green-50 dark:bg-green-950 shadow-[inset_0_0_12px_2px_rgba(34,197,94,0.55)] animate-pulse",
         isOpponentSelected && !space.owner && "ring-2 ring-blue-400 dark:ring-blue-300 shadow-[inset_0_0_8px_1px_rgba(96,165,250,0.3)]"
       )}
       style={!space.isPrime && ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
