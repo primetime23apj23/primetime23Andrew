@@ -860,12 +860,10 @@ export function PrimeFactorGame({
 
   // Sync last capture from gameState to local state whenever gameState updates
   useEffect(() => {
-    console.log("[v0] Sync effect triggered, gameState.lastCapturePerPlayer:", gameState.lastCapturePerPlayer);
     if (Array.isArray(gameState.lastCapturePerPlayer) && gameState.lastCapturePerPlayer.length > 0) {
       setLastCapturePerPlayer((prev) => 
         gameState.lastCapturePerPlayer.map((capture: any, idx: number) => {
           if (capture && typeof capture.space === 'number') {
-            console.log("[v0] Syncing capture for player", idx, "space:", capture.space);
             return {
               number: capture.space,
               key: (prev[idx]?.key ?? 0) + 1,
@@ -2055,6 +2053,17 @@ const channel = subscribeToSession(sessionCode, (session) => {
       newPlayers[currentPlayerIndex].score +
       newPlayers[currentPlayerIndex].bonusPoints;
 
+    // Record most recent capture for the claiming player (drives the factorization box).
+    // Include it directly in nextGameState so it is persisted and synced to the opponent.
+    const nextLastCapturePerPlayer = [
+      gameState.lastCapturePerPlayer?.[0] ?? null,
+      gameState.lastCapturePerPlayer?.[1] ?? null,
+    ].map((capture, idx) =>
+      idx === currentPlayerIndex
+        ? { space: selectedSpace.number, factors: selectedSpace.factors }
+        : capture
+    );
+
     const nextGameState =
       totalScore >= gameState.targetScore
         ? {
@@ -2064,6 +2073,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             selectedDice: [],
             phase: "gameOver" as const,
             message: `${newPlayers[currentPlayerIndex].name} wins with ${totalScore} points!`,
+            lastCapturePerPlayer: nextLastCapturePerPlayer,
           }
         : {
             ...gameState,
@@ -2074,6 +2084,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             player2HasMoved: currentPlayerIndex === 1 ? true : gameState.player2HasMoved,
             selectedDice: [],
             message: `Claimed space ${selectedSpace.number}! ${newPlayers[(currentPlayerIndex + 1) % gameState.players.length].name}'s turn.`,
+            lastCapturePerPlayer: nextLastCapturePerPlayer,
           };
 
     if (currentPlayerIndex === 0) {
@@ -2104,33 +2115,14 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     // Record most recent capture for the claiming player (drives the factorization box)
     const capturedNumber = selectedSpace.number;
-    console.log("[v0] Claiming space:", capturedNumber, "for player", currentPlayerIndex);
     setLastCapturePerPlayer((prev) => {
       const next = [...prev];
       next[currentPlayerIndex] = {
         number: capturedNumber,
         key: (prev[currentPlayerIndex]?.key ?? 0) + 1,
-        space: capturedNumber, // For consistency with gameState format
-        factors: selectedSpace.factors,
       };
-      console.log("[v0] Updated lastCapturePerPlayer:", next);
       return next;
     });
-    
-    // Sync last capture through gameState for multiplayer
-    if (isMultiplayer) {
-      setGameState((prev) => ({
-        ...prev,
-        lastCapturePerPlayer: [
-          prev.lastCapturePerPlayer?.[0] ?? null,
-          prev.lastCapturePerPlayer?.[1] ?? null,
-        ].map((capture, idx) => 
-          idx === currentPlayerIndex 
-            ? { space: capturedNumber, factors: selectedSpace.factors }
-            : capture
-        ),
-      }));
-    }
     
     // Reset manual selection flag after claiming
     manualSelectionRef.current = false;
