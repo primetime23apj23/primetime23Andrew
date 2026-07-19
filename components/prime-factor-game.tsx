@@ -51,7 +51,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import {
-  createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGameSessionById, getGameStates, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId, sendHeartbeat, validateTurn, updateCurrentTurn, saveOpponentSelection, getOpponentSelections, clearOpponentSelections, subscribeToOpponentSelections
+  createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGameSessionById, getGameStates, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId, sendHeartbeat, validateTurn, updateCurrentTurn, saveOpponentSelection, removeOpponentSelection, getOpponentSelections, clearOpponentSelections, subscribeToOpponentSelections
 } from "@/lib/supabase-multiplayer";
 import { AuthDialog } from "./auth-dialog";
 import { ActiveGamesDialog } from "./active-games-dialog";
@@ -609,23 +609,32 @@ export function PrimeFactorGame({
     // Reset auto-selected flag when user manually selects/deselects dice
     setDiceAutoSelected(false);
     
+    const isCurrentlySelected = gameState.selectedDice.includes(die.id);
+    
     setGameState((prev) => {
-      const isSelected = prev.selectedDice.includes(die.id);
       return {
         ...prev,
-        selectedDice: isSelected
+        selectedDice: isCurrentlySelected
           ? prev.selectedDice.filter((id) => id !== die.id)
           : [...prev.selectedDice, die.id],
       };
     });
     
-    // Broadcast dice selection to opponent in multiplayer mode
+    // Broadcast dice selection/deselection to opponent in multiplayer mode
     if (isMultiplayer && sessionId && sessionLocalPlayerId) {
-      saveOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', die.id).catch(error =>
-        console.error('[v0] Failed to broadcast dice selection:', error)
-      );
+      if (isCurrentlySelected) {
+        // Deselection - remove from opponent's view
+        removeOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', die.id).catch(error =>
+          console.error('[v0] Failed to broadcast dice deselection:', error)
+        );
+      } else {
+        // Selection - add to opponent's view
+        saveOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', die.id).catch(error =>
+          console.error('[v0] Failed to broadcast dice selection:', error)
+        );
+      }
     }
-  }, [currentPlayerDice, gameState.phase, isLocalPlayersTurn, isMultiplayer, sessionId, sessionLocalPlayerId]);
+  }, [currentPlayerDice, gameState.phase, isLocalPlayersTurn, isMultiplayer, sessionId, sessionLocalPlayerId, gameState.selectedDice]);
 
   // Handle space click
   const handleSpaceClick = useCallback((space: BoardSpace) => {
