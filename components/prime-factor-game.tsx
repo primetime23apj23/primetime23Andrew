@@ -884,8 +884,12 @@ export function PrimeFactorGame({
       return;
     }
     
-    // Broadcast the same combined set of highlights the local player sees
-    const currentValidSet = new Set([...validMoves, ...possibleMoveHighlights]);
+    // Broadcast the same combined set of highlights the local player sees.
+    // When it is not the local player's turn, broadcast nothing so any prior
+    // highlights are cleared for the opponent.
+    const currentValidSet = isLocalPlayersTurn
+      ? new Set([...validMoves, ...possibleMoveHighlights])
+      : new Set<number>();
     const previousValidSet = previousValidMovesRef.current;
     
     // Remove moves that are no longer valid
@@ -906,7 +910,7 @@ export function PrimeFactorGame({
     
     // Update the ref
     previousValidMovesRef.current = currentValidSet;
-  }, [validMoves, possibleMoveHighlights, isMultiplayer, sessionId, sessionLocalPlayerId, gameState.phase]);
+  }, [validMoves, possibleMoveHighlights, isMultiplayer, sessionId, sessionLocalPlayerId, gameState.phase, isLocalPlayersTurn]);
 
   // Track previous auto-selected square to detect changes and update opponent
   const previousAutoSquareRef = useRef<number | null>(null);
@@ -2852,7 +2856,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 validMoves={allHighlightedMoves}
                 lastClaimedSpace={lastClaimedSpace}
                 opponentSelectedSpaces={opponentSelectedSquares}
-                opponentValidMoves={isMultiplayer ? opponentValidMoves.map(v => parseInt(v)) : []}
+                opponentValidMoves={isMultiplayer && !isLocalPlayersTurn ? opponentValidMoves.map(v => parseInt(v)) : []}
                 skins={diceSkins}
               />
             </div>
