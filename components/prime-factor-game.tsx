@@ -611,6 +611,10 @@ export function PrimeFactorGame({
     
     const isCurrentlySelected = gameState.selectedDice.includes(die.id);
     
+    // Get the die's index position for broadcasting to opponent
+    const dieIndex = currentPlayerDice.findIndex((d) => d.id === die.id);
+    const dieIndexStr = String(dieIndex);
+    
     setGameState((prev) => {
       return {
         ...prev,
@@ -621,15 +625,16 @@ export function PrimeFactorGame({
     });
     
     // Broadcast dice selection/deselection to opponent in multiplayer mode
+    // Use die index instead of ID so opponent can match to their view of the same dice
     if (isMultiplayer && sessionId && sessionLocalPlayerId) {
       if (isCurrentlySelected) {
         // Deselection - remove from opponent's view
-        removeOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', die.id).catch(error =>
+        removeOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', dieIndexStr).catch(error =>
           console.error('[v0] Failed to broadcast dice deselection:', error)
         );
       } else {
         // Selection - add to opponent's view
-        saveOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', die.id).catch(error =>
+        saveOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', dieIndexStr).catch(error =>
           console.error('[v0] Failed to broadcast dice selection:', error)
         );
       }
