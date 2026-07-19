@@ -102,9 +102,14 @@ export async function GET(request: NextRequest) {
       .filter((d) => d.selection_type === 'square')
       .map((d) => d.selection_value);
 
+    const validMoves = (data || [])
+      .filter((d) => d.selection_type === 'validMove')
+      .map((d) => d.selection_value);
+
     return NextResponse.json({
       diceSelections,
       squareSelections,
+      validMoves,
     });
   } catch (error) {
     console.error('[v0] Error fetching opponent selections:', error);
