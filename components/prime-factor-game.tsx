@@ -2649,6 +2649,36 @@ const channel = subscribeToSession(sessionCode, (session) => {
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Left side - Player 1 Score & Bonus & Dice */}
           <div className="flex flex-col gap-4 lg:w-80">
+            {/* Controls above the scorecard - Timer and Game Controls */}
+            <div className="flex flex-col items-center gap-4">
+              {timerMode !== "disabled" && (
+                <GameTimer
+                  initialSeconds={getTimerSeconds()}
+                  onTimeUp={handleTimeUp}
+                  isActive={gameState.phase === "playing"}
+                  currentPlayer={gameState.currentPlayer}
+                  playerColors={PLAYER_COLORS}
+                />
+              )}
+
+              <GameControls
+                phase={gameState.phase}
+                canRoll={!diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn}
+                canEndTurn={gameState.phase === "playing" && gameState.phase !== "gameOver" && isLocalPlayersTurn}
+                hasValidMoves={hasAnyValidMove}
+                onRoll={handleRoll}
+                onEndTurn={handleEndTurn}
+                onNewRound={handleNewRound}
+                onReadyForNextRound={handleReadyForNextRound}
+                onNewGame={handleNewGame}
+                message={gameState.message}
+                player1Ready={gameState.player1Ready}
+                player2Ready={gameState.player2Ready}
+                isMultiplayer={isMultiplayer}
+                roundNumber={gameState.roundNumber}
+              />
+            </div>
+
             <div className="flex flex-row gap-2 items-stretch">
               <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
               <h3 className="font-semibold text-sm mb-3">{gameState.players[0].name}</h3>
@@ -2705,36 +2735,6 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
           {/* Center - Game Board and Space Detail */}
           <div className="flex-1 flex flex-col gap-4">
-            {/* Controls above the board - Timer and Game Controls */}
-            <div className="flex flex-col items-center gap-4">
-              {timerMode !== "disabled" && (
-                <GameTimer
-                  initialSeconds={getTimerSeconds()}
-                  onTimeUp={handleTimeUp}
-                  isActive={gameState.phase === "playing"}
-                  currentPlayer={gameState.currentPlayer}
-                  playerColors={PLAYER_COLORS}
-                />
-              )}
-
-              <GameControls
-                phase={gameState.phase}
-                canRoll={!diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn}
-                canEndTurn={gameState.phase === "playing" && gameState.phase !== "gameOver" && isLocalPlayersTurn}
-                hasValidMoves={hasAnyValidMove}
-                onRoll={handleRoll}
-                onEndTurn={handleEndTurn}
-                onNewRound={handleNewRound}
-                onReadyForNextRound={handleReadyForNextRound}
-                onNewGame={handleNewGame}
-                message={gameState.message}
-                player1Ready={gameState.player1Ready}
-                player2Ready={gameState.player2Ready}
-                isMultiplayer={isMultiplayer}
-                roundNumber={gameState.roundNumber}
-              />
-            </div>
-
             {/* Game Board centered */}
             <div>
               <GameBoard
