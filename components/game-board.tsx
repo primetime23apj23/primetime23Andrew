@@ -17,7 +17,7 @@ interface GameBoardProps {
   tracks?: CompletedTrack[];
   boardRef?: React.RefObject<HTMLDivElement | null>;
   lastClaimedSpace?: number | null;
-  opponentSelectedSpace?: number | null;
+  opponentSelectedSpaces?: string[];
   skins?: DiceSkin[] | null;
 }
 
@@ -29,7 +29,7 @@ export function GameBoard({
   tracks = [],
   boardRef,
   lastClaimedSpace = null,
-  opponentSelectedSpace = null,
+  opponentSelectedSpaces = [],
   skins = null,
 }: GameBoardProps) {
   const internalRef = useRef<HTMLDivElement>(null);
@@ -70,7 +70,7 @@ export function GameBoard({
                   isHighlighted={highlightedSpaces.includes(space?.number ?? -1)}
                   isValidMove={validMoves.includes(space?.number ?? -1)}
                   isLastClaimed={lastClaimedSpace === space?.number}
-                  isOpponentSelected={opponentSelectedSpace === space?.number}
+                  isOpponentSelected={opponentSelectedSpaces.includes(String(space?.number ?? -1))}
                   skins={skins}
                 />
               ))
@@ -193,7 +193,7 @@ function BoardSpaceCell({
         space.owner !== null && "cursor-default",
         isHighlighted && "ring-2 ring-chart-1",
         isValidMove && !space.owner && "bg-green-50 dark:bg-green-950 shadow-[inset_0_0_12px_2px_rgba(34,197,94,0.55)] animate-pulse",
-        isOpponentSelected && !space.owner && "ring-2 ring-dashed ring-purple-500"
+        isOpponentSelected && !space.owner && "ring-2 ring-blue-400 dark:ring-blue-300 shadow-[inset_0_0_8px_1px_rgba(96,165,250,0.3)]"
       )}
       style={!space.isPrime && ownerColor ? { backgroundColor: ownerColor + "CC" } : undefined}
     >

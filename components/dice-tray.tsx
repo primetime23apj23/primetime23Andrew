@@ -22,6 +22,7 @@ interface DiceTrayProps {
   onClaim?: () => void;
   onCancel?: () => void;
   skins?: DiceSkin[] | null;
+  opponentSelectedDice?: string[];
 }
 
 export function DiceTray({
@@ -37,6 +38,7 @@ export function DiceTray({
   onClaim,
   onCancel,
   skins = null,
+  opponentSelectedDice = [],
 }: DiceTrayProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -116,6 +118,7 @@ export function DiceTray({
               key={die.id}
               die={die}
               isSelected={selectedDice.includes(die.id)}
+              isOpponentSelected={opponentSelectedDice.includes(die.id)}
               onClick={() => onDieClick(die)}
               disabled={disabled || die.used}
               isDragging={draggedId === die.id}
@@ -158,6 +161,7 @@ export function DiceTray({
 interface DieComponentProps {
   die: Die;
   isSelected: boolean;
+  isOpponentSelected?: boolean;
   onClick: () => void;
   disabled: boolean;
   isDragging: boolean;
@@ -173,6 +177,7 @@ interface DieComponentProps {
 function DieComponent({ 
   die, 
   isSelected, 
+  isOpponentSelected = false,
   onClick, 
   disabled, 
   isDragging,
@@ -231,6 +236,9 @@ function DieComponent({
         isDragOver && "ring-2 ring-blue-500 scale-105",
         isSelected
           ? "ring-2 ring-chart-1 ring-offset-2 scale-110"
+          : "",
+        isOpponentSelected && !isSelected
+          ? "ring-2 ring-blue-400 dark:ring-blue-300 shadow-[inset_0_0_6px_1px_rgba(96,165,250,0.3)]"
           : "",
         getColorClasses()
       )}

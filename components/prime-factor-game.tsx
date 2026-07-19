@@ -50,7 +50,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles } from "lucide-react";
-import { createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGameSessionById, getGameStates, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId, sendHeartbeat, validateTurn, updateCurrentTurn } from "@/lib/supabase-multiplayer";
+import {
+  createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGameSessionById, getGameStates, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId, sendHeartbeat, validateTurn, updateCurrentTurn, saveOpponentSelection, getOpponentSelections, clearOpponentSelections, subscribeToOpponentSelections
+} from "@/lib/supabase-multiplayer";
 import { AuthDialog } from "./auth-dialog";
 import { ActiveGamesDialog } from "./active-games-dialog";
 import { usePlayerProfile } from "@/hooks/use-player-profile";
@@ -153,6 +155,10 @@ export function PrimeFactorGame({
   const [selectedSpace, setSelectedSpace] = useState<BoardSpace | null>(null);
   const [opponentSelectedSpace, setOpponentSelectedSpace] = useState<number | null>(null);
   const [diceAutoSelected, setDiceAutoSelected] = useState(false);
+  
+  // Opponent selection tracking for real-time visibility
+  const [opponentSelectedDice, setOpponentSelectedDice] = useState<string[]>([]);
+  const [opponentSelectedSquares, setOpponentSelectedSquares] = useState<string[]>([]);
   
   // Bonus history tracking
   const [bonusHistory, setBonusHistory] = useState<Array<{
@@ -612,7 +618,14 @@ export function PrimeFactorGame({
           : [...prev.selectedDice, die.id],
       };
     });
-  }, [currentPlayerDice, gameState.phase, isLocalPlayersTurn]);
+    
+    // Broadcast dice selection to opponent in multiplayer mode
+    if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+      saveOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', die.id).catch(error =>
+        console.error('[v0] Failed to broadcast dice selection:', error)
+      );
+    }
+  }, [currentPlayerDice, gameState.phase, isLocalPlayersTurn, isMultiplayer, sessionId, sessionLocalPlayerId]);
 
   // Handle space click
   const handleSpaceClick = useCallback((space: BoardSpace) => {
@@ -622,6 +635,13 @@ export function PrimeFactorGame({
     // Mark that user manually selected a space
     manualSelectionRef.current = true;
     setSelectedSpace(space);
+    
+    // Broadcast square selection to opponent in multiplayer mode
+    if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+      saveOpponentSelection(sessionId, sessionLocalPlayerId, 'square', String(space.number)).catch(error =>
+        console.error('[v0] Failed to broadcast square selection:', error)
+      );
+    }
     
     // Auto-select dice that can match this space (always, even if dice were previously selected)
     if (!space.isPrime && !space.owner && space.factors.length > 0) {
@@ -655,7 +675,7 @@ export function PrimeFactorGame({
       }));
       setDiceAutoSelected(false);
     }
-  }, [isLocalPlayersTurn, isMultiplayer, currentPlayerDice, canMatchFactorization, gameState]);
+  }, [isLocalPlayersTurn, isMultiplayer, currentPlayerDice, canMatchFactorization, gameState, isMultiplayer, sessionId, sessionLocalPlayerId]);
 
   // Reset manual selection flag when all dice are deselected or turn changes
   useEffect(() => {
@@ -1220,6 +1240,39 @@ export function PrimeFactorGame({
     };
   }, [applySavedGameState, getLatestGameStateRecord, isMultiplayer, loadLatestSavedGameState, sessionId, waitingForOpponent]);
 
+  // Subscribe to opponent selections for real-time visibility
+  useEffect(() => {
+    if (!isMultiplayer || !sessionId || !opponentPlayerId || gameState.phase !== "playing") {
+      setOpponentSelectedDice([]);
+      setOpponentSelectedSquares([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const pollInterval = setInterval(() => {
+      getOpponentSelections(sessionId, opponentPlayerId).then((selections) => {
+        if (!cancelled) {
+          setOpponentSelectedDice(selections.diceSelections);
+          setOpponentSelectedSquares(selections.squareSelections);
+        }
+      }).catch(error => console.error('[v0] Failed to fetch opponent selections:', error));
+    }, 500); // Poll every 500ms for real-time feel
+
+    const channel = subscribeToOpponentSelections(sessionId, opponentPlayerId, (selections) => {
+      if (!cancelled) {
+        setOpponentSelectedDice(selections.diceSelections);
+        setOpponentSelectedSquares(selections.squareSelections);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      clearInterval(pollInterval);
+      channel.unsubscribe();
+    };
+  }, [isMultiplayer, sessionId, opponentPlayerId, gameState.phase]);
+
   // Set current turn when game starts in multiplayer
   useEffect(() => {
     if (
@@ -1713,6 +1766,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
         ? { ...space, owner: currentPlayerIndex, claimed: true }
         : space
     );
+
+    // Clear opponent's selections when a space is claimed
+    if (isMultiplayer && sessionId && opponentPlayerId) {
+      clearOpponentSelections(sessionId, opponentPlayerId).catch(error =>
+        console.error('[v0] Failed to clear opponent selections:', error)
+      );
+    }
 
     const { bonusPoints: bonusGained, breakdown } = checkForNewBonus(newBoard, selectedSpace.number);
 
@@ -2475,6 +2535,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   onClaim={handleClaim}
                   onCancel={handleCancel}
                   skins={!isMultiplayer || localPlayerIndex === 0 ? diceSkins : null}
+                  opponentSelectedDice={isMultiplayer && localPlayerIndex === 1 ? opponentSelectedDice : []}
                 />
               </div>
             )}
@@ -2527,7 +2588,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 highlightedSpaces={selectedSpace ? [selectedSpace.number] : []}
                 validMoves={allHighlightedMoves}
                 lastClaimedSpace={lastClaimedSpace}
-                opponentSelectedSpace={isMultiplayer ? opponentSelectedSpace : null}
+                opponentSelectedSpaces={opponentSelectedSquares}
                 skins={diceSkins}
               />
             </div>
@@ -2581,6 +2642,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   onClaim={handleClaim}
                   onCancel={handleCancel}
                   skins={!isMultiplayer || localPlayerIndex === 1 ? diceSkins : null}
+                  opponentSelectedDice={isMultiplayer && localPlayerIndex === 0 ? opponentSelectedDice : []}
                 />
               </div>
             )}
