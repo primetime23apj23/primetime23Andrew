@@ -21,6 +21,7 @@ function getFactorPairs(n: number): Array<[number, number]> {
 }
 
 export function FactorizationBox({ capture }: FactorizationBoxProps) {
+  console.log("[v0] FactorizationBox received capture:", capture);
   const pairs = capture ? getFactorPairs(capture.number) : [];
 
   return (
