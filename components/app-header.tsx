@@ -93,6 +93,12 @@ export function AppHeader({
             {diceSkins && onDiceSkinsChange && (
               <DiceSkinSettings skins={diceSkins} onSkinsChange={onDiceSkinsChange} />
             )}
+            {onExitGame && (
+              <Button variant="ghost" size="sm" onClick={onExitGame} className="gap-2">
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Exit</span>
+              </Button>
+            )}
             {(isAuthenticated && user) || (userId && playerName) ? (
               <>
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10">
@@ -126,12 +132,6 @@ export function AppHeader({
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               >
                 Sign In / Sign Up
-              </Button>
-            )}
-            {onExitGame && (
-              <Button variant="ghost" size="sm" onClick={onExitGame} className="gap-2">
-                <X className="w-4 h-4" />
-                <span className="hidden sm:inline">Exit</span>
               </Button>
             )}
           </div>
