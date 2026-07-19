@@ -46,7 +46,7 @@ export function GameBoard({
   }
 
   return (
-    <div className="w-full max-w-[92vw] sm:max-w-3xl mx-auto flex flex-col gap-px sm:gap-2">
+    <div className="w-full max-w-[92vw] sm:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto flex flex-col gap-px sm:gap-2">
       <div className="flex gap-px sm:gap-2">
         {/* Left vertical axis - Website credit */}
         <div className="flex items-center justify-center shrink-0">
@@ -230,11 +230,8 @@ function BoardSpaceCell({
             if (space.number === 60) {
               factors = ['2', '2', '3', '5'];
             }
-            // Shrink tiles when there are many factors so they all fit in the cell
-            const sizeClass =
-              factors.length >= 5
-                ? "w-3 h-3 sm:w-3.5 sm:h-3.5 text-[7px] sm:text-[8px]"
-                : "w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-[12px]";
+            // Keep all factor tiles the same size for consistency
+            const sizeClass = "w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-[12px]";
             return factors.map((factor, idx) => {
             const factorSkin = getDiceSkinImage(factor, skins);
             if (factorSkin) {

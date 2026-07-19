@@ -1846,7 +1846,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       ...gameState,
       phase: "playing" as const,
       selectedDice: [],
-      message: `${gameState.players[gameState.currentPlayer].name}, select dice to match a space's factorization!`,
+      message: `${gameState.players[gameState.currentPlayer].name}, select dice to match a space's factorization`,
     };
     
     setPlayer1Dice(sortDice(dice1));
@@ -2644,11 +2644,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   return (
   <div className="min-h-screen bg-background p-4">
-  <div className="max-w-7xl mx-auto space-y-4">
+  <div className="max-w-[1800px] mx-auto space-y-4">
         {/* Main Game Area - Board with scores and bonuses on sides */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Left side - Player 1 Score & Bonus & Dice */}
-          <div className="flex flex-col gap-4 lg:w-80">
+          <div className="flex flex-col gap-4 lg:w-64 lg:shrink-0">
             {/* Controls above the scorecard - Timer and Game Controls */}
             <div className="flex flex-col items-center gap-4">
               {timerMode !== "disabled" && (
@@ -2754,7 +2754,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           </div>
 
           {/* Right side - Player 2 Score & Bonus & Dice */}
-          <div className="flex flex-col gap-4 lg:w-80">
+          <div className="flex flex-col gap-4 lg:w-64 lg:shrink-0">
             <div className="flex flex-row gap-2 items-stretch">
               <FactorizationBox capture={lastCapturePerPlayer[1]} />
               <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
