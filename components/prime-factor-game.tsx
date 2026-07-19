@@ -159,6 +159,7 @@ export function PrimeFactorGame({
   // Opponent selection tracking for real-time visibility
   const [opponentSelectedDice, setOpponentSelectedDice] = useState<string[]>([]);
   const [opponentSelectedSquares, setOpponentSelectedSquares] = useState<string[]>([]);
+  const [opponentValidMoves, setOpponentValidMoves] = useState<string[]>([]);
   
   // Bonus history tracking
   const [bonusHistory, setBonusHistory] = useState<Array<{
@@ -856,6 +857,38 @@ export function PrimeFactorGame({
     }
   }, [gameState.selectedDice, gameState.phase, isLocalPlayersTurn, currentPlayerDice, gameState.board, selectedSpace]);
 
+  // Track previous valid moves to detect changes
+  const previousValidMovesRef = useRef<Set<number>>(new Set());
+
+  // Broadcast valid move highlights to opponent so they can see all possible moves
+  useEffect(() => {
+    if (!isMultiplayer || !sessionId || !sessionLocalPlayerId || gameState.phase !== "playing") {
+      return;
+    }
+    
+    const currentValidSet = new Set(possibleMoveHighlights);
+    const previousValidSet = previousValidMovesRef.current;
+    
+    // Remove moves that are no longer valid
+    for (const move of previousValidSet) {
+      if (!currentValidSet.has(move)) {
+        removeOpponentSelection(sessionId, sessionLocalPlayerId, 'validMove', String(move))
+          .catch(error => console.error('[v0] Failed to remove old valid move:', error));
+      }
+    }
+    
+    // Add new valid moves
+    for (const move of currentValidSet) {
+      if (!previousValidSet.has(move)) {
+        saveOpponentSelection(sessionId, sessionLocalPlayerId, 'validMove', String(move))
+          .catch(error => console.error('[v0] Failed to broadcast valid move:', error));
+      }
+    }
+    
+    // Update the ref
+    previousValidMovesRef.current = currentValidSet;
+  }, [possibleMoveHighlights, isMultiplayer, sessionId, sessionLocalPlayerId, gameState.phase]);
+
   // Track previous auto-selected square to detect changes and update opponent
   const previousAutoSquareRef = useRef<number | null>(null);
 
@@ -1213,10 +1246,25 @@ export function PrimeFactorGame({
         readyConfirmationActive: typeof savedState.readyConfirmationActive === "boolean" ? savedState.readyConfirmationActive : prev.readyConfirmationActive,
         readyConfirmationInitiator: typeof savedState.readyConfirmationInitiator === "number" ? savedState.readyConfirmationInitiator : prev.readyConfirmationInitiator,
         readyConfirmationCountdown: typeof savedState.readyConfirmationCountdown === "number" ? savedState.readyConfirmationCountdown : prev.readyConfirmationCountdown,
+        lastCapturePerPlayer: Array.isArray(savedState.lastCapturePerPlayer) ? savedState.lastCapturePerPlayer : prev.lastCapturePerPlayer,
       };
       console.log("[v0] applySavedGameState result - p1Ready:", newState.player1Ready, "p2Ready:", newState.player2Ready, "confirmationActive:", newState.readyConfirmationActive);
       return newState;
     });
+
+    // Sync last capture from gameState to local state for display
+    if (Array.isArray(savedState.lastCapturePerPlayer)) {
+      setLastCapturePerPlayer((prev) =>
+        savedState.lastCapturePerPlayer.map((capture: any, idx: number) =>
+          capture
+            ? {
+                number: capture.space,
+                key: (prev[idx]?.key ?? 0) + 1,
+              }
+            : prev[idx]
+        )
+      );
+    }
 
     // Play sounds for opponent's claimed spaces in multiplayer (do this BEFORE other state updates)
     if (
@@ -1416,6 +1464,7 @@ export function PrimeFactorGame({
         if (!cancelled) {
           setOpponentSelectedDice(selections.diceSelections);
           setOpponentSelectedSquares(selections.squareSelections);
+          setOpponentValidMoves(selections.validMoves);
         }
       }).catch(error => console.error('[v0] Failed to fetch opponent selections:', error));
     }, 500); // Poll every 500ms for real-time feel
@@ -1424,6 +1473,7 @@ export function PrimeFactorGame({
       if (!cancelled) {
         setOpponentSelectedDice(selections.diceSelections);
         setOpponentSelectedSquares(selections.squareSelections);
+        setOpponentValidMoves(selections.validMoves);
       }
     });
 
@@ -2039,6 +2089,21 @@ const channel = subscribeToSession(sessionCode, (session) => {
       };
       return next;
     });
+    
+    // Sync last capture through gameState for multiplayer
+    if (isMultiplayer) {
+      setGameState((prev) => ({
+        ...prev,
+        lastCapturePerPlayer: [
+          prev.lastCapturePerPlayer?.[0] ?? null,
+          prev.lastCapturePerPlayer?.[1] ?? null,
+        ].map((capture, idx) => 
+          idx === currentPlayerIndex 
+            ? { space: capturedNumber, factors: selectedSpace.factors }
+            : capture
+        ),
+      }));
+    }
     
     // Reset manual selection flag after claiming
     manualSelectionRef.current = false;
@@ -2768,6 +2833,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 validMoves={allHighlightedMoves}
                 lastClaimedSpace={lastClaimedSpace}
                 opponentSelectedSpaces={opponentSelectedSquares}
+                opponentValidMoves={isMultiplayer ? opponentValidMoves.map(v => parseInt(v)) : []}
                 skins={diceSkins}
               />
             </div>

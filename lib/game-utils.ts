@@ -492,6 +492,7 @@ export interface GameState {
   readyConfirmationActive?: boolean;
   readyConfirmationInitiator?: number | null;
   readyConfirmationCountdown?: number;
+  lastCapturePerPlayer?: Array<{ space: number; factors: number[] } | null>; // Track last captured space per player
 }
 
 export const PLAYER_COLORS = ['#F5D5D5', '#D5EBE8', '#F9F0D9', '#E1EDF5'];
