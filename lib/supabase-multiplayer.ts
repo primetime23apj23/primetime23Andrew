@@ -531,3 +531,108 @@ export async function updateCurrentTurn(
     return false;
   }
 }
+
+/**
+ * Save opponent's dice or square selection for real-time display
+ */
+export async function saveOpponentSelection(
+  sessionId: string,
+  playerId: string,
+  selectionType: 'dice' | 'square',
+  selectionValue: string
+): Promise<boolean> {
+  try {
+    const response = await fetch('/api/opponent-selections', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, playerId, selectionType, selectionValue }),
+    });
+
+    if (!response.ok) {
+      console.warn('Save opponent selection failed:', response.status);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error saving opponent selection:', error);
+    return false;
+  }
+}
+
+/**
+ * Get opponent's current selections
+ */
+export async function getOpponentSelections(
+  sessionId: string,
+  opponentPlayerId: string
+): Promise<{ diceSelections: string[]; squareSelections: string[] }> {
+  try {
+    const response = await fetch(`/api/opponent-selections?sessionId=${encodeURIComponent(sessionId)}&opponentId=${encodeURIComponent(opponentPlayerId)}`);
+    
+    if (!response.ok) {
+      console.warn('Get opponent selections failed:', response.status);
+      return { diceSelections: [], squareSelections: [] };
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching opponent selections:', error);
+    return { diceSelections: [], squareSelections: [] };
+  }
+}
+
+/**
+ * Clear opponent's selections (called when square is claimed)
+ */
+export async function clearOpponentSelections(
+  sessionId: string,
+  playerId: string
+): Promise<boolean> {
+  try {
+    const response = await fetch('/api/opponent-selections', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, playerId }),
+    });
+
+    if (!response.ok) {
+      console.warn('Clear opponent selections failed:', response.status);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error clearing opponent selections:', error);
+    return false;
+  }
+}
+
+/**
+ * Subscribe to opponent selections real-time updates
+ */
+export function subscribeToOpponentSelections(
+  sessionId: string,
+  opponentPlayerId: string,
+  callback: (selections: { diceSelections: string[]; squareSelections: string[] }) => void
+) {
+  const channel = supabase.channel(`opponent_selections:${sessionId}:${opponentPlayerId}`);
+
+  channel
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'opponent_selections',
+        filter: `session_id=eq.${sessionId}`,
+      },
+      () => {
+        getOpponentSelections(sessionId, opponentPlayerId).then(callback);
+      }
+    )
+    .subscribe();
+
+  return channel;
+}
