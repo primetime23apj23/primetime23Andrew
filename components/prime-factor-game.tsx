@@ -609,6 +609,10 @@ export function PrimeFactorGame({
     // Reset auto-selected flag when user manually selects/deselects dice
     setDiceAutoSelected(false);
     
+    // Allow auto-select of space to trigger when manually selecting dice
+    // (Don't keep the manual space selection flag set)
+    manualSelectionRef.current = false;
+    
     const isCurrentlySelected = gameState.selectedDice.includes(die.id);
     
     // Get the die's index position for broadcasting to opponent
@@ -652,6 +656,13 @@ export function PrimeFactorGame({
     
     // Broadcast square selection to opponent in multiplayer mode
     if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+      // First, clear any previous square selection
+      if (selectedSpace && selectedSpace.number !== space.number) {
+        removeOpponentSelection(sessionId, sessionLocalPlayerId, 'square', String(selectedSpace.number)).catch(error =>
+          console.error('[v0] Failed to clear old square selection:', error)
+        );
+      }
+      // Then broadcast the new square selection
       saveOpponentSelection(sessionId, sessionLocalPlayerId, 'square', String(space.number)).catch(error =>
         console.error('[v0] Failed to broadcast square selection:', error)
       );
