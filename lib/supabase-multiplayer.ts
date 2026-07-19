@@ -542,7 +542,6 @@ export async function saveOpponentSelection(
   selectionValue: string
 ): Promise<boolean> {
   try {
-    console.log('[v0] saveOpponentSelection called:', { sessionId, playerId, selectionType, selectionValue });
     const response = await fetch('/api/opponent-selections', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -550,11 +549,9 @@ export async function saveOpponentSelection(
     });
 
     if (!response.ok) {
-      console.warn('[v0] Save opponent selection failed:', response.status);
       return false;
     }
 
-    console.log('[v0] Selection saved successfully');
     return true;
   } catch (error) {
     console.error('[v0] Error saving opponent selection:', error);
@@ -570,16 +567,13 @@ export async function getOpponentSelections(
   opponentPlayerId: string
 ): Promise<{ diceSelections: string[]; squareSelections: string[] }> {
   try {
-    console.log('[v0] getOpponentSelections called:', { sessionId, opponentPlayerId });
     const response = await fetch(`/api/opponent-selections?sessionId=${encodeURIComponent(sessionId)}&opponentId=${encodeURIComponent(opponentPlayerId)}`);
     
     if (!response.ok) {
-      console.warn('[v0] Get opponent selections failed:', response.status);
       return { diceSelections: [], squareSelections: [] };
     }
 
     const data = await response.json();
-    console.log('[v0] Received opponent selections:', data);
     return data;
   } catch (error) {
     console.error('[v0] Error fetching opponent selections:', error);
@@ -597,7 +591,6 @@ export async function removeOpponentSelection(
   selectionValue: string
 ): Promise<boolean> {
   try {
-    console.log('[v0] removeOpponentSelection called:', { sessionId, playerId, selectionType, selectionValue });
     const response = await fetch('/api/opponent-selections', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -605,11 +598,9 @@ export async function removeOpponentSelection(
     });
 
     if (!response.ok) {
-      console.warn('[v0] Remove opponent selection failed:', response.status);
       return false;
     }
 
-    console.log('[v0] Selection removed successfully');
     return true;
   } catch (error) {
     console.error('[v0] Error removing opponent selection:', error);
@@ -625,7 +616,6 @@ export async function clearOpponentSelections(
   playerId: string
 ): Promise<boolean> {
   try {
-    console.log('[v0] clearOpponentSelections called:', { sessionId, playerId });
     const response = await fetch('/api/opponent-selections', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -633,11 +623,9 @@ export async function clearOpponentSelections(
     });
 
     if (!response.ok) {
-      console.warn('[v0] Clear opponent selections failed:', response.status);
       return false;
     }
 
-    console.log('[v0] All selections cleared');
     return true;
   } catch (error) {
     console.error('[v0] Error clearing opponent selections:', error);
