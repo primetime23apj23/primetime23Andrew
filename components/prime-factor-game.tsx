@@ -49,7 +49,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, HelpCircle } from "lucide-react";
 import {
   createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGameSessionById, getGameStates, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId, sendHeartbeat, validateTurn, updateCurrentTurn, saveOpponentSelection, removeOpponentSelection, getOpponentSelections, clearOpponentSelections, subscribeToOpponentSelections
 } from "@/lib/supabase-multiplayer";
@@ -2677,6 +2677,28 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 isMultiplayer={isMultiplayer}
                 roundNumber={gameState.roundNumber}
               />
+              
+              {/* Rules and Tutorial buttons below Roll Dice */}
+              <div className="flex gap-2 flex-wrap justify-center mt-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowRules(true)}
+                  className="gap-2"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Rules</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowTutorial(true)}
+                  className="gap-2"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">Tutorial</span>
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-row gap-2 items-stretch">
