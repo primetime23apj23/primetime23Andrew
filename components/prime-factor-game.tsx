@@ -80,7 +80,8 @@ const createInitialState = (targetScore: number): GameState => ({
   readyConfirmationActive: false,
   readyConfirmationInitiator: null,
   readyConfirmationCountdown: 0,
-});
+  lastCapturePerPlayer: [null, null],
+  });
 
 interface PrimeFactorGameProps {
   showRulesState?: [boolean, (value: boolean) => void];
@@ -860,15 +861,16 @@ export function PrimeFactorGame({
   // Sync last capture from gameState to local state whenever gameState updates
   useEffect(() => {
     if (Array.isArray(gameState.lastCapturePerPlayer) && gameState.lastCapturePerPlayer.length > 0) {
-      setLastCapturePerPlayer((prev) =>
-        gameState.lastCapturePerPlayer.map((capture: any, idx: number) =>
-          capture
-            ? {
-                number: capture.space,
-                key: (prev[idx]?.key ?? 0) + 1,
-              }
-            : prev[idx]
-        )
+      setLastCapturePerPlayer((prev) => 
+        gameState.lastCapturePerPlayer.map((capture: any, idx: number) => {
+          if (capture && typeof capture.space === 'number') {
+            return {
+              number: capture.space,
+              key: (prev[idx]?.key ?? 0) + 1,
+            };
+          }
+          return prev[idx];
+        })
       );
     }
   }, [gameState.lastCapturePerPlayer]);
@@ -1273,14 +1275,15 @@ export function PrimeFactorGame({
     // Sync last capture from gameState to local state for display
     if (Array.isArray(savedState.lastCapturePerPlayer)) {
       setLastCapturePerPlayer((prev) =>
-        savedState.lastCapturePerPlayer.map((capture: any, idx: number) =>
-          capture
-            ? {
-                number: capture.space,
-                key: (prev[idx]?.key ?? 0) + 1,
-              }
-            : prev[idx]
-        )
+        savedState.lastCapturePerPlayer.map((capture: any, idx: number) => {
+          if (capture && typeof capture.space === 'number') {
+            return {
+              number: capture.space,
+              key: (prev[idx]?.key ?? 0) + 1,
+            };
+          }
+          return prev[idx];
+        })
       );
     }
 
