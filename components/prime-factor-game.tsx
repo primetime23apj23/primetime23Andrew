@@ -857,6 +857,22 @@ export function PrimeFactorGame({
     }
   }, [gameState.selectedDice, gameState.phase, isLocalPlayersTurn, currentPlayerDice, gameState.board, selectedSpace]);
 
+  // Sync last capture from gameState to local state whenever gameState updates
+  useEffect(() => {
+    if (Array.isArray(gameState.lastCapturePerPlayer) && gameState.lastCapturePerPlayer.length > 0) {
+      setLastCapturePerPlayer((prev) =>
+        gameState.lastCapturePerPlayer.map((capture: any, idx: number) =>
+          capture
+            ? {
+                number: capture.space,
+                key: (prev[idx]?.key ?? 0) + 1,
+              }
+            : prev[idx]
+        )
+      );
+    }
+  }, [gameState.lastCapturePerPlayer]);
+
   // Track previous valid moves to detect changes
   const previousValidMovesRef = useRef<Set<number>>(new Set());
 
