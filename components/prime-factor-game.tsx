@@ -673,6 +673,30 @@ export function PrimeFactorGame({
           selectedDice: matchedDiceIds,
         }));
         setDiceAutoSelected(true);
+        
+        // Broadcast the auto-selected dice to opponent in multiplayer mode
+        if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+          // First, clear all previously selected dice from opponent's view
+          // by removing old selections
+          gameState.selectedDice.forEach((oldDieId) => {
+            const oldDieIndex = currentPlayerDice.findIndex((d) => d.id === oldDieId);
+            if (oldDieIndex >= 0) {
+              removeOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', String(oldDieIndex)).catch(error =>
+                console.error('[v0] Failed to remove old dice selection:', error)
+              );
+            }
+          });
+          
+          // Then broadcast the new auto-selected dice
+          match.forEach((matchedDie) => {
+            const dieIndex = currentPlayerDice.findIndex((d) => d.id === matchedDie.id);
+            if (dieIndex >= 0) {
+              saveOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', String(dieIndex)).catch(error =>
+                console.error('[v0] Failed to broadcast auto-selected dice:', error)
+              );
+            }
+          });
+        }
       } else {
         // No match found, clear selection
         setGameState((prev) => ({
@@ -680,6 +704,18 @@ export function PrimeFactorGame({
           selectedDice: [],
         }));
         setDiceAutoSelected(false);
+        
+        // Clear opponent's old dice selections when no match found
+        if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+          gameState.selectedDice.forEach((dieId) => {
+            const dieIndex = currentPlayerDice.findIndex((d) => d.id === dieId);
+            if (dieIndex >= 0) {
+              removeOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', String(dieIndex)).catch(error =>
+                console.error('[v0] Failed to remove dice selection:', error)
+              );
+            }
+          });
+        }
       }
     } else {
       // Prime or owned space, clear selection
@@ -688,6 +724,18 @@ export function PrimeFactorGame({
         selectedDice: [],
       }));
       setDiceAutoSelected(false);
+      
+      // Clear opponent's old dice selections for prime/owned spaces
+      if (isMultiplayer && sessionId && sessionLocalPlayerId) {
+        gameState.selectedDice.forEach((dieId) => {
+          const dieIndex = currentPlayerDice.findIndex((d) => d.id === dieId);
+          if (dieIndex >= 0) {
+            removeOpponentSelection(sessionId, sessionLocalPlayerId, 'dice', String(dieIndex)).catch(error =>
+              console.error('[v0] Failed to remove dice selection:', error)
+            );
+          }
+        });
+      }
     }
   }, [isLocalPlayersTurn, isMultiplayer, currentPlayerDice, canMatchFactorization, gameState, isMultiplayer, sessionId, sessionLocalPlayerId]);
 
