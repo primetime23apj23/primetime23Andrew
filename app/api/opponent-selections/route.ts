@@ -76,12 +76,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Clean up old selections (older than 30 seconds)
+    // Clean up old selections (older than 5 minutes) - selections persist for the duration of a turn
     await supabase
       .from('opponent_selections')
       .delete()
       .eq('session_id', sessionId)
-      .lt('created_at', new Date(Date.now() - 30000).toISOString());
+      .lt('created_at', new Date(Date.now() - 300000).toISOString());
 
     // Fetch current selections for opponent
     const { data, error } = await supabase

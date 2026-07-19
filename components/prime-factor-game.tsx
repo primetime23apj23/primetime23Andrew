@@ -1375,7 +1375,6 @@ export function PrimeFactorGame({
     const pollInterval = setInterval(() => {
       getOpponentSelections(sessionId, opponentPlayerId).then((selections) => {
         if (!cancelled) {
-          console.log('[v0] Received opponent selections:', selections);
           setOpponentSelectedDice(selections.diceSelections);
           setOpponentSelectedSquares(selections.squareSelections);
         }
@@ -1834,28 +1833,12 @@ const channel = subscribeToSession(sessionCode, (session) => {
     const playerExhausted = gameState.playerExhausted || [false, false];
     const isRemainingDicePhase = playerExhausted[otherPlayerIndex] === true;
 
-    console.log("[v0] handleClaim: claim attempt", {
-      currentPlayer: gameState.currentPlayer,
-      otherPlayerIndex,
-      playerExhausted,
-      isRemainingDicePhase,
-      phase: gameState.phase,
-      isMultiplayer,
-      sessionId,
-      sessionLocalPlayerId,
-      selectedSpace: selectedSpace.number,
-    });
-
     if (isMultiplayer && sessionId && sessionLocalPlayerId && !isRemainingDicePhase) {
-      console.log("[v0] handleClaim: calling validateTurn (not in bonus phase)");
       const valid = await validateTurn(sessionId, sessionLocalPlayerId);
-      console.log("[v0] handleClaim: validateTurn result", valid);
       if (!valid.valid) {
         setGameState((prev) => ({ ...prev, message: valid.error || "Not your turn" }));
         return;
       }
-    } else if (isMultiplayer && sessionId && sessionLocalPlayerId && isRemainingDicePhase) {
-      console.log("[v0] handleClaim: skipping validateTurn (in bonus phase)");
     }
     
     const pos = getAnimationPosition();
