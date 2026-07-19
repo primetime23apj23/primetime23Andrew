@@ -850,6 +850,9 @@ export function PrimeFactorGame({
     }
   }, [gameState.selectedDice, gameState.phase, isLocalPlayersTurn, currentPlayerDice, gameState.board, selectedSpace]);
 
+  // Track previous auto-selected square to detect changes and update opponent
+  const previousAutoSquareRef = useRef<number | null>(null);
+
   // Broadcast auto-selected square changes to opponent (only when dice change, not manual selections)
   useEffect(() => {
     if (!isMultiplayer || !sessionId || !sessionLocalPlayerId || gameState.phase !== "playing") {
@@ -857,20 +860,26 @@ export function PrimeFactorGame({
     }
     
     // Only broadcast if square was auto-selected due to dice change (not manually selected by user)
-    if (!manualSelectionRef.current && selectedSpace) {
-      // When dice auto-matches a new square, clear old square selection first then add new one
-      clearOpponentSelections(sessionId, sessionLocalPlayerId)
-        .then(() => {
-          saveOpponentSelection(sessionId, sessionLocalPlayerId, 'square', String(selectedSpace.number)).catch(error =>
-            console.error('[v0] Failed to broadcast auto-selected square:', error)
-          );
-        })
-        .catch(error => console.error('[v0] Failed to clear selections before broadcast:', error));
-    } else if (!manualSelectionRef.current && !selectedSpace) {
-      // No matching space, clear opponent's square selection
-      clearOpponentSelections(sessionId, sessionLocalPlayerId).catch(error =>
-        console.error('[v0] Failed to clear opponent selections:', error)
-      );
+    if (!manualSelectionRef.current) {
+      const currentSquareNum = selectedSpace?.number ?? null;
+      
+      // Only broadcast if the square actually changed
+      if (currentSquareNum !== previousAutoSquareRef.current) {
+        // Remove old auto-selected square if it existed
+        if (previousAutoSquareRef.current !== null) {
+          removeOpponentSelection(sessionId, sessionLocalPlayerId, 'square', String(previousAutoSquareRef.current))
+            .catch(error => console.error('[v0] Failed to remove old square:', error));
+        }
+        
+        // Add new auto-selected square if one exists
+        if (currentSquareNum !== null) {
+          saveOpponentSelection(sessionId, sessionLocalPlayerId, 'square', String(currentSquareNum))
+            .catch(error => console.error('[v0] Failed to broadcast auto-selected square:', error));
+        }
+        
+        // Update ref for next comparison
+        previousAutoSquareRef.current = currentSquareNum;
+      }
     }
   }, [selectedSpace, gameState.selectedDice, isMultiplayer, sessionId, sessionLocalPlayerId, gameState.phase]);
 
