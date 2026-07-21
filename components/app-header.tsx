@@ -122,6 +122,17 @@ export function AppHeader({
                   Roll Dice
                 </Button>
               )}
+              {onShowRules && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onShowRules}
+                  className="gap-2"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span className="hidden sm:inline">Rules</span>
+                </Button>
+              )}
             </div>
           )}
 
