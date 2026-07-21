@@ -1332,11 +1332,14 @@ export function PrimeFactorGame({
         );
       });
 
-      // Play celebration sounds for opponent's move only if they got bonus
-      if (newlyClaimedByOpponent.length > 1) {
+      // Play the train sound for ANY opponent capture so both players hear it,
+      // and add the bonus sound on top only when they captured multiple spaces.
+      if (newlyClaimedByOpponent.length >= 1) {
         playCapturSound();
         playOpponentMoveSound();
-        playBonusSound(newlyClaimedByOpponent.length);
+        if (newlyClaimedByOpponent.length > 1) {
+          playBonusSound(newlyClaimedByOpponent.length);
+        }
       }
     }
 
@@ -2687,7 +2690,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
   if (showPreGameSetupPage) {
     return (
       <div className="min-h-screen game-setup-bg">
-        <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-8 sm:px-6 lg:px-8">
           <div>
             <div className="rounded-[28px] border border-slate-200/70 bg-white/90 p-6 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
               {showModeSelect && (

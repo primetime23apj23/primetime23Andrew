@@ -55,11 +55,6 @@ export function GameControls({
         </div>
       )}
       
-      {/* Message */}
-      <div className="bg-muted rounded-lg p-3 text-center whitespace-pre-line">
-        <p className="text-sm font-medium">{message}</p>
-      </div>
-
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2 justify-center">
         {phase === "rolling" && !rollInHeader && (
@@ -76,16 +71,18 @@ export function GameControls({
 
         {phase === "playing" && phase !== "gameOver" && (
           <>
-            <Button
-              onClick={onEndTurn}
-              disabled={!canEndTurn || hasValidMoves}
-              variant="secondary"
-              className="gap-2"
-              title={hasValidMoves ? "You must play if you have valid moves" : "End your turn"}
-            >
-              <SkipForward className="w-4 h-4" />
-              {hasValidMoves ? "Must Play" : "End Turn"}
-            </Button>
+            {!hasValidMoves && (
+              <Button
+                onClick={onEndTurn}
+                disabled={!canEndTurn}
+                variant="secondary"
+                className="gap-2"
+                title="End your turn"
+              >
+                <SkipForward className="w-4 h-4" />
+                End Turn
+              </Button>
+            )}
             {isMultiplayer && onReadyForNextRound && (
               <Button 
                 onClick={onReadyForNextRound}
