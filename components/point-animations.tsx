@@ -67,14 +67,14 @@ function FloatingPoint({
       setTimeout(() => setScale(1), 150);
     });
     
-    // Float up and fade
+    // Float up and fade (hold for 1.5s then fade over 0.5s)
     const fadeTimer = setTimeout(() => {
       setTranslateY(-80);
       setOpacity(0);
-    }, 500);
+    }, 1500);
     
-    // Complete
-    const completeTimer = setTimeout(onComplete, 1500);
+    // Complete after 3 seconds total
+    const completeTimer = setTimeout(onComplete, 3000);
     
     return () => {
       clearTimeout(fadeTimer);
@@ -92,8 +92,8 @@ function FloatingPoint({
         transform: `translateY(${translateY}px) scale(${scale})`,
       }}
     >
-      <span className="text-3xl">{emoji}</span>
-      <span className="text-lg font-bold text-primary drop-shadow-lg">
+      <span className="text-6xl">{emoji}</span>
+      <span className="text-2xl font-bold text-primary drop-shadow-lg">
         +{points}
       </span>
     </div>
