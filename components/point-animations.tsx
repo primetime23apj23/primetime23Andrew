@@ -92,8 +92,8 @@ function FloatingPoint({
         transform: `translateY(${translateY}px) scale(${scale})`,
       }}
     >
-      <span className="text-3xl">{emoji}</span>
-      <span className="text-lg font-bold text-primary drop-shadow-lg">
+      <span className="text-6xl">{emoji}</span>
+      <span className="text-2xl font-bold text-primary drop-shadow-lg">
         +{points}
       </span>
     </div>
