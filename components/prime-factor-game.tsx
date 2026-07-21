@@ -2939,7 +2939,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                   disabled={
                     gameState.phase !== "playing" ||
                     gameState.currentPlayer !== 1 ||
-                    (isMultiplayer && localPlayerIndex !== 1)
+                    !isLocalPlayersTurn
                   }
                   playerName={getSeatDisplayName(1)}
                   hideValues={false}
