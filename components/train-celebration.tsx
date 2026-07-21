@@ -25,7 +25,8 @@ export function TrainCelebration({ isActive, numbers, onComplete }: TrainCelebra
       return;
     }
 
-    const animationDuration = 3000; // 3 seconds for train to cross
+    const animationDuration = 4000; // 4 seconds for train to cross + hold
+    const holdDuration = 1500; // Hold at end before completing
     const numberSpawnInterval = 200; // Spawn a number every 200ms
     let animationId: number;
     let spawnIntervalId: NodeJS.Timeout;
@@ -36,7 +37,7 @@ export function TrainCelebration({ isActive, numbers, onComplete }: TrainCelebra
         const next = prev + 1 / (animationDuration / 16);
         if (next >= 1) {
           if (onComplete) {
-            setTimeout(onComplete, 500);
+            setTimeout(onComplete, holdDuration);
           }
         }
         return Math.min(next, 1);
