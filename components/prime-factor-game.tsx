@@ -49,7 +49,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sparkles, HelpCircle } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import {
   createGameLobby, joinGameLobby, cancelGameLobby, getGameSession, getGameSessionById, getGameStates, subscribeToSession, subscribeToGameState, updateGameState, generatePlayerId, sendHeartbeat, validateTurn, updateCurrentTurn, saveOpponentSelection, removeOpponentSelection, getOpponentSelections, clearOpponentSelections, subscribeToOpponentSelections
 } from "@/lib/supabase-multiplayer";
@@ -83,11 +83,20 @@ const createInitialState = (targetScore: number): GameState => ({
   lastCapturePerPlayer: [null, null],
   });
 
+export interface HeaderRollControls {
+  phase: string;
+  roundNumber: number;
+  canRoll: boolean;
+  currentPlayerName: string;
+}
+
 interface PrimeFactorGameProps {
   showRulesState?: [boolean, (value: boolean) => void];
   showTutorialState?: [boolean, (value: boolean) => void];
   showExitDialogState?: [boolean, (value: boolean) => void];
   onGameActiveChange?: (isActive: boolean) => void;
+  onRollControlsChange?: (controls: HeaderRollControls | null) => void;
+  registerRoll?: (roll: () => void) => void;
 }
 
 export function PrimeFactorGame({ 
@@ -95,6 +104,8 @@ export function PrimeFactorGame({
   showTutorialState,
   showExitDialogState,
   onGameActiveChange,
+  onRollControlsChange,
+  registerRoll,
 }: PrimeFactorGameProps = {}) {
   const [showSetup, setShowSetup] = useState(false);
   const [showModeSelect, setShowModeSelect] = useState(true);
@@ -2636,6 +2647,43 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   const showPreGameSetupPage = showModeSelect || showGameSetup || showLobby;
 
+  // Keep the roll handler registered with the parent so the header can trigger it.
+  useEffect(() => {
+    registerRoll?.(() => {
+      void handleRoll();
+    });
+  }, [registerRoll, handleRoll]);
+
+  // Report roll-related state to the parent so the header can render
+  // the "Round X" indicator, current player, and the Roll Dice button.
+  useEffect(() => {
+    if (showPreGameSetupPage) {
+      onRollControlsChange?.(null);
+      return;
+    }
+    onRollControlsChange?.({
+      phase: gameState.phase,
+      roundNumber: gameState.roundNumber,
+      canRoll: !diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn,
+      currentPlayerName: getSeatDisplayName(gameState.currentPlayer),
+    });
+  }, [
+    showPreGameSetupPage,
+    onRollControlsChange,
+    gameState.phase,
+    gameState.roundNumber,
+    gameState.currentPlayer,
+    diceRolled,
+    isLocalPlayersTurn,
+  ]);
+
+  // Clear header controls when this game unmounts.
+  useEffect(() => {
+    return () => {
+      onRollControlsChange?.(null);
+    };
+  }, [onRollControlsChange]);
+
   if (showPreGameSetupPage) {
     return (
       <div className="min-h-screen game-setup-bg">
@@ -2774,29 +2822,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 player2Ready={gameState.player2Ready}
                 isMultiplayer={isMultiplayer}
                 roundNumber={gameState.roundNumber}
+                rollInHeader
               />
-              
-              {/* Rules and Tutorial buttons below Roll Dice */}
-              <div className="flex gap-2 flex-wrap justify-center mt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowRules(true)}
-                  className="gap-2"
-                >
-                  <HelpCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">Rules</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowTutorial(true)}
-                  className="gap-2"
-                >
-                  <HelpCircle className="h-4 w-4" />
-                  <span className="hidden sm:inline">Tutorial</span>
-                </Button>
-              </div>
             </div>
 
             <div className="flex flex-row gap-2 items-stretch">
@@ -2822,9 +2849,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
               <FactorizationBox capture={lastCapturePerPlayer[0]} />
             </div>
 
-            {/* Player 1 Dice - Hide when P2 is round starter on first move, hide during rolling phase, always show on P1's turn */}
-            {diceRolled && gameState.phase !== "rolling" &&
-              (gameState.currentPlayer === 0 || !(gameState.roundStarterIndex === 1 && !gameState.player2HasMoved)) && (
+            {/* Player 1 Dice - always shown once dice are rolled */}
+            {diceRolled && gameState.phase !== "rolling" && (
               <div className={`${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
                   dice={player1Dice}
@@ -2899,9 +2925,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             </div>
 
-            {/* Player 2 Dice - Hide when P1 is round starter on first move, hide during rolling phase, always show on P2's turn */}
-            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && gameState.phase !== "rolling" &&
-              (gameState.currentPlayer === 1 || !(gameState.roundStarterIndex === 0 && !gameState.player1HasMoved)) && (
+            {/* Player 2 Dice - always shown once dice are rolled */}
+            {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && gameState.phase !== "rolling" && (
               <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
                   dice={player2Dice}
