@@ -63,7 +63,7 @@ export function PartyCelebration({ isActive, numbers, winnerName, onComplete }: 
         id: `confetti-${i}`,
         left: Math.random() * 100,
         delay: Math.random() * 0.5,
-        duration: 2 + Math.random() * 1,
+        duration: 3 + Math.random() * 1.5,
         type: ["circle", "square", "star"][Math.floor(Math.random() * 3)] as "circle" | "square" | "star",
         color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
       });
@@ -94,12 +94,12 @@ export function PartyCelebration({ isActive, numbers, winnerName, onComplete }: 
     });
     setPartyNumbers(partyNum);
 
-    // Complete after animation
+    // Complete after animation (3 seconds hold + animations)
     const timer = setTimeout(() => {
       if (onComplete) {
         onComplete();
       }
-    }, 3500);
+    }, 5500);
 
     return () => clearTimeout(timer);
   }, [isActive, numbers, onComplete]);
@@ -149,7 +149,7 @@ export function PartyCelebration({ isActive, numbers, winnerName, onComplete }: 
           style={{
             left: `${balloon.left}%`,
             bottom: "-30px",
-            animation: `float 3s ease-in-out ${balloon.delay}s forwards`,
+            animation: `float 4.5s ease-in-out ${balloon.delay}s forwards`,
           }}
         >
           {/* Balloon */}
@@ -180,7 +180,7 @@ export function PartyCelebration({ isActive, numbers, winnerName, onComplete }: 
           style={{
             left: `${partyNum.left}%`,
             top: "50%",
-            animation: `bounce-out ${2}s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${partyNum.delay}s forwards`,
+            animation: `bounce-out ${3}s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${partyNum.delay}s forwards`,
             color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
           }}
         >
