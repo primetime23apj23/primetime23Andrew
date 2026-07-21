@@ -2690,7 +2690,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
   if (showPreGameSetupPage) {
     return (
       <div className="min-h-screen game-setup-bg">
-        <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-4 py-8 sm:px-6 lg:px-8">
           <div>
             <div className="rounded-[28px] border border-slate-200/70 bg-white/90 p-6 shadow-[0_24px_80px_-28px_rgba(37,99,235,0.35)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
               {showModeSelect && (
