@@ -196,7 +196,7 @@ export function PartyCelebration({ isActive, numbers, winnerName, onComplete }: 
           opacity: 0,
         }}
       >
-        <div className="text-6xl mb-4">🎉</div>
+        <div className="mb-4 leading-none" style={{ fontSize: "18rem" }}>🎉</div>
         <h2 className="text-4xl font-black text-center drop-shadow-lg" style={{ color: "#FF6B6B" }}>
           Amazing!
         </h2>
