@@ -39,6 +39,27 @@ export function GameControls({
   roundNumber = 1,
   rollInHeader = false,
 }: GameControlsProps) {
+  // Determine whether there is anything to render. When it's the playing phase
+  // and the player has a forced move, no buttons/indicators show, so the card
+  // would otherwise render as an empty box.
+  const showRoundIndicator = phase === "rolling" && !rollInHeader;
+  const showGameOver = phase === "gameOver";
+  const showRollButton = phase === "rolling" && !rollInHeader;
+  const showPlayingButtons =
+    phase === "playing" &&
+    (!hasValidMoves || (isMultiplayer && !!onReadyForNextRound));
+  const showRoundEnd = phase === "roundEnd";
+  const hasContent =
+    showRoundIndicator ||
+    showGameOver ||
+    showRollButton ||
+    showPlayingButtons ||
+    showRoundEnd;
+
+  if (!hasContent) {
+    return null;
+  }
+
   return (
     <div className="bg-card border rounded-lg p-4 space-y-4">
       {/* Round indicator for rolling phase (new round transition) */}
