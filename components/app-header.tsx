@@ -4,11 +4,18 @@ import { useEffect, useState } from "react";
 import { usePlayerProfile } from "@/hooks/use-player-profile";
 import { AuthDialog } from "./auth-dialog";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, HelpCircle, X } from "lucide-react";
+import { LogOut, User, HelpCircle, X, Dices } from "lucide-react";
 import { supabase } from "@/lib/supabase-multiplayer";
 import { DiceSkinSettings, type DiceSkin } from "./dice-skin-settings";
 
 const headerLog = (...args: any[]) => console.debug("[AppHeader]", ...args);
+
+interface HeaderRollControls {
+  phase: string;
+  roundNumber: number;
+  canRoll: boolean;
+  currentPlayerName: string;
+}
 
 interface AppHeaderProps {
   title?: string;
@@ -17,6 +24,8 @@ interface AppHeaderProps {
   onExitGame?: () => void;
   diceSkins?: DiceSkin[];
   onDiceSkinsChange?: (skins: DiceSkin[]) => void;
+  rollControls?: HeaderRollControls | null;
+  onRoll?: () => void;
 }
 
 export function AppHeader({ 
@@ -26,6 +35,8 @@ export function AppHeader({
   onExitGame,
   diceSkins,
   onDiceSkinsChange,
+  rollControls,
+  onRoll,
 }: AppHeaderProps) {
   const { user, isAuthenticated, loading } = usePlayerProfile();
   const [showAuth, setShowAuth] = useState(false);
@@ -73,20 +84,46 @@ export function AppHeader({
     <>
       <header className="border-b bg-background sticky top-0 z-50">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4 flex-wrap">
-          {/* Left: Title and Patent */}
-          <div className="flex items-center gap-6">
-            <div className="font-bold text-lg">{title}</div>
-            <div className="text-xs text-muted-foreground">
-              <span>Patented by</span>
-              <span className="mx-1 font-semibold text-foreground">Andrew Paul Jaffe</span>
+          {/* Left: Title and stacked credits (saves horizontal space) */}
+          <div className="flex items-center gap-4">
+            <div className="font-bold text-lg leading-none">{title}</div>
+            <div className="flex flex-col text-xs text-muted-foreground leading-tight">
+              <span>
+                Patented by
+                <span className="ml-1 font-semibold text-foreground">Andrew Paul Jaffe</span>
+              </span>
+              <span>
+                Brought to you by
+                <span className="ml-1 font-semibold text-foreground">Sylinx Labs</span>
+              </span>
             </div>
           </div>
 
-          {/* Center: Brought to you by */}
-          <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs text-muted-foreground whitespace-nowrap pointer-events-none">
-            <span>Brought to you by</span>
-            <span className="ml-1 font-semibold text-foreground">Sylinx Labs</span>
-          </div>
+          {/* Center: Round indicator + current player + Roll Dice */}
+          {rollControls && (
+            <div className="flex items-center gap-2 flex-wrap justify-center">
+              <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1">
+                <span className="text-sm font-bold text-primary whitespace-nowrap">
+                  Round {rollControls.roundNumber}
+                </span>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className="text-xs font-medium text-foreground truncate max-w-[9rem]">
+                  {rollControls.currentPlayerName}
+                </span>
+              </div>
+              {rollControls.phase === "rolling" && (
+                <Button
+                  onClick={onRoll}
+                  disabled={!rollControls.canRoll}
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Dices className="w-4 h-4" />
+                  Roll Dice
+                </Button>
+              )}
+            </div>
+          )}
 
           {/* Right: User and Auth */}
           <div className="flex items-center gap-3">

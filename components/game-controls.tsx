@@ -18,6 +18,8 @@ interface GameControlsProps {
   player2Ready?: boolean;
   isMultiplayer?: boolean;
   roundNumber?: number;
+  /** When true, the Round indicator + Roll Dice button are shown in the app header instead. */
+  rollInHeader?: boolean;
 }
 
 export function GameControls({
@@ -35,11 +37,12 @@ export function GameControls({
   player2Ready = false,
   isMultiplayer = false,
   roundNumber = 1,
+  rollInHeader = false,
 }: GameControlsProps) {
   return (
     <div className="bg-card border rounded-lg p-4 space-y-4">
       {/* Round indicator for rolling phase (new round transition) */}
-      {phase === "rolling" && (
+      {phase === "rolling" && !rollInHeader && (
         <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
           <p className="text-lg font-bold text-blue-900">Round {roundNumber}</p>
         </div>
@@ -59,7 +62,7 @@ export function GameControls({
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2 justify-center">
-        {phase === "rolling" && (
+        {phase === "rolling" && !rollInHeader && (
           <Button
             onClick={onRoll}
             disabled={!canRoll}

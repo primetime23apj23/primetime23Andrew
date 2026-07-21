@@ -83,11 +83,20 @@ const createInitialState = (targetScore: number): GameState => ({
   lastCapturePerPlayer: [null, null],
   });
 
+export interface HeaderRollControls {
+  phase: string;
+  roundNumber: number;
+  canRoll: boolean;
+  currentPlayerName: string;
+}
+
 interface PrimeFactorGameProps {
   showRulesState?: [boolean, (value: boolean) => void];
   showTutorialState?: [boolean, (value: boolean) => void];
   showExitDialogState?: [boolean, (value: boolean) => void];
   onGameActiveChange?: (isActive: boolean) => void;
+  onRollControlsChange?: (controls: HeaderRollControls | null) => void;
+  registerRoll?: (roll: () => void) => void;
 }
 
 export function PrimeFactorGame({ 
@@ -95,6 +104,8 @@ export function PrimeFactorGame({
   showTutorialState,
   showExitDialogState,
   onGameActiveChange,
+  onRollControlsChange,
+  registerRoll,
 }: PrimeFactorGameProps = {}) {
   const [showSetup, setShowSetup] = useState(false);
   const [showModeSelect, setShowModeSelect] = useState(true);
@@ -2636,6 +2647,43 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
   const showPreGameSetupPage = showModeSelect || showGameSetup || showLobby;
 
+  // Keep the roll handler registered with the parent so the header can trigger it.
+  useEffect(() => {
+    registerRoll?.(() => {
+      void handleRoll();
+    });
+  }, [registerRoll, handleRoll]);
+
+  // Report roll-related state to the parent so the header can render
+  // the "Round X" indicator, current player, and the Roll Dice button.
+  useEffect(() => {
+    if (showPreGameSetupPage) {
+      onRollControlsChange?.(null);
+      return;
+    }
+    onRollControlsChange?.({
+      phase: gameState.phase,
+      roundNumber: gameState.roundNumber,
+      canRoll: !diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn,
+      currentPlayerName: getSeatDisplayName(gameState.currentPlayer),
+    });
+  }, [
+    showPreGameSetupPage,
+    onRollControlsChange,
+    gameState.phase,
+    gameState.roundNumber,
+    gameState.currentPlayer,
+    diceRolled,
+    isLocalPlayersTurn,
+  ]);
+
+  // Clear header controls when this game unmounts.
+  useEffect(() => {
+    return () => {
+      onRollControlsChange?.(null);
+    };
+  }, [onRollControlsChange]);
+
   if (showPreGameSetupPage) {
     return (
       <div className="min-h-screen game-setup-bg">
@@ -2774,6 +2822,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
                 player2Ready={gameState.player2Ready}
                 isMultiplayer={isMultiplayer}
                 roundNumber={gameState.roundNumber}
+                rollInHeader
               />
               
               {/* Rules and Tutorial buttons below Roll Dice */}
