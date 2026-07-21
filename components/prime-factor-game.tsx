@@ -2296,6 +2296,24 @@ const channel = subscribeToSession(sessionCode, (session) => {
     });
   }, [checkPlayerHasMoves, diceRolled, gameState, hasAnyValidMove, isMultiplayer, sessionId, sessionLocalPlayerId, persistGameState]);
 
+  // Bot auto-roll effect — roll dice during rolling phase
+  useEffect(() => {
+    if (!botEnabled || isMultiplayer) return;
+    if (gameState.currentPlayer !== 1) return;
+    if (gameState.phase !== "rolling") return;
+    if (diceRolled) return; // Already rolled this turn
+
+    const timer = setTimeout(() => {
+      // Check state is still valid before rolling
+      const current = gameStateRef.current;
+      if (!current || current.currentPlayer !== 1 || current.phase !== "rolling") return;
+      
+      void handleRoll();
+    }, 800); // Small delay to feel more natural
+
+    return () => clearTimeout(timer);
+  }, [botEnabled, isMultiplayer, gameState.currentPlayer, gameState.phase, diceRolled, handleRoll]);
+
   // Bot auto-play effect with proper lock management
   useEffect(() => {
     if (!botEnabled || isMultiplayer) return;
