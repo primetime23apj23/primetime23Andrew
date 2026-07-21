@@ -375,7 +375,7 @@ export function PrimeFactorGame({
     return null;
   }, [gameState.currentPlayer, isMultiplayer, sessionLocalPlayerId, sessionPlayer1Id, sessionPlayer2Id]);
   const isLocalPlayersTurn =
-    (!isMultiplayer && !botEnabled) || (localPlayerIndex !== null && localPlayerIndex === gameState.currentPlayer);
+    (botEnabled && gameState.currentPlayer === 0) || (isMultiplayer && localPlayerIndex !== null && localPlayerIndex === gameState.currentPlayer);
 
   // Disambiguate seats in multiplayer (players may share the same display name)
   // by marking the local player's seat with "(You)".
