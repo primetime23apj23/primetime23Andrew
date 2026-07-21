@@ -1332,11 +1332,14 @@ export function PrimeFactorGame({
         );
       });
 
-      // Play celebration sounds for opponent's move only if they got bonus
-      if (newlyClaimedByOpponent.length > 1) {
+      // Play the train sound for ANY opponent capture so both players hear it,
+      // and add the bonus sound on top only when they captured multiple spaces.
+      if (newlyClaimedByOpponent.length >= 1) {
         playCapturSound();
         playOpponentMoveSound();
-        playBonusSound(newlyClaimedByOpponent.length);
+        if (newlyClaimedByOpponent.length > 1) {
+          playBonusSound(newlyClaimedByOpponent.length);
+        }
       }
     }
 
