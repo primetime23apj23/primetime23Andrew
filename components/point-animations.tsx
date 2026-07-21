@@ -23,33 +23,23 @@ interface PointAnimationsProps {
   animations: FloatingEmoji[];
   fireworks: FireworkParticle[];
   onAnimationComplete: (id: string) => void;
-  animationSpawnCount?: number; // Number of times to repeat each animation (default 5)
 }
 
 export function PointAnimations({
   animations,
   fireworks,
   onAnimationComplete,
-  animationSpawnCount = 5,
 }: PointAnimationsProps) {
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
       {/* Floating emoji animations for points */}
-      {animations.map((animation) => {
-        // For each animation, render it multiple times with sequential delays
-        return Array.from({ length: animationSpawnCount }).map((_, spawnIndex) => (
-          <FloatingPoint
-            key={`${animation.id}-spawn-${spawnIndex}`}
-            {...animation}
-            delay={spawnIndex * 150} // Stagger each spawn by 150ms
-            onComplete={
-              spawnIndex === animationSpawnCount - 1
-                ? () => onAnimationComplete(animation.id)
-                : () => {} // Only call onComplete on the final spawn
-            }
-          />
-        ));
-      })}
+      {animations.map((animation) => (
+        <FloatingPoint
+          key={animation.id}
+          {...animation}
+          onComplete={() => onAnimationComplete(animation.id)}
+        />
+      ))}
       {/* Firework particles for bonus points */}
       {fireworks.map((particle) => (
         <FireworkDot key={particle.id} {...particle} />
@@ -65,36 +55,32 @@ function FloatingPoint({
   y,
   points,
   onComplete,
-  delay = 0,
-}: FloatingEmoji & { onComplete: () => void; delay?: number }) {
+}: FloatingEmoji & { onComplete: () => void }) {
   const [opacity, setOpacity] = useState(1);
   const [translateY, setTranslateY] = useState(0);
   const [scale, setScale] = useState(0.5);
 
   useEffect(() => {
-    // Start animation after delay
-    const startTimer = setTimeout(() => {
-      requestAnimationFrame(() => {
-        setScale(1.2);
-        setTimeout(() => setScale(1), 150);
-      });
-    }, delay);
+    // Start animation
+    requestAnimationFrame(() => {
+      setScale(1.2);
+      setTimeout(() => setScale(1), 150);
+    });
     
     // Float up and fade (hold for 1.5s then fade over 0.5s)
     const fadeTimer = setTimeout(() => {
       setTranslateY(-80);
       setOpacity(0);
-    }, delay + 1500);
+    }, 1500);
     
-    // Complete after 3 seconds total (plus initial delay)
-    const completeTimer = setTimeout(onComplete, delay + 3000);
+    // Complete after 3 seconds total
+    const completeTimer = setTimeout(onComplete, 3000);
     
     return () => {
-      clearTimeout(startTimer);
       clearTimeout(fadeTimer);
       clearTimeout(completeTimer);
     };
-  }, [onComplete, delay]);
+  }, [onComplete]);
 
   return (
     <div
