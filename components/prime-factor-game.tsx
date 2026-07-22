@@ -2847,27 +2847,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
               />
             </div>
 
-            <div className="flex flex-row gap-2 items-stretch">
-              <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
-              <h3 className="font-semibold text-sm mb-3">{getSeatDisplayName(0)}</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Captured Squares:</span>
-                  <span className="font-bold">{gameState.players[0].score}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Bonus:</span>
-                  <span className="font-bold text-amber-600">{gameState.players[0].bonusPoints}</span>
-                </div>
-                <div className="pt-2 border-t">
-                  <div className="flex justify-between text-sm font-semibold">
-                    <span>Total Score:</span>
-                    <span>{gameState.players[0].score + gameState.players[0].bonusPoints}</span>
-                  </div>
-                </div>
-              </div>
-              </div>
-              <FactorizationBox capture={lastCapturePerPlayer[0]} />
+            {/* Player 1 Bonus History */}
+            <div className="overflow-auto">
+              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[0].name)} />
             </div>
 
             {/* Player 1 Dice - always shown once dice are rolled */}
@@ -2894,9 +2876,27 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             )}
 
-            {/* Player 1 Bonus History */}
-            <div className="overflow-auto">
-              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[0].name)} />
+            <div className="flex flex-row gap-2 items-stretch">
+              <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
+              <h3 className="font-semibold text-sm mb-3">{getSeatDisplayName(0)}</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Captured Squares:</span>
+                  <span className="font-bold">{gameState.players[0].score}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Bonus:</span>
+                  <span className="font-bold text-amber-600">{gameState.players[0].bonusPoints}</span>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex justify-between text-sm font-semibold">
+                    <span>Total Score:</span>
+                    <span>{gameState.players[0].score + gameState.players[0].bonusPoints}</span>
+                  </div>
+                </div>
+              </div>
+              </div>
+              <FactorizationBox capture={lastCapturePerPlayer[0]} />
             </div>
           </div>
 
@@ -2923,27 +2923,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
           {/* Right side - Player 2 Score & Bonus & Dice */}
           <div className="flex flex-col gap-4 lg:w-64 lg:shrink-0">
-            <div className="flex flex-row gap-2 items-stretch">
-              <FactorizationBox capture={lastCapturePerPlayer[1]} />
-              <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
-              <h3 className="font-semibold text-sm mb-3">{getSeatDisplayName(1)}</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Captured Squares:</span>
-                  <span className="font-bold">{gameState.players[1].score}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Bonus:</span>
-                  <span className="font-bold text-amber-600">{gameState.players[1].bonusPoints}</span>
-                </div>
-                <div className="pt-2 border-t">
-                  <div className="flex justify-between text-sm font-semibold">
-                    <span>Total Score:</span>
-                    <span>{gameState.players[1].score + gameState.players[1].bonusPoints}</span>
-                  </div>
-                </div>
-              </div>
-              </div>
+            {/* Player 2 Bonus History */}
+            <div className="overflow-auto">
+              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[1].name)} />
             </div>
 
             {/* Player 2 Dice - always shown once dice are rolled */}
@@ -2971,9 +2953,27 @@ const channel = subscribeToSession(sessionCode, (session) => {
               </div>
             )}
 
-            {/* Player 2 Bonus History */}
-            <div className="overflow-auto">
-              <BonusBreakdownPanel history={bonusHistory.filter(b => b.player === gameState.players[1].name)} />
+            <div className="flex flex-row gap-2 items-stretch">
+              <FactorizationBox capture={lastCapturePerPlayer[1]} />
+              <div className="border rounded-lg p-4 bg-card flex-1 min-w-0">
+              <h3 className="font-semibold text-sm mb-3">{getSeatDisplayName(1)}</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Captured Squares:</span>
+                  <span className="font-bold">{gameState.players[1].score}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Bonus:</span>
+                  <span className="font-bold text-amber-600">{gameState.players[1].bonusPoints}</span>
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex justify-between text-sm font-semibold">
+                    <span>Total Score:</span>
+                    <span>{gameState.players[1].score + gameState.players[1].bonusPoints}</span>
+                  </div>
+                </div>
+              </div>
+              </div>
             </div>
           </div>
         </div>
