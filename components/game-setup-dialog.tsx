@@ -62,7 +62,6 @@ export function GameSetupForm({
   const [playerName, setPlayerName] = useState("");
   const [targetScore, setTargetScore] = useState("37");
   const [customTargetScore, setCustomTargetScore] = useState("");
-  const [timerMode, setTimerMode] = useState("disabled");
 
   useEffect(() => {
     setPlayerName(defaultPlayerName);
@@ -86,7 +85,7 @@ export function GameSetupForm({
     onCreateLobby({
       playerName,
       targetScore: resolvedTargetScore,
-      timerMode,
+      timerMode: "disabled",
     });
   };
 
@@ -166,24 +165,6 @@ export function GameSetupForm({
               )}
             </div>
           )}
-        </div>
-
-        <div>
-          <Label htmlFor="timer-mode" className="text-sm font-medium">
-            Turn Timer
-          </Label>
-          <Select value={timerMode} onValueChange={setTimerMode}>
-            <SelectTrigger id="timer-mode" className="mt-2">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIMER_MODE_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         <div className="flex gap-2 pt-4">
