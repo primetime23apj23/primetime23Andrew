@@ -122,24 +122,24 @@ export function AppHeader({
                   Roll Dice
                 </Button>
               )}
-              {onShowRules && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onShowRules}
-                  className="gap-2"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                  <span className="hidden sm:inline">Rules</span>
-                </Button>
+              {diceSkins && onDiceSkinsChange && (
+                <DiceSkinSettings skins={diceSkins} onSkinsChange={onDiceSkinsChange} />
               )}
             </div>
           )}
 
           {/* Right: User and Auth */}
           <div className="flex items-center gap-3">
-            {diceSkins && onDiceSkinsChange && (
-              <DiceSkinSettings skins={diceSkins} onSkinsChange={onDiceSkinsChange} />
+            {onShowRules && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onShowRules}
+                className="gap-2"
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Rules</span>
+              </Button>
             )}
             {onExitGame && (
               <Button variant="ghost" size="sm" onClick={onExitGame} className="gap-2">
