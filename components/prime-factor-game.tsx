@@ -1371,20 +1371,28 @@ export function PrimeFactorGame({
   useEffect(() => {
     if (!isMultiplayer) return;
     
-    // Count bonus entries for the opponent (not the local player)
-    const opponentName = gameState.players[1].name;
-    const opponentBonusCount = bonusHistory.filter(b => b.player === opponentName).length;
+    if (localPlayerIndex === null) return;
+
+    // Resolve the opponent relative to this client. Player 2's opponent is
+    // player 1 (index 0), while player 1's opponent is player 2 (index 1).
+    const opponentIndex = localPlayerIndex === 0 ? 1 : 0;
+    const opponentName = gameState.players[opponentIndex]?.name;
+    if (!opponentName) return;
+
+    const opponentBonuses = bonusHistory.filter((entry) => entry.player === opponentName);
+    const opponentBonusCount = opponentBonuses.length;
     
     // Check if opponent earned a new bonus since last check
     if (opponentBonusCount > previousOpponentBonusCountRef.current) {
       playCapturSound();
       playFireworksSound();
       
-      // Get the bonus amount from the latest bonus entry
-      const latestBonus = bonusHistory
-        .filter(b => b.player === opponentName)
-        .slice(-1)[0];
-      const bonusAmount = latestBonus?.amount || 1;
+      // Calculate the displayed award from the synchronized breakdown.
+      const latestBonus = opponentBonuses.at(-1);
+      const bonusAmount = latestBonus?.breakdown.reduce(
+        (total, item) => total + item.points,
+        0
+      ) || 1;
       
       // Trigger EXTREME spectacular fireworks across the entire board
       const boardWidth = window.innerWidth * 0.9;
@@ -1426,7 +1434,7 @@ export function PrimeFactorGame({
     }
     
     previousOpponentBonusCountRef.current = opponentBonusCount;
-  }, [bonusHistory, isMultiplayer, gameState.players]);
+  }, [bonusHistory, isMultiplayer, gameState.players, localPlayerIndex, playCapturSound, playFireworksSound, spawnFireworks]);
 
   const getLatestGameStateRecord = useCallback((states: Array<Record<string, any>>) => {
     return [...states].sort((a, b) => {
@@ -2532,8 +2540,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
           const boardHeight = window.innerHeight * 0.8;
           
           // Generate 20+ strategic points across the board for maximum coverage
-          const points = [];
-          for (let row = 0; row < 4; row++) {
+      const points: Array<{ x: number; y: number }> = [];
+      for (let row = 0; row < 4; row++) {
             for (let col = 0; col < 5; col++) {
               points.push({
                 x: (boardWidth / 5) * (col + 0.5),
