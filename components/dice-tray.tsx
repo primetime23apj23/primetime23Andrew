@@ -98,7 +98,7 @@ export function DiceTray({
         </h3>
         {!hideValues && (
           <p className="text-xs text-muted-foreground/80 mt-0.5">
-            Click to select (deselect) remove, drag to reorder
+            Click to select (deselect), drag to reorder
           </p>
         )}
       </div>
