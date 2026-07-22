@@ -139,7 +139,7 @@ function FireworkDot({
 
   return (
     <div
-      className="absolute w-3 h-3 rounded-full transition-all duration-700 ease-out"
+      className="absolute w-3 h-3 rounded-full transition-all duration-5000 ease-out"
       style={{
         left: x,
         top: y,
