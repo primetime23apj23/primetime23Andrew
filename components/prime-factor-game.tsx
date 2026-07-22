@@ -187,6 +187,8 @@ export function PrimeFactorGame({
   // Animation states
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
   const [fireworks, setFireworks] = useState<FireworkParticle[]>([]);
+  const [showBonusOverlay, setShowBonusOverlay] = useState(false);
+  const [bonusOverlayText, setBonusOverlayText] = useState("");
   const [isTrainCelebrating, setIsTrainCelebrating] = useState(false);
   const [celebrationNumbers, setCelebrationNumbers] = useState<number[]>([]);
   const [lastClaimedSpace, setLastClaimedSpace] = useState<number | null>(null);
@@ -2071,11 +2073,31 @@ const channel = subscribeToSession(sessionCode, (session) => {
     });
 
     // Only play sounds and animations for bonus points
-    if (bonusGained > 0 && pos) {
+    if (bonusGained > 0) {
       playCapturSound();
       playFireworksSound();
-      spawnFireworks(pos.x, pos.y);
-      spawnPointAnimation(pos.x, pos.y - 40, bonusGained, true);
+      
+      // Trigger spectacular fireworks across the entire board
+      // Spawn bursts from 6 strategic points across the board
+      const boardWidth = 900; // Approximate board width
+      const boardHeight = 600; // Approximate board height
+      const points = [
+        { x: boardWidth * 0.25, y: boardHeight * 0.25 },
+        { x: boardWidth * 0.75, y: boardHeight * 0.25 },
+        { x: boardWidth * 0.5, y: boardHeight * 0.5 },
+        { x: boardWidth * 0.25, y: boardHeight * 0.75 },
+        { x: boardWidth * 0.75, y: boardHeight * 0.75 },
+        { x: boardWidth * 0.5, y: boardHeight * 0.15 },
+      ];
+      
+      points.forEach((point) => {
+        spawnFireworks(point.x, point.y);
+      });
+      
+      // Show bonus text overlay for 5 seconds
+      setShowBonusOverlay(true);
+      setBonusOverlayText(`Bonus +${bonusGained}`);
+      setTimeout(() => setShowBonusOverlay(false), 5000);
     }
 
     const totalScore =
@@ -3137,6 +3159,14 @@ const channel = subscribeToSession(sessionCode, (session) => {
         fireworks={fireworks}
         onAnimationComplete={handleAnimationComplete}
       />
+      {/* Bonus overlay display */}
+      {showBonusOverlay && (
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
+          <div className="text-6xl sm:text-7xl md:text-8xl font-black text-primary drop-shadow-lg animate-bounce">
+            {bonusOverlayText}
+          </div>
+        </div>
+      )}
       <PartyCelebration
         isActive={isTrainCelebrating}
         numbers={celebrationNumbers}
