@@ -8,6 +8,7 @@ interface FloatingEmoji {
   x: number;
   y: number;
   points: number;
+  isBonus?: boolean;
 }
 
 interface FireworkParticle {
@@ -54,6 +55,7 @@ function FloatingPoint({
   x,
   y,
   points,
+  isBonus = false,
   onComplete,
 }: FloatingEmoji & { onComplete: () => void }) {
   const [opacity, setOpacity] = useState(1);
@@ -67,20 +69,22 @@ function FloatingPoint({
       setTimeout(() => setScale(1), 150);
     });
     
-    // Float up and fade (hold for 1.5s then fade over 0.5s)
+    // Float up and fade (hold for 3.5s then fade over 0.5s for bonus, 1.5s + 0.5s for normal)
+    const holdDuration = isBonus ? 3500 : 1500;
     const fadeTimer = setTimeout(() => {
       setTranslateY(-80);
       setOpacity(0);
-    }, 1500);
+    }, holdDuration);
     
-    // Complete after 3 seconds total
-    const completeTimer = setTimeout(onComplete, 3000);
+    // Complete after 5 seconds total for bonus, 3 seconds for normal
+    const totalDuration = isBonus ? 5000 : 3000;
+    const completeTimer = setTimeout(onComplete, totalDuration);
     
     return () => {
       clearTimeout(fadeTimer);
       clearTimeout(completeTimer);
     };
-  }, [onComplete]);
+  }, [onComplete, isBonus]);
 
   return (
     <div
@@ -92,10 +96,18 @@ function FloatingPoint({
         transform: `translateY(${translateY}px) scale(${scale})`,
       }}
     >
-      <span className="text-6xl">{emoji}</span>
-      <span className="text-2xl font-bold text-primary drop-shadow-lg">
-        +{points}
-      </span>
+      {isBonus ? (
+        <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary drop-shadow-lg">
+          Bonus +{points}
+        </span>
+      ) : (
+        <>
+          <span className="text-6xl">{emoji}</span>
+          <span className="text-2xl font-bold text-primary drop-shadow-lg">
+            +{points}
+          </span>
+        </>
+      )}
     </div>
   );
 }

@@ -601,6 +601,7 @@ export function PrimeFactorGame({
       x,
       y,
       points,
+      isBonus,
     };
     setFloatingEmojis((prev) => [...prev, newEmoji]);
   }, []);
