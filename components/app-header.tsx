@@ -102,14 +102,17 @@ export function AppHeader({
           {/* Center: Round indicator + current player + Roll Dice */}
           {rollControls && (
             <div className="flex items-center gap-2 flex-wrap justify-center">
-              <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1">
-                <span className="text-sm font-bold text-primary whitespace-nowrap">
-                  Round {rollControls.roundNumber}
-                </span>
-                <span className="text-xs text-muted-foreground">·</span>
-                <span className="text-xs font-medium text-foreground truncate max-w-[9rem]">
-                  {rollControls.currentPlayerName}
-                </span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1">
+                  <span className="text-sm font-bold text-primary whitespace-nowrap">
+                    Round {rollControls.roundNumber}
+                  </span>
+                </div>
+                <div className="rounded-full bg-pink-200 dark:bg-pink-900 px-3 py-1">
+                  <span className="text-sm sm:text-base md:text-lg font-bold text-primary whitespace-nowrap truncate max-w-[12rem]">
+                    {rollControls.currentPlayerName}
+                  </span>
+                </div>
               </div>
               {rollControls.phase === "rolling" && (
                 <Button
