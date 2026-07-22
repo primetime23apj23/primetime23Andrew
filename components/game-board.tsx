@@ -117,9 +117,9 @@ function BoardSpaceCell({
   // Bottom left cell (0) - Times of Primes logo
   if (space.number === 0) {
     return (
-      <div data-space={space.number} className="w-full h-full bg-white dark:bg-zinc-900 flex items-center justify-center p-0.5 overflow-hidden">
+      <div data-space={space.number} className="w-full h-full bg-white dark:bg-zinc-900 flex items-center justify-center p-1 overflow-hidden">
         <span 
-          className="text-[8px] sm:text-[11px] font-black text-center leading-none"
+          className="text-3xl sm:text-4xl md:text-5xl font-black text-center leading-tight"
           style={{
             background: "linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #00ff00, #00bfff, #8000ff)",
             WebkitBackgroundClip: "text",
