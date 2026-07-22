@@ -1367,7 +1367,7 @@ export function PrimeFactorGame({
     }
   }, [getSavedStateVersion, sessionLocalPlayerId, isMultiplayer, gameStateRef]);
 
-  // Detect opponent bonus in multiplayer and play sound
+  // Detect opponent bonus in multiplayer and play animation
   useEffect(() => {
     if (!isMultiplayer) return;
     
@@ -1378,6 +1378,51 @@ export function PrimeFactorGame({
     // Check if opponent earned a new bonus since last check
     if (opponentBonusCount > previousOpponentBonusCountRef.current) {
       playCapturSound();
+      playFireworksSound();
+      
+      // Get the bonus amount from the latest bonus entry
+      const latestBonus = bonusHistory
+        .filter(b => b.player === opponentName)
+        .slice(-1)[0];
+      const bonusAmount = latestBonus?.amount || 1;
+      
+      // Trigger EXTREME spectacular fireworks across the entire board
+      const boardWidth = window.innerWidth * 0.9;
+      const boardHeight = window.innerHeight * 0.8;
+      
+      // Generate 20+ strategic points across the board for maximum coverage
+      const points = [];
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 5; col++) {
+          points.push({
+            x: (boardWidth / 5) * (col + 0.5),
+            y: (boardHeight / 4) * (row + 0.5),
+          });
+        }
+      }
+      
+      // Spawn initial burst
+      points.forEach((point) => {
+        spawnFireworks(point.x, point.y);
+      });
+      
+      // Spawn additional waves of fireworks every 500ms for 5 seconds
+      const waves = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500];
+      waves.forEach((delay) => {
+        setTimeout(() => {
+          points.forEach((point) => {
+            spawnFireworks(
+              point.x + (Math.random() - 0.5) * 100,
+              point.y + (Math.random() - 0.5) * 100
+            );
+          });
+        }, delay);
+      });
+      
+      // Show bonus text overlay for 5 seconds
+      setShowBonusOverlay(true);
+      setBonusOverlayText(`Bonus +${bonusAmount}`);
+      setTimeout(() => setShowBonusOverlay(false), 5000);
     }
     
     previousOpponentBonusCountRef.current = opponentBonusCount;
