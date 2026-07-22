@@ -28,15 +28,6 @@ const MULTIPLICATION_TARGET_SCORE_OPTIONS = [
   { value: "50", label: "50 Points" },
 ] as const;
 
-const TIMER_MODE_OPTIONS = [
-  { value: "disabled", label: "No Timer" },
-  { value: "1_minute", label: "1 Minute" },
-  { value: "3_minutes", label: "3 Minutes" },
-  { value: "5_minutes", label: "5 Minutes" },
-] as const;
-
-
-
 interface GameSetupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
