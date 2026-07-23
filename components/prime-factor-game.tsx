@@ -2589,14 +2589,21 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
     }, 1500);
 
-    // CRITICAL: do NOT clear botTurnScheduledRef in cleanup
-    // Only clear the timer itself
-    return () => clearTimeout(timer);
+    // Cleanup only runs when the effect's deps change (turn/phase/mode) or on
+    // unmount — volatile values like player2Dice/diceRolled are NOT deps, so a
+    // teardown here means the pending move is genuinely stale. Release the lock
+    // along with the timer; otherwise a phase change during the 1500ms delay
+    // (e.g. the round-transition effect flipping phase to "rolling") clears the
+    // timer but leaves the lock set, permanently freezing the bot on its next
+    // turn (it bails on the botTurnScheduledRef guard with no timer pending).
+    return () => {
+      clearTimeout(timer);
+      botTurnScheduledRef.current = false;
+    };
 
     // NOTE: player2Dice / diceRolled are intentionally NOT dependencies. They can
     // change during the bot's 1500ms "thinking" delay, which would tear down the
-    // timer while the lock ref stays set, leaving the bot stuck (it never moves).
-    // The timer reads fresh dice from player2DiceRef instead.
+    // timer mid-turn. The timer reads fresh dice from player2DiceRef instead.
   }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer]);
 
   // Start new round - show confirmation modal
