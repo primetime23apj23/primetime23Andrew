@@ -2477,25 +2477,19 @@ const channel = subscribeToSession(sessionCode, (session) => {
       playOpponentMoveSound();
       setLastClaimedSpace(space.number);
 
-      if (botWins) {
+      // Release the lock now; the pure updater below re-verifies turn/phase.
+      botTurnScheduledRef.current = false;
+
+      // Applies the winning game-over state (train celebration + overlay).
+      const applyBotWin = () => {
         const botOwnedNumbers = newBoard
           .filter((s) => s.owner === 1)
           .map((s) => s.number)
           .sort((a, b) => a - b);
         setCelebrationNumbers(botOwnedNumbers);
         setIsTrainCelebrating(true);
-      }
-
-      // Release the lock and apply the computed state with a pure updater.
-      botTurnScheduledRef.current = false;
-
-      setGameState(prev => {
-        // CRITICAL: verify it's still bot's turn before applying
-        if (prev.currentPlayer !== 1 || prev.phase !== "playing") {
-          return prev;
-        }
-
-        if (botWins) {
+        setGameState(prev => {
+          if (prev.phase !== "playing") return prev;
           return {
             ...prev,
             board: newBoard,
@@ -2505,18 +2499,35 @@ const channel = subscribeToSession(sessionCode, (session) => {
             message: `Bot wins with ${totalScore} points!`,
             lastCapturePerPlayer: nextLastCapturePerPlayer,
           };
-        }
+        });
+      };
 
-        return {
-          ...prev,
-          board: newBoard,
-          players: newPlayers,
-          currentPlayer: 0,   // ← human's turn
-          selectedDice: [],
-          message: `Bot claimed space ${space.number}! ${newPlayers[0].name}'s turn.`,
-          lastCapturePerPlayer: nextLastCapturePerPlayer,
-        };
-      });
+      if (botWins) {
+        // If the winning move also earned a bonus, let the "Bonus +X" fireworks
+        // play first, THEN show the game-over overlay (which would otherwise
+        // instantly cover the bonus text). Otherwise go straight to game over.
+        if (bonusGained > 0) {
+          setTimeout(applyBotWin, 2800);
+        } else {
+          applyBotWin();
+        }
+      } else {
+        setGameState(prev => {
+          // CRITICAL: verify it's still bot's turn before applying
+          if (prev.currentPlayer !== 1 || prev.phase !== "playing") {
+            return prev;
+          }
+          return {
+            ...prev,
+            board: newBoard,
+            players: newPlayers,
+            currentPlayer: 0,   // ← human's turn
+            selectedDice: [],
+            message: `Bot claimed space ${space.number}! ${newPlayers[0].name}'s turn.`,
+            lastCapturePerPlayer: nextLastCapturePerPlayer,
+          };
+        });
+      }
 
     }, 4500); // Slower bot: 1.5s think + extra 3s delay before claiming
 
