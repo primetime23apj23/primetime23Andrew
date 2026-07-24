@@ -15,6 +15,7 @@ interface HeaderRollControls {
   roundNumber: number;
   canRoll: boolean;
   currentPlayerName: string;
+  targetScore?: number;
 }
 
 interface AppHeaderProps {
@@ -107,6 +108,13 @@ export function AppHeader({
                   Round {rollControls.roundNumber} - {rollControls.currentPlayerName}
                 </span>
               </div>
+              {typeof rollControls.targetScore === "number" && rollControls.targetScore > 0 && (
+                <div className="rounded-full border-2 border-amber-400 bg-amber-50 dark:bg-amber-950 px-4 py-1.5">
+                  <span className="text-sm sm:text-base font-bold text-amber-700 dark:text-amber-300 whitespace-nowrap">
+                    Score to Win: {rollControls.targetScore}
+                  </span>
+                </div>
+              )}
               {rollControls.phase === "rolling" && (
                 <Button
                   onClick={onRoll}
