@@ -1381,7 +1381,7 @@ export function PrimeFactorGame({
       ) || 1;
       
       // Celebrate with a short volley of canvas fireworks bursts
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 13; i++) {
         setTimeout(() => {
           spawnFireworks(
             window.innerWidth * (0.15 + Math.random() * 0.7),
@@ -2094,7 +2094,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       playFireworksSound();
       
       // Celebrate with a short volley of canvas fireworks bursts
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 13; i++) {
         setTimeout(() => {
           spawnFireworks(
             window.innerWidth * (0.15 + Math.random() * 0.7),
@@ -2460,7 +2460,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
         playCapturSound();
         playFireworksSound();
 
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 13; i++) {
           setTimeout(() => {
             spawnFireworks(
               window.innerWidth * (0.15 + Math.random() * 0.7),
