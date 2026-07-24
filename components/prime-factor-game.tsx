@@ -14,10 +14,9 @@ import { TargetScoreSelector } from "./target-score-selector";
 import {
   PointAnimations,
   getRandomEmoji,
-  createFireworkBurst,
   type FloatingEmoji,
-  type FireworkParticle,
 } from "./point-animations";
+import { VictoryFireworks, type VictoryFireworksHandle } from "./victory-fireworks";
 import {
   generateBoard,
   rollDice,
@@ -188,7 +187,7 @@ export function PrimeFactorGame({
   
   // Animation states
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
-  const [fireworks, setFireworks] = useState<FireworkParticle[]>([]);
+  const fireworksRef = useRef<VictoryFireworksHandle>(null);
   const [showBonusOverlay, setShowBonusOverlay] = useState(false);
   const [bonusOverlayText, setBonusOverlayText] = useState("");
   const [isTrainCelebrating, setIsTrainCelebrating] = useState(false);
@@ -501,14 +500,6 @@ export function PrimeFactorGame({
     return false;
   }, [currentPlayerDice, gameState.board]);
 
-  // Clear fireworks after animation
-  useEffect(() => {
-    if (fireworks.length > 0) {
-      const timer = setTimeout(() => setFireworks([]), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [fireworks]);
-
   // Auto-skip if current player has no valid moves
   useEffect(() => {
     if (gameState.phase !== "playing" || !diceRolled) return;
@@ -604,10 +595,9 @@ export function PrimeFactorGame({
     setFloatingEmojis((prev) => [...prev, newEmoji]);
   }, []);
 
-  // Spawn firework burst
+  // Fire a canvas firework burst at the given viewport position
   const spawnFireworks = useCallback((x: number, y: number) => {
-    const newFireworks = createFireworkBurst(x, y, 24);
-    setFireworks((prev) => [...prev, ...newFireworks]);
+    fireworksRef.current?.burst(x, y);
   }, []);
 
   // Handle animation complete
@@ -1390,38 +1380,15 @@ export function PrimeFactorGame({
         0
       ) || 1;
       
-      // Trigger EXTREME spectacular fireworks across the entire board
-      const boardWidth = window.innerWidth * 0.9;
-      const boardHeight = window.innerHeight * 0.8;
-      
-      // Generate 20+ strategic points across the board for maximum coverage
-      const points = [];
-      for (let row = 0; row < 4; row++) {
-        for (let col = 0; col < 5; col++) {
-          points.push({
-            x: (boardWidth / 5) * (col + 0.5),
-            y: (boardHeight / 4) * (row + 0.5),
-          });
-        }
-      }
-      
-      // Spawn initial burst
-      points.forEach((point) => {
-        spawnFireworks(point.x, point.y);
-      });
-      
-      // Spawn additional waves of fireworks every 500ms for 5 seconds
-      const waves = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500];
-      waves.forEach((delay) => {
+      // Celebrate with a short volley of canvas fireworks bursts
+      for (let i = 0; i < 8; i++) {
         setTimeout(() => {
-          points.forEach((point) => {
-            spawnFireworks(
-              point.x + (Math.random() - 0.5) * 100,
-              point.y + (Math.random() - 0.5) * 100
-            );
-          });
-        }, delay);
-      });
+          spawnFireworks(
+            window.innerWidth * (0.15 + Math.random() * 0.7),
+            window.innerHeight * (0.15 + Math.random() * 0.5)
+          );
+        }, i * 400);
+      }
       
       // Show bonus text overlay for 5 seconds
       setShowBonusOverlay(true);
@@ -2126,39 +2093,15 @@ const channel = subscribeToSession(sessionCode, (session) => {
       playCapturSound();
       playFireworksSound();
       
-      // Trigger EXTREME spectacular fireworks across the entire board
-      // Create a grid of firework bursts covering the entire board extensively
-      const boardWidth = window.innerWidth * 0.9;
-      const boardHeight = window.innerHeight * 0.8;
-      
-      // Generate 20+ strategic points across the board for maximum coverage
-      const points = [];
-      for (let row = 0; row < 4; row++) {
-        for (let col = 0; col < 5; col++) {
-          points.push({
-            x: (boardWidth / 5) * (col + 0.5),
-            y: (boardHeight / 4) * (row + 0.5),
-          });
-        }
-      }
-      
-      // Spawn initial burst
-      points.forEach((point) => {
-        spawnFireworks(point.x, point.y);
-      });
-      
-      // Spawn additional waves of fireworks every 500ms for 5 seconds
-      const waves = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500];
-      waves.forEach((delay) => {
+      // Celebrate with a short volley of canvas fireworks bursts
+      for (let i = 0; i < 8; i++) {
         setTimeout(() => {
-          points.forEach((point) => {
-            spawnFireworks(
-              point.x + (Math.random() - 0.5) * 100,
-              point.y + (Math.random() - 0.5) * 100
-            );
-          });
-        }, delay);
-      });
+          spawnFireworks(
+            window.innerWidth * (0.15 + Math.random() * 0.7),
+            window.innerHeight * (0.15 + Math.random() * 0.5)
+          );
+        }, i * 400);
+      }
       
       // Show bonus text overlay for 5 seconds
       setShowBonusOverlay(true);
@@ -2544,38 +2487,15 @@ const channel = subscribeToSession(sessionCode, (session) => {
           playCapturSound();
           playFireworksSound();
           
-          // Trigger EXTREME spectacular fireworks across the entire board (same as player 1)
-          const boardWidth = window.innerWidth * 0.9;
-          const boardHeight = window.innerHeight * 0.8;
-          
-          // Generate 20+ strategic points across the board for maximum coverage
-      const points: Array<{ x: number; y: number }> = [];
-      for (let row = 0; row < 4; row++) {
-            for (let col = 0; col < 5; col++) {
-              points.push({
-                x: (boardWidth / 5) * (col + 0.5),
-                y: (boardHeight / 4) * (row + 0.5),
-              });
-            }
-          }
-          
-          // Spawn initial burst
-          points.forEach((point) => {
-            spawnFireworks(point.x, point.y);
-          });
-          
-          // Spawn additional waves of fireworks every 500ms for 5 seconds
-          const waves = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500];
-          waves.forEach((delay) => {
+          // Celebrate with a short volley of canvas fireworks bursts
+          for (let i = 0; i < 8; i++) {
             setTimeout(() => {
-              points.forEach((point) => {
-                spawnFireworks(
-                  point.x + (Math.random() - 0.5) * 100,
-                  point.y + (Math.random() - 0.5) * 100
-                );
-              });
-            }, delay);
-          });
+              spawnFireworks(
+                window.innerWidth * (0.15 + Math.random() * 0.7),
+                window.innerHeight * (0.15 + Math.random() * 0.5)
+              );
+            }, i * 400);
+          }
           
           // Show bonus text overlay for 5 seconds
           setShowBonusOverlay(true);
@@ -3279,9 +3199,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
       {/* Point Animations Overlay */}
       <PointAnimations
         animations={floatingEmojis}
-        fireworks={fireworks}
         onAnimationComplete={handleAnimationComplete}
       />
+      {/* Canvas fireworks for bonus celebrations */}
+      <VictoryFireworks ref={fireworksRef} />
       {/* Bonus overlay display */}
       {showBonusOverlay && (
         <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">

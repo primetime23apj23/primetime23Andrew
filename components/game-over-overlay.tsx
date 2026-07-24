@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Trophy, RotateCcw, Crown, Medal } from "lucide-react";
+import { VictoryFireworks } from "./victory-fireworks";
 
 interface GameOverPlayer {
   name: string;
@@ -37,6 +38,9 @@ export function GameOverOverlay({ isActive, players, onPlayAgain }: GameOverOver
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-300">
       {/* Dim + blur backdrop */}
       <div className="absolute inset-0 bg-foreground/60 backdrop-blur-sm" />
+
+      {/* Full victory fireworks show */}
+      <VictoryFireworks autoPlay />
 
       {/* Card */}
       <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-500">
