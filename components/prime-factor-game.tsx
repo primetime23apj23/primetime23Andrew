@@ -2481,7 +2481,12 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
         if (totalScore >= prev.targetScore) {
           botTurnScheduledRef.current = false;
-          setCelebrationNumbers(ownedNumbers);
+          // Get all numbers owned by the winning bot for the celebration
+          const botOwnedNumbers = newBoard
+            .filter((s) => s.owner === 1)
+            .map((s) => s.number)
+            .sort((a, b) => a - b);
+          setCelebrationNumbers(botOwnedNumbers);
           setIsTrainCelebrating(true);
           return { 
             ...prev, 
