@@ -2399,112 +2399,113 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
       setPlayer2Dice(prev => prev.filter(d => !diceToRemove.includes(d.id)));
 
+      // Compute the outcome from the freshest snapshot (the bot holds the
+      // botTurnScheduledRef lock, so `current` is authoritative). All celebration
+      // side effects run OUT HERE — never inside the setGameState updater, which
+      // must stay pure so React can safely re-run it.
+      const newBoard = current.board.map(s =>
+        s.number === space.number ? { ...s, owner: 1, claimed: true } : s
+      );
+      const { bonusPoints: bonusGained, breakdown } = checkForNewBonus(newBoard, space.number);
+      const newPlayers = current.players.map((p, i) =>
+        i === 1 ? { ...p, score: p.score + 1, bonusPoints: p.bonusPoints + bonusGained } : p
+      );
+      const totalScore = newPlayers[1].score + newPlayers[1].bonusPoints;
+      const nextLastCapturePerPlayer = [
+        current.lastCapturePerPlayer?.[0] ?? null,
+        { space: space.number, factors: space.factors },
+      ];
+      const botWins = totalScore >= current.targetScore;
+
+      // Bonus history + track animations
+      if (breakdown.length > 0) {
+        setBonusHistory((prevHistory) => [
+          ...prevHistory,
+          {
+            player: current.players[1].name,
+            space: space.number,
+            round: current.roundNumber,
+            breakdown,
+          },
+        ]);
+
+        const playerColor = PLAYER_COLORS[1];
+        const newTracks: CompletedTrack[] = breakdown.map((b, i) => ({
+          id: `track-${Date.now()}-${i}`,
+          primeStart: b.primeStart,
+          primeEnd: b.primeEnd,
+          spaces: b.spaces,
+          direction: b.direction,
+          playerColor,
+          animating: true,
+        }));
+
+        setCompletedTracks((tracks) => [...tracks, ...newTracks]);
+
+        // Tracks animate sequentially (~3s each); wait for all before finalizing.
+        const botFinalizeDelay = newTracks.length * 3000 + 500;
+        setTimeout(() => {
+          setCompletedTracks((tracks) =>
+            tracks.map((t) =>
+              newTracks.some((nt) => nt.id === t.id)
+                ? { ...t, animating: false }
+                : t
+            )
+          );
+        }, botFinalizeDelay);
+      }
+
+      // Bonus celebration: fireworks + "Bonus +X" text (mirrors the human path)
+      if (bonusGained > 0) {
+        playCapturSound();
+        playFireworksSound();
+
+        for (let i = 0; i < 8; i++) {
+          setTimeout(() => {
+            spawnFireworks(
+              window.innerWidth * (0.15 + Math.random() * 0.7),
+              window.innerHeight * (0.15 + Math.random() * 0.5)
+            );
+          }, i * 400);
+        }
+
+        setShowBonusOverlay(true);
+        setBonusOverlayText(`Bonus +${bonusGained}`);
+        setTimeout(() => setShowBonusOverlay(false), 5000);
+      }
+
+      playOpponentMoveSound();
+      setLastClaimedSpace(space.number);
+
+      if (botWins) {
+        const botOwnedNumbers = newBoard
+          .filter((s) => s.owner === 1)
+          .map((s) => s.number)
+          .sort((a, b) => a - b);
+        setCelebrationNumbers(botOwnedNumbers);
+        setIsTrainCelebrating(true);
+      }
+
+      // Release the lock and apply the computed state with a pure updater.
+      botTurnScheduledRef.current = false;
+
       setGameState(prev => {
         // CRITICAL: verify it's still bot's turn before applying
         if (prev.currentPlayer !== 1 || prev.phase !== "playing") {
-          botTurnScheduledRef.current = false;
           return prev;
         }
 
-        const newBoard = prev.board.map(s =>
-          s.number === space.number ? { ...s, owner: 1, claimed: true } : s
-        );
-        const { bonusPoints: bonusGained, breakdown } = checkForNewBonus(newBoard, space.number);
-        const newPlayers = prev.players.map((p, i) =>
-          i === 1 ? { ...p, score: p.score + 1, bonusPoints: p.bonusPoints + bonusGained } : p
-        );
-        const totalScore = newPlayers[1].score + newPlayers[1].bonusPoints;
-
-        // Record the bot's most recent capture so its factorization box updates,
-        // mirroring the human claim path.
-        const nextLastCapturePerPlayer = [
-          prev.lastCapturePerPlayer?.[0] ?? null,
-          { space: space.number, factors: space.factors },
-        ];
-
-        if (totalScore >= prev.targetScore) {
-          botTurnScheduledRef.current = false;
-          // Get all numbers owned by the winning bot for the celebration
-          const botOwnedNumbers = newBoard
-            .filter((s) => s.owner === 1)
-            .map((s) => s.number)
-            .sort((a, b) => a - b);
-          setCelebrationNumbers(botOwnedNumbers);
-          setIsTrainCelebrating(true);
-          return { 
-            ...prev, 
-            board: newBoard, 
-            players: newPlayers, 
-            selectedDice: [], 
+        if (botWins) {
+          return {
+            ...prev,
+            board: newBoard,
+            players: newPlayers,
+            selectedDice: [],
             phase: "gameOver",
             message: `Bot wins with ${totalScore} points!`,
             lastCapturePerPlayer: nextLastCapturePerPlayer,
           };
         }
-
-        // Handle bonus points if applicable
-        if (breakdown.length > 0) {
-          setBonusHistory((prevHistory) => [
-            ...prevHistory,
-            {
-              player: prev.players[1].name,
-              space: space.number,
-              round: prev.roundNumber,
-              breakdown,
-            },
-          ]);
-          
-          const playerColor = PLAYER_COLORS[1];
-          const newTracks: CompletedTrack[] = breakdown.map((b, i) => ({
-            id: `track-${Date.now()}-${i}`,
-            primeStart: b.primeStart,
-            primeEnd: b.primeEnd,
-            spaces: b.spaces,
-            direction: b.direction,
-            playerColor,
-            animating: true,
-          }));
-          
-          setCompletedTracks((tracks) => [...tracks, ...newTracks]);
-          
-          // Tracks animate sequentially (~3s each); wait for all before finalizing.
-          const botFinalizeDelay = newTracks.length * 3000 + 500;
-          setTimeout(() => {
-            setCompletedTracks((tracks) =>
-              tracks.map((t) =>
-                newTracks.some((nt) => nt.id === t.id)
-                  ? { ...t, animating: false }
-                  : t
-              )
-            );
-          }, botFinalizeDelay);
-        }
-
-        // Switch to player 0 and release lock AFTER state is applied
-        botTurnScheduledRef.current = false;
-        
-        if (bonusGained > 0) {
-          playCapturSound();
-          playFireworksSound();
-          
-          // Celebrate with a short volley of canvas fireworks bursts
-          for (let i = 0; i < 8; i++) {
-            setTimeout(() => {
-              spawnFireworks(
-                window.innerWidth * (0.15 + Math.random() * 0.7),
-                window.innerHeight * (0.15 + Math.random() * 0.5)
-              );
-            }, i * 400);
-          }
-          
-          // Show bonus text overlay for 5 seconds
-          setShowBonusOverlay(true);
-          setBonusOverlayText(`Bonus +${bonusGained}`);
-          setTimeout(() => setShowBonusOverlay(false), 5000);
-        }
-        
-        playOpponentMoveSound();
-        setLastClaimedSpace(space.number);
 
         return {
           ...prev,
