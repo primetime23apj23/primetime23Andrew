@@ -89,6 +89,7 @@ export interface HeaderRollControls {
   roundNumber: number;
   canRoll: boolean;
   currentPlayerName: string;
+  targetScore?: number;
 }
 
 interface PrimeFactorGameProps {
@@ -2827,6 +2828,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       roundNumber: gameState.roundNumber,
       canRoll: !diceRolled && gameState.phase === "rolling" && isLocalPlayersTurn,
       currentPlayerName: getSeatDisplayName(gameState.currentPlayer),
+      targetScore: gameState.targetScore,
     });
   }, [
     showPreGameSetupPage,
@@ -2834,6 +2836,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
     gameState.phase,
     gameState.roundNumber,
     gameState.currentPlayer,
+    gameState.targetScore,
     diceRolled,
     isLocalPlayersTurn,
   ]);
