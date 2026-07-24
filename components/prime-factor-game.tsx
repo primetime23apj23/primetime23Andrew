@@ -1470,6 +1470,10 @@ export function PrimeFactorGame({
     setDiceRolled(false);
     setBonusHistory([]);
     setCompletedTracks([]);
+    setIsTrainCelebrating(false);
+    setCelebrationNumbers([]);
+    setShowBonusOverlay(false);
+    if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
 
     if (isMultiplayer) {
       await persistGameState('start', {
@@ -2743,6 +2747,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
   const handleNewGame = useCallback(() => {
     gameStateVersionRef.current = -1;
     setSessionLocalPlayerId(null);
+    // Immediately stop any lingering celebration animations from the finished game.
+    setIsTrainCelebrating(false);
+    setCelebrationNumbers([]);
+    setShowBonusOverlay(false);
+    if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
     // Leave the gameOver phase immediately so the victory overlay dismisses
     // as soon as Play Again is clicked (instead of lingering over the setup
     // dialog and the new game).
