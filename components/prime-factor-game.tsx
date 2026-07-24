@@ -1387,7 +1387,7 @@ export function PrimeFactorGame({
             window.innerWidth * (0.15 + Math.random() * 0.7),
             window.innerHeight * (0.15 + Math.random() * 0.5)
           );
-        }, i * 400);
+        }, i * 350); // last burst ~4.2s; sparks fade by 5s, matching the bonus text
       }
       
       // Show bonus text overlay for 5 seconds
@@ -2100,7 +2100,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             window.innerWidth * (0.15 + Math.random() * 0.7),
             window.innerHeight * (0.15 + Math.random() * 0.5)
           );
-        }, i * 400);
+        }, i * 350); // last burst ~4.2s; sparks fade by 5s, matching the bonus text
       }
       
       // Show bonus text overlay for 5 seconds
@@ -2466,7 +2466,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
               window.innerWidth * (0.15 + Math.random() * 0.7),
               window.innerHeight * (0.15 + Math.random() * 0.5)
             );
-          }, i * 400);
+          }, i * 350); // last burst ~4.2s; sparks fade by 5s, matching the bonus text
         }
 
         setShowBonusOverlay(true);
