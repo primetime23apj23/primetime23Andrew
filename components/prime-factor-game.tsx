@@ -190,6 +190,10 @@ export function PrimeFactorGame({
   const fireworksRef = useRef<VictoryFireworksHandle>(null);
   const [showBonusOverlay, setShowBonusOverlay] = useState(false);
   const [bonusOverlayText, setBonusOverlayText] = useState("");
+  // Tracks the pending hide-timer for the bonus overlay so a new celebration
+  // (e.g. the bot's) cancels the previous turn's stale timeout instead of
+  // being hidden early by it.
+  const bonusOverlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isTrainCelebrating, setIsTrainCelebrating] = useState(false);
   const [celebrationNumbers, setCelebrationNumbers] = useState<number[]>([]);
   const [lastClaimedSpace, setLastClaimedSpace] = useState<number | null>(null);
@@ -1393,7 +1397,8 @@ export function PrimeFactorGame({
       // Show bonus text overlay for 5 seconds
       setShowBonusOverlay(true);
       setBonusOverlayText(`Bonus +${bonusAmount}`);
-      setTimeout(() => setShowBonusOverlay(false), 5000);
+      if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
+        bonusOverlayTimerRef.current = setTimeout(() => setShowBonusOverlay(false), 5000);
     }
     
     previousOpponentBonusCountRef.current = opponentBonusCount;
@@ -2106,7 +2111,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
       // Show bonus text overlay for 5 seconds
       setShowBonusOverlay(true);
       setBonusOverlayText(`Bonus +${bonusGained}`);
-      setTimeout(() => setShowBonusOverlay(false), 5000);
+      if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
+        bonusOverlayTimerRef.current = setTimeout(() => setShowBonusOverlay(false), 5000);
     }
 
     const totalScore =
@@ -2334,6 +2340,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
     if (gameState.currentPlayer !== 1) return;
     if (gameState.phase !== "rolling") return;
     if (diceRolled) return; // Already rolled this turn
+    // Wait for the player's celebration (bonus text/fireworks) to finish first;
+    // when the overlay hides this effect re-runs and the bot proceeds.
+    if (showBonusOverlay) return;
 
     const timer = setTimeout(() => {
       // Check state is still valid before rolling
@@ -2344,13 +2353,16 @@ const channel = subscribeToSession(sessionCode, (session) => {
     }, 2000); // Slower, more deliberate roll
 
     return () => clearTimeout(timer);
-  }, [botEnabled, isMultiplayer, gameState.currentPlayer, gameState.phase, diceRolled, handleRoll]);
+  }, [botEnabled, isMultiplayer, gameState.currentPlayer, gameState.phase, diceRolled, showBonusOverlay, handleRoll]);
 
   // Bot auto-play effect with proper lock management
   useEffect(() => {
     if (!botEnabled || isMultiplayer) return;
     if (gameState.currentPlayer !== 1) return;
     if (gameState.phase !== "playing") return;
+    // Don't start the bot's move while a celebration (bonus text/fireworks) is
+    // still playing; the effect re-runs when the overlay hides.
+    if (showBonusOverlay) return;
     if (botTurnScheduledRef.current) return;
 
     botTurnScheduledRef.current = true;
@@ -2471,7 +2483,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
         setShowBonusOverlay(true);
         setBonusOverlayText(`Bonus +${bonusGained}`);
-        setTimeout(() => setShowBonusOverlay(false), 5000);
+        if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
+        bonusOverlayTimerRef.current = setTimeout(() => setShowBonusOverlay(false), 5000);
       }
 
       playOpponentMoveSound();
@@ -2546,7 +2559,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
     // NOTE: player2Dice / diceRolled are intentionally NOT dependencies. They can
     // change during the bot's 1500ms "thinking" delay, which would tear down the
     // timer mid-turn. The timer reads fresh dice from player2DiceRef instead.
-  }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer]);
+  }, [botEnabled, gameState.currentPlayer, gameState.phase, isMultiplayer, showBonusOverlay]);
 
   // Start new round - show confirmation modal
   const handleReadyForNextRound = useCallback(() => {
