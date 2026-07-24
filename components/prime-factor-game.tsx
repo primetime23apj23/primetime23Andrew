@@ -2990,8 +2990,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
             {/* Player 1 Dice - always shown once dice are rolled */}
             {diceRolled && gameState.phase !== "rolling" && (
-              <div className={`${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
+              <div className={`flex-1 flex ${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
+                  className="flex-1 w-full"
                   dice={player1Dice}
                   selectedDice={gameState.currentPlayer === 0 ? gameState.selectedDice : []}
                   onDieClick={handleDieClick}
@@ -3066,8 +3067,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
             {/* Player 2 Dice - always shown once dice are rolled */}
             {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && gameState.phase !== "rolling" && (
-              <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
+              <div className={`flex-1 flex ${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
+                  className="flex-1 w-full"
                   dice={player2Dice}
                   selectedDice={gameState.currentPlayer === 1 ? gameState.selectedDice : []}
                   onDieClick={handleDieClick}
