@@ -226,9 +226,11 @@ export const VictoryFireworks = forwardRef<
     showActiveRef.current = true;
     completedRef.current = false;
 
-    const rocketCount = 10 + Math.floor(Math.random() * 5); // 10-14
+    // Keep launching rockets across a ~4.2s window so, with the ~0.8s spark
+    // lifetime after the final burst, the show stays active for a full 5s.
+    const LAUNCH_WINDOW = 4200;
     let delay = 200;
-    for (let i = 0; i < rocketCount; i++) {
+    while (delay <= LAUNCH_WINDOW) {
       const id = window.setTimeout(() => {
         launchRocket();
         // Occasional overlapping double-launch
@@ -237,7 +239,7 @@ export const VictoryFireworks = forwardRef<
         ensureLoop();
       }, delay);
       timeoutsRef.current.push(id);
-      delay += 300 + Math.random() * 100; // staggered every 300-400ms
+      delay += 260 + Math.random() * 100; // staggered every 260-360ms
     }
     ensureLoop();
 
