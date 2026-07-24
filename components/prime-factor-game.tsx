@@ -2476,6 +2476,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
         );
         const totalScore = newPlayers[1].score + newPlayers[1].bonusPoints;
 
+        // Record the bot's most recent capture so its factorization box updates,
+        // mirroring the human claim path.
+        const nextLastCapturePerPlayer = [
+          prev.lastCapturePerPlayer?.[0] ?? null,
+          { space: space.number, factors: space.factors },
+        ];
+
         if (totalScore >= prev.targetScore) {
           botTurnScheduledRef.current = false;
           setCelebrationNumbers(ownedNumbers);
@@ -2486,7 +2493,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
             players: newPlayers, 
             selectedDice: [], 
             phase: "gameOver",
-            message: `Bot wins with ${totalScore} points!` 
+            message: `Bot wins with ${totalScore} points!`,
+            lastCapturePerPlayer: nextLastCapturePerPlayer,
           };
         }
 
@@ -2584,6 +2592,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           currentPlayer: 0,   // ← human's turn
           selectedDice: [],
           message: `Bot claimed space ${space.number}! ${newPlayers[0].name}'s turn.`,
+          lastCapturePerPlayer: nextLastCapturePerPlayer,
         };
       });
 
