@@ -2730,6 +2730,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
   const handleNewGame = useCallback(() => {
     gameStateVersionRef.current = -1;
     setSessionLocalPlayerId(null);
+    // Leave the gameOver phase immediately so the victory overlay dismisses
+    // as soon as Play Again is clicked (instead of lingering over the setup
+    // dialog and the new game).
+    setGameState((prev) => ({ ...prev, phase: "setup" }));
     setShowSetup(true);
   }, []);
 
