@@ -77,7 +77,7 @@ export function MultiplicationGameTutorial({ open, onOpenChange }: TutorialDialo
 
           {/* Wild Dice */}
           <div>
-            <h3 className="font-bold text-lg mb-2">Wild Dice (W)</h3>
+            <h3 className="font-bold text-lg mb-2">Wild Dice (Any Prime)</h3>
             <p className="text-sm text-muted-foreground">
               Wild dice can substitute for any factor. Use them strategically to match spaces you couldn't otherwise claim.
             </p>
