@@ -58,7 +58,7 @@ export function RulesDialog({ open, onOpenChange }: RulesDialogProps) {
                 <li>7 dice weighted toward small primes (2, 3, 5, 7)</li>
               </ul>
               <p className="text-muted-foreground mt-2">
-                <span className="text-amber-600 font-medium">Wild cards (W)</span> can represent any prime number!
+                <span className="text-amber-600 font-medium">Wild cards (Any Prime)</span> can represent any prime number!
               </p>
             </section>
 
