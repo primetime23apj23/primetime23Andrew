@@ -379,14 +379,8 @@ export function PrimeFactorGame({
   const isLocalPlayersTurn =
     (botEnabled && gameState.currentPlayer === 0) || (isMultiplayer && localPlayerIndex !== null && localPlayerIndex === gameState.currentPlayer);
 
-  // Disambiguate seats in multiplayer (players may share the same display name)
-  // by marking the local player's seat with "(You)".
   const getSeatDisplayName = (seatIndex: number) => {
-    const baseName = gameState.players[seatIndex]?.name ?? `Player ${seatIndex + 1}`;
-    if (isMultiplayer && localPlayerIndex === seatIndex) {
-      return `${baseName} (You)`;
-    }
-    return baseName;
+    return gameState.players[seatIndex]?.name ?? `Player ${seatIndex + 1}`;
   };
 
   // Keep gameStateRef in sync for use in callbacks
