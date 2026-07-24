@@ -23,6 +23,7 @@ interface DiceTrayProps {
   onCancel?: () => void;
   skins?: DiceSkin[] | null;
   opponentSelectedDice?: string[];
+  className?: string;
 }
 
 export function DiceTray({
@@ -39,6 +40,7 @@ export function DiceTray({
   onCancel,
   skins = null,
   opponentSelectedDice = [],
+  className,
 }: DiceTrayProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -91,7 +93,7 @@ export function DiceTray({
   };
 
   return (
-    <div className="bg-card border rounded-lg p-4">
+    <div className={cn("bg-card border rounded-lg p-4 flex flex-col", className)}>
       <div className="mb-3">
         <h3 className="text-sm font-semibold text-muted-foreground">
           {playerName}&apos;s Dice ({dice.length} remaining)
@@ -102,7 +104,7 @@ export function DiceTray({
           </p>
         )}
       </div>
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="flex flex-1 flex-wrap gap-2 justify-center content-center">
         {hideValues ? (
           dice.map((die) => (
             <div

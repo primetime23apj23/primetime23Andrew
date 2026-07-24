@@ -45,9 +45,7 @@ export function GameControls({
   const showRoundIndicator = phase === "rolling" && !rollInHeader;
   const showGameOver = phase === "gameOver";
   const showRollButton = phase === "rolling" && !rollInHeader;
-  const showPlayingButtons =
-    phase === "playing" &&
-    (!hasValidMoves || (isMultiplayer && !!onReadyForNextRound));
+  const showPlayingButtons = phase === "playing" && !hasValidMoves;
   const showRoundEnd = phase === "roundEnd";
   const hasContent =
     showRoundIndicator ||
@@ -102,16 +100,6 @@ export function GameControls({
               >
                 <SkipForward className="w-4 h-4" />
                 End Turn
-              </Button>
-            )}
-            {isMultiplayer && onReadyForNextRound && (
-              <Button 
-                onClick={onReadyForNextRound}
-                variant="outline"
-                className="gap-2"
-              >
-                <Dices className="w-5 h-5" />
-                Ready for Next Round
               </Button>
             )}
           </>

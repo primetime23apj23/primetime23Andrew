@@ -36,6 +36,7 @@ import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
 import { playCapturSound, playVictorySound, playOpponentMoveSound, playFireworksSound } from "@/lib/sound-effects";
 import { PartyCelebration } from "./party-celebration";
+import { GameOverOverlay } from "./game-over-overlay";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
@@ -379,14 +380,8 @@ export function PrimeFactorGame({
   const isLocalPlayersTurn =
     (botEnabled && gameState.currentPlayer === 0) || (isMultiplayer && localPlayerIndex !== null && localPlayerIndex === gameState.currentPlayer);
 
-  // Disambiguate seats in multiplayer (players may share the same display name)
-  // by marking the local player's seat with "(You)".
   const getSeatDisplayName = (seatIndex: number) => {
-    const baseName = gameState.players[seatIndex]?.name ?? `Player ${seatIndex + 1}`;
-    if (isMultiplayer && localPlayerIndex === seatIndex) {
-      return `${baseName} (You)`;
-    }
-    return baseName;
+    return gameState.players[seatIndex]?.name ?? `Player ${seatIndex + 1}`;
   };
 
   // Keep gameStateRef in sync for use in callbacks
@@ -2476,6 +2471,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
         );
         const totalScore = newPlayers[1].score + newPlayers[1].bonusPoints;
 
+        // Record the bot's most recent capture so its factorization box updates,
+        // mirroring the human claim path.
+        const nextLastCapturePerPlayer = [
+          prev.lastCapturePerPlayer?.[0] ?? null,
+          { space: space.number, factors: space.factors },
+        ];
+
         if (totalScore >= prev.targetScore) {
           botTurnScheduledRef.current = false;
           setCelebrationNumbers(ownedNumbers);
@@ -2486,7 +2488,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
             players: newPlayers, 
             selectedDice: [], 
             phase: "gameOver",
-            message: `Bot wins with ${totalScore} points!` 
+            message: `Bot wins with ${totalScore} points!`,
+            lastCapturePerPlayer: nextLastCapturePerPlayer,
           };
         }
 
@@ -2584,6 +2587,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
           currentPlayer: 0,   // ← human's turn
           selectedDice: [],
           message: `Bot claimed space ${space.number}! ${newPlayers[0].name}'s turn.`,
+          lastCapturePerPlayer: nextLastCapturePerPlayer,
         };
       });
 
@@ -2990,8 +2994,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
             {/* Player 1 Dice - always shown once dice are rolled */}
             {diceRolled && gameState.phase !== "rolling" && (
-              <div className={`${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
+              <div className={`flex-1 flex ${gameState.currentPlayer === 0 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
+                  className="flex-1 w-full"
                   dice={player1Dice}
                   selectedDice={gameState.currentPlayer === 0 ? gameState.selectedDice : []}
                   onDieClick={handleDieClick}
@@ -3066,8 +3071,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
 
             {/* Player 2 Dice - always shown once dice are rolled */}
             {diceRolled && player2Dice.length > 0 && (botEnabled || isMultiplayer) && gameState.phase !== "rolling" && (
-              <div className={`${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
+              <div className={`flex-1 flex ${gameState.currentPlayer === 1 ? "ring-2 ring-primary rounded-lg" : "opacity-60"}`}>
                 <DiceTray
+                  className="flex-1 w-full"
                   dice={player2Dice}
                   selectedDice={gameState.currentPlayer === 1 ? gameState.selectedDice : []}
                   onDieClick={handleDieClick}
@@ -3128,7 +3134,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
         {/* Legend */}
         <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded border-2 border-red-500" />
+            <div className="w-4 h-4 rounded-full border-2 border-red-500" />
             <span>Prime Number (cannot claim)</span>
           </div>
           <div className="flex items-center gap-2">
@@ -3139,15 +3145,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
             <div className="w-4 h-4 rounded bg-muted border border-dashed border-muted-foreground/30" />
             <span>Claimed (removed)</span>
           </div>
-          {gameState.players.map((player, idx) => (
-            <div key={player.name} className="flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: PLAYER_COLORS[idx] }}
-              />
-              <span>{player.name}</span>
-            </div>
-          ))}
+  {gameState.players.map((player) => (
+  <div key={player.name} className="flex items-center gap-2">
+  <span>{player.name}</span>
+  </div>
+  ))}
         </div>
       </div>
 
@@ -3285,6 +3287,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
         numbers={celebrationNumbers}
         winnerName={gameState.players[gameState.currentPlayer]?.name || "Champion"}
         onComplete={() => setIsTrainCelebrating(false)}
+      />
+      <GameOverOverlay
+        isActive={gameState.phase === "gameOver"}
+        players={gameState.players}
+        onPlayAgain={handleNewGame}
       />
     </div>
   );
