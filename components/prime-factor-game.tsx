@@ -36,6 +36,7 @@ import type { CompletedTrack } from "./connection-animation";
 import { getBotMoveForMultiplication, type BotDifficulty } from "@/lib/bot-utils";
 import { playCapturSound, playVictorySound, playOpponentMoveSound, playFireworksSound } from "@/lib/sound-effects";
 import { PartyCelebration } from "./party-celebration";
+import { GameOverOverlay } from "./game-over-overlay";
 import { MultiplicationGameTutorial } from "./multiplication-tutorial";
 import { MultiplayerModeSelector, type ModeOption } from "./multiplayer-mode-dialog";
 import { WaitingRoomDialog } from "./waiting-room-dialog";
@@ -3286,6 +3287,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
         numbers={celebrationNumbers}
         winnerName={gameState.players[gameState.currentPlayer]?.name || "Champion"}
         onComplete={() => setIsTrainCelebrating(false)}
+      />
+      <GameOverOverlay
+        isActive={gameState.phase === "gameOver"}
+        players={gameState.players}
+        onPlayAgain={handleNewGame}
       />
     </div>
   );
