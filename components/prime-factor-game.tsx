@@ -2341,7 +2341,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
       if (!current || current.currentPlayer !== 1 || current.phase !== "rolling") return;
       
       void handleRoll();
-    }, 800); // Small delay to feel more natural
+    }, 2000); // Slower, more deliberate roll
 
     return () => clearTimeout(timer);
   }, [botEnabled, isMultiplayer, gameState.currentPlayer, gameState.phase, diceRolled, handleRoll]);
@@ -2517,7 +2517,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
         };
       });
 
-    }, 1500);
+    }, 4500); // Slower bot: 1.5s think + extra 3s delay before claiming
 
     // Cleanup only runs when the effect's deps change (turn/phase/mode) or on
     // unmount — volatile values like player2Dice/diceRolled are NOT deps, so a
