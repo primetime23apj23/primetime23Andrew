@@ -1381,13 +1381,13 @@ export function PrimeFactorGame({
       ) || 1;
       
       // Celebrate with a short volley of canvas fireworks bursts
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 13; i++) {
         setTimeout(() => {
           spawnFireworks(
             window.innerWidth * (0.15 + Math.random() * 0.7),
             window.innerHeight * (0.15 + Math.random() * 0.5)
           );
-        }, i * 400);
+        }, i * 350); // last burst ~4.2s; sparks fade by 5s, matching the bonus text
       }
       
       // Show bonus text overlay for 5 seconds
@@ -2094,13 +2094,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
       playFireworksSound();
       
       // Celebrate with a short volley of canvas fireworks bursts
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 13; i++) {
         setTimeout(() => {
           spawnFireworks(
             window.innerWidth * (0.15 + Math.random() * 0.7),
             window.innerHeight * (0.15 + Math.random() * 0.5)
           );
-        }, i * 400);
+        }, i * 350); // last burst ~4.2s; sparks fade by 5s, matching the bonus text
       }
       
       // Show bonus text overlay for 5 seconds
@@ -2460,13 +2460,13 @@ const channel = subscribeToSession(sessionCode, (session) => {
         playCapturSound();
         playFireworksSound();
 
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 13; i++) {
           setTimeout(() => {
             spawnFireworks(
               window.innerWidth * (0.15 + Math.random() * 0.7),
               window.innerHeight * (0.15 + Math.random() * 0.5)
             );
-          }, i * 400);
+          }, i * 350); // last burst ~4.2s; sparks fade by 5s, matching the bonus text
         }
 
         setShowBonusOverlay(true);
@@ -2730,6 +2730,10 @@ const channel = subscribeToSession(sessionCode, (session) => {
   const handleNewGame = useCallback(() => {
     gameStateVersionRef.current = -1;
     setSessionLocalPlayerId(null);
+    // Leave the gameOver phase immediately so the victory overlay dismisses
+    // as soon as Play Again is clicked (instead of lingering over the setup
+    // dialog and the new game).
+    setGameState((prev) => ({ ...prev, phase: "setup" }));
     setShowSetup(true);
   }, []);
 
