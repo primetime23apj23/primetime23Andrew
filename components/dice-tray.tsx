@@ -246,8 +246,13 @@ function DieComponent({
       )}
       role="button"
       tabIndex={disabled ? -1 : 0}
-      onClick={onClick}
+      aria-disabled={disabled}
+      onClick={() => {
+        if (disabled || die.used) return;
+        onClick();
+      }}
       onKeyDown={(e) => {
+        if (disabled || die.used) return;
         if (e.key === "Enter" || e.key === " ") {
           onClick();
         }
