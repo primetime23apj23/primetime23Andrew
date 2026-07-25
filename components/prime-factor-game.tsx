@@ -2758,6 +2758,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
     if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
     // Reset all UI state variables from the previous game
     setLastCapturePerPlayer([null, null]);
+    // Reset game mode and player settings
+    setIsMultiplayer(false);
+    setBotEnabled(false);
+    setBotDifficulty("medium");
+    setPlayerNames(["Player 1", "Player 2"]);
     // Return to main menu instead of starting a new game
     setShowModeSelect(true);
     setShowSetup(false);
