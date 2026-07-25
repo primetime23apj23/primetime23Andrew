@@ -2756,6 +2756,9 @@ const channel = subscribeToSession(sessionCode, (session) => {
     setCelebrationNumbers([]);
     setShowBonusOverlay(false);
     if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
+    // Fully reset the game state so the game over overlay is dismissed
+    // and no data lingers from the finished game.
+    setGameState(createInitialState(37));
     // Reset all UI state variables from the previous game
     setLastCapturePerPlayer([null, null]);
     // Reset game mode and player settings
