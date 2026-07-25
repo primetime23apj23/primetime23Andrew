@@ -30,6 +30,8 @@ export function getBotMoveForMultiplication(
 
   for (const space of board) {
     if (space.isPrime || space.owner !== null) continue;
+    // Spaces with no prime factorization (0 and 1) can never be claimed with dice
+    if (!space.factors || space.factors.length === 0) continue;
     
     // Try to match the space's factors with available dice
     const factors = [...space.factors];
