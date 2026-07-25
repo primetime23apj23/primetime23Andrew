@@ -3111,7 +3111,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             <div className="w-4 h-4 rounded bg-muted border border-dashed border-muted-foreground/30" />
             <span>Claimed (removed)</span>
           </div>
-  {gameState.players.map((player) => (
+  {!botEnabled && !isMultiplayer && gameState.players.map((player) => (
   <div key={player.name} className="flex items-center gap-2">
   <span>{player.name}</span>
   </div>
