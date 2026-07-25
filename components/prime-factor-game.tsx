@@ -2756,6 +2756,8 @@ const channel = subscribeToSession(sessionCode, (session) => {
     setCelebrationNumbers([]);
     setShowBonusOverlay(false);
     if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
+    // Reset game state phase to clear the game over overlay
+    setGameState((prev) => ({ ...prev, phase: "setup" }));
     // Return to main menu instead of starting a new game
     setShowModeSelect(true);
     setShowSetup(false);
