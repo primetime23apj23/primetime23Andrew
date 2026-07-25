@@ -137,27 +137,17 @@ function BoardSpaceCell({
     );
   }
 
-  // Prime numbers - never claimed, just display
+  // Prime numbers - never claimed, never edited with custom dice
   if (space.isPrime) {
-    const primeSkin = getDiceSkinImage(space.number, skins);
     return (
       <div
         data-space={space.number}
         className="w-full h-full flex flex-col items-center justify-center p-0.5 bg-white dark:bg-zinc-900 cursor-default"
       >
         <div className="flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-red-400 dark:border-red-500 overflow-hidden">
-          {primeSkin ? (
-            <img
-              src={primeSkin || "/placeholder.svg"}
-              alt={`${space.number}`}
-              className="w-full h-full object-cover"
-              draggable={false}
-            />
-          ) : (
-            <span className="leading-none text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">
-              {space.number}
-            </span>
-          )}
+          <span className="leading-none text-sm sm:text-lg md:text-xl font-bold text-blue-600 dark:text-blue-400">
+            {space.number}
+          </span>
         </div>
       </div>
     );
