@@ -1434,7 +1434,7 @@ export function PrimeFactorGame({
   }, [applySavedGameState, getLatestGameStateRecord]);
 
   // Start game with target score
-  const handleStartGame = useCallback(async (targetScore: number, enableBot: boolean, difficulty: BotDifficulty) => {
+  const handleStartGame = useCallback(async (targetScore: number, enableBot: boolean, difficulty: BotDifficulty, customPlayerName?: string, customBotName?: string) => {
     let resolvedPlayerNames: [string, string] = playerNames;
 
     if (isMultiplayer && sessionId) {
@@ -1447,6 +1447,10 @@ export function PrimeFactorGame({
         setPlayerNames(resolvedPlayerNames);
         setOpponentName(latestSession.player_2_name || opponentName);
       }
+    } else if (enableBot && customPlayerName) {
+      // Use custom names for bot mode if provided
+      resolvedPlayerNames = [customPlayerName, customBotName || "Bot"];
+      setPlayerNames(resolvedPlayerNames);
     }
 
     setBotEnabled(enableBot);
@@ -1454,7 +1458,7 @@ export function PrimeFactorGame({
     const initial = createInitialState(targetScore);
     initial.players = [
       { ...initial.players[0], name: resolvedPlayerNames[0] },
-      { ...initial.players[1], name: enableBot ? "Bot" : resolvedPlayerNames[1] },
+      { ...initial.players[1], name: enableBot ? (customBotName || "Bot") : resolvedPlayerNames[1] },
     ];
     initial.phase = "rolling";
     // Set the game starter - in multiplayer, currentPlayer (0) is typically the session creator
