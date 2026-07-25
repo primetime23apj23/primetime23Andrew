@@ -170,7 +170,7 @@ export function TargetScoreSelector({
                 </button>
               </div>
 
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-sm font-bold text-center">
                 {activeScore >= 1
                   ? `First player to reach ${activeScore} points wins`
                   : "Enter a valid target score"}
