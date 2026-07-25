@@ -93,9 +93,27 @@ export function DiceSkinSettings({ skins, onSkinsChange }: DiceSkinSettingsProps
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-          <ImageIcon className="h-4 w-4" />
-          <span className="hidden sm:inline">Dice Designs</span>
+        <Button variant="outline" size="sm" className="gap-2 bg-transparent p-2" title="Dice Designs">
+          <div className="flex gap-1">
+            {skins.slice(0, 4).map((skin) => (
+              <div
+                key={String(skin.value)}
+                className="w-6 h-6 rounded border border-border bg-muted/30 flex items-center justify-center text-xs font-bold overflow-hidden"
+              >
+                {skin.imageUrl ? (
+                  <img
+                    src={skin.imageUrl}
+                    alt={`Dice ${skin.label}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-muted-foreground text-[10px]">
+                    {skin.value === "W" ? "W" : skin.value}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
