@@ -108,7 +108,7 @@ export function GameOverOverlay({ isActive, players, onPlayAgain }: GameOverOver
 
           <Button onClick={onPlayAgain} size="lg" className="mt-4 w-full gap-2 text-base font-bold">
             <RotateCcw className="h-5 w-5" />
-            Play Again
+            Play Again?
           </Button>
         </div>
       </div>

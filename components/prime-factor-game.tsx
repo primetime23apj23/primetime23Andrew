@@ -2752,11 +2752,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
     setCelebrationNumbers([]);
     setShowBonusOverlay(false);
     if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
-    // Leave the gameOver phase immediately so the victory overlay dismisses
-    // as soon as Play Again is clicked (instead of lingering over the setup
-    // dialog and the new game).
-    setGameState((prev) => ({ ...prev, phase: "setup" }));
-    setShowSetup(true);
+    // Return to main menu instead of starting a new game
+    setShowModeSelect(true);
+    setShowSetup(false);
+    setShowGameSetup(false);
+    setShowLobby(false);
   }, []);
 
   // Get selected dice objects
