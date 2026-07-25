@@ -2550,7 +2550,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
         });
       }
 
-    }, 4500); // Slower bot: 1.5s think + extra 3s delay before claiming
+    }, 3500); // Bot thinking delay before claiming (reduced by 1s)
 
     // Cleanup only runs when the effect's deps change (turn/phase/mode) or on
     // unmount — volatile values like player2Dice/diceRolled are NOT deps, so a
