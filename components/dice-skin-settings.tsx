@@ -95,7 +95,7 @@ export function DiceSkinSettings({ skins, onSkinsChange }: DiceSkinSettingsProps
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2 bg-transparent">
           <ImageIcon className="h-4 w-4" />
-          <span className="hidden sm:inline">Dice Designs</span>
+          <span className="hidden sm:inline">Upload Dice Designs</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">

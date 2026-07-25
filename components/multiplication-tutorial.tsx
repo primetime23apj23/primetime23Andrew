@@ -3,7 +3,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -20,7 +19,6 @@ export function MultiplicationGameTutorial({ open, onOpenChange }: TutorialDialo
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>How to Play: Times of Primes</DialogTitle>
-          <DialogDescription>Master the art of prime connections</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">

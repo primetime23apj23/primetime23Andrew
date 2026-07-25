@@ -16,7 +16,7 @@ import type { BotDifficulty } from "@/lib/bot-utils";
 interface TargetScoreSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onStartGame: (targetScore: number, botEnabled: boolean, botDifficulty: BotDifficulty) => void;
+  onStartGame: (targetScore: number, botEnabled: boolean, botDifficulty: BotDifficulty, playerName?: string, botName?: string) => void;
   onShowTutorial?: () => void;
   onPlayOnline?: () => void;
   isMultiplayer?: boolean;
@@ -52,6 +52,8 @@ export function TargetScoreSelector({
   const [customScore, setCustomScore] = useState("");
   const [botEnabled, setBotEnabled] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>("medium");
+  const [playerName, setPlayerName] = useState("Player 1");
+  const [botName, setBotName] = useState("Bot");
 
   useEffect(() => {
     if (!open) return;
@@ -73,7 +75,7 @@ export function TargetScoreSelector({
 
   const handleStartGame = () => {
     if (activeScore >= 1) {
-      onStartGame(activeScore, isMultiplayer ? false : botEnabled, botDifficulty);
+      onStartGame(activeScore, isMultiplayer ? false : botEnabled, botDifficulty, playerName, botName);
     }
   };
 
@@ -168,7 +170,7 @@ export function TargetScoreSelector({
                 </button>
               </div>
 
-              <p className="text-sm text-muted-foreground text-center">
+              <p className="text-sm font-bold text-center">
                 {activeScore >= 1
                   ? `First player to reach ${activeScore} points wins`
                   : "Enter a valid target score"}
@@ -193,23 +195,49 @@ export function TargetScoreSelector({
                   </button>
 
                   {botEnabled && (
-                    <div className="flex gap-2">
-                      {BOT_DIFFICULTIES.map((diff) => (
-                        <button
-                          key={diff.value}
-                          type="button"
-                          onClick={() => setBotDifficulty(diff.value)}
-                          className={`flex-1 flex flex-col items-center gap-0.5 p-2 rounded-lg border-2 transition-colors ${
-                            botDifficulty === diff.value
-                              ? "border-primary bg-primary/10"
-                              : "border-border hover:border-primary/50 hover:bg-muted"
-                          }`}
-                        >
-                          <span className="text-sm font-bold">{diff.label}</span>
-                          <span className="text-[10px] text-muted-foreground">{diff.description}</span>
-                        </button>
-                      ))}
-                    </div>
+                    <>
+                      <div className="flex gap-2">
+                        {BOT_DIFFICULTIES.map((diff) => (
+                          <button
+                            key={diff.value}
+                            type="button"
+                            onClick={() => setBotDifficulty(diff.value)}
+                            className={`flex-1 flex flex-col items-center gap-0.5 p-2 rounded-lg border-2 transition-colors ${
+                              botDifficulty === diff.value
+                                ? "border-primary bg-primary/10"
+                                : "border-border hover:border-primary/50 hover:bg-muted"
+                            }`}
+                          >
+                            <span className="text-sm font-bold">{diff.label}</span>
+                            <span className="text-[10px] text-muted-foreground">{diff.description}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Player Names */}
+                      <div className="space-y-2 bg-muted/30 rounded-lg p-3">
+                        <div>
+                          <label className="text-xs font-semibold text-muted-foreground">Your Name</label>
+                          <input
+                            type="text"
+                            value={playerName}
+                            onChange={(e) => setPlayerName(e.target.value)}
+                            placeholder="Enter your name"
+                            className="w-full bg-background border rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary mt-1"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-semibold text-muted-foreground">Bot Name</label>
+                          <input
+                            type="text"
+                            value={botName}
+                            onChange={(e) => setBotName(e.target.value)}
+                            placeholder="Enter bot name"
+                            className="w-full bg-background border rounded px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary mt-1"
+                          />
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               )}

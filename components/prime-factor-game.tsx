@@ -1434,7 +1434,7 @@ export function PrimeFactorGame({
   }, [applySavedGameState, getLatestGameStateRecord]);
 
   // Start game with target score
-  const handleStartGame = useCallback(async (targetScore: number, enableBot: boolean, difficulty: BotDifficulty) => {
+  const handleStartGame = useCallback(async (targetScore: number, enableBot: boolean, difficulty: BotDifficulty, customPlayerName?: string, customBotName?: string) => {
     let resolvedPlayerNames: [string, string] = playerNames;
 
     if (isMultiplayer && sessionId) {
@@ -1447,6 +1447,10 @@ export function PrimeFactorGame({
         setPlayerNames(resolvedPlayerNames);
         setOpponentName(latestSession.player_2_name || opponentName);
       }
+    } else if (enableBot && customPlayerName) {
+      // Use custom names for bot mode if provided
+      resolvedPlayerNames = [customPlayerName, customBotName || "Bot"];
+      setPlayerNames(resolvedPlayerNames);
     }
 
     setBotEnabled(enableBot);
@@ -1454,7 +1458,7 @@ export function PrimeFactorGame({
     const initial = createInitialState(targetScore);
     initial.players = [
       { ...initial.players[0], name: resolvedPlayerNames[0] },
-      { ...initial.players[1], name: enableBot ? "Bot" : resolvedPlayerNames[1] },
+      { ...initial.players[1], name: enableBot ? (customBotName || "Bot") : resolvedPlayerNames[1] },
     ];
     initial.phase = "rolling";
     // Set the game starter - in multiplayer, currentPlayer (0) is typically the session creator
@@ -2752,11 +2756,11 @@ const channel = subscribeToSession(sessionCode, (session) => {
     setCelebrationNumbers([]);
     setShowBonusOverlay(false);
     if (bonusOverlayTimerRef.current) clearTimeout(bonusOverlayTimerRef.current);
-    // Leave the gameOver phase immediately so the victory overlay dismisses
-    // as soon as Play Again is clicked (instead of lingering over the setup
-    // dialog and the new game).
-    setGameState((prev) => ({ ...prev, phase: "setup" }));
-    setShowSetup(true);
+    // Return to main menu instead of starting a new game
+    setShowModeSelect(true);
+    setShowSetup(false);
+    setShowGameSetup(false);
+    setShowLobby(false);
   }, []);
 
   // Get selected dice objects
@@ -3111,7 +3115,7 @@ const channel = subscribeToSession(sessionCode, (session) => {
             <div className="w-4 h-4 rounded bg-muted border border-dashed border-muted-foreground/30" />
             <span>Claimed (removed)</span>
           </div>
-  {gameState.players.map((player) => (
+  {!botEnabled && !isMultiplayer && gameState.players.map((player) => (
   <div key={player.name} className="flex items-center gap-2">
   <span>{player.name}</span>
   </div>
