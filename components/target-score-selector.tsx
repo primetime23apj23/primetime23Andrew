@@ -119,6 +119,12 @@ export function TargetScoreSelector({
             </div>
           ) : (
             <>
+              <p className="text-sm font-bold text-center">
+                {activeScore >= 1
+                  ? `First player to reach ${activeScore} points wins`
+                  : "Enter a valid target score"}
+              </p>
+
               {/* Difficulty Buttons */}
               <div className="grid grid-cols-3 gap-3">
                 {DIFFICULTY_PRESETS.map((preset, idx) => (
@@ -169,12 +175,6 @@ export function TargetScoreSelector({
                   />
                 </button>
               </div>
-
-              <p className="text-sm font-bold text-center">
-                {activeScore >= 1
-                  ? `First player to reach ${activeScore} points wins`
-                  : "Enter a valid target score"}
-              </p>
 
               {/* Bot Toggle */}
               {!isLocalPlay && (
