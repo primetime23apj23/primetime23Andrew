@@ -36,7 +36,7 @@ export function MultiplicationGameTutorial({ open, onOpenChange }: TutorialDialo
             <ul className="text-sm space-y-2 text-muted-foreground list-disc list-inside">
               <li>Choose your target score (how many points to win)</li>
               <li>Optionally enable a bot opponent and select difficulty</li>
-              <li>Configure dice skins and timer settings</li>
+              <li>Customize dice skins if desired</li>
               <li>Click "Start Game" to begin</li>
             </ul>
           </div>
